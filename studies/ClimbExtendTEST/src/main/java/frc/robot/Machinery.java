@@ -88,7 +88,7 @@ public class Machinery {
         //
         LoggerFactory driveLog = logger.name("Drive");
         TotalCurrentLog currentLog = new TotalCurrentLog(logger);
-        m_swerveKinodynamics = SwerveKinodynamicsFactory.get(driveLog);
+        m_swerveKinodynamics = SwerveKinodynamicsFactory.get();
 
         m_modules = SwerveModuleCollection.get(
                 driveLog,

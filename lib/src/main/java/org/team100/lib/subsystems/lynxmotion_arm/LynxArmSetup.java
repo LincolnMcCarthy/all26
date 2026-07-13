@@ -1,6 +1,8 @@
 package org.team100.lib.subsystems.lynxmotion_arm;
 
 import org.team100.lib.hid.ControlUtil;
+import org.team100.lib.kinematics.lynx_arm.AnalyticLynxArmKinematics;
+import org.team100.lib.kinematics.lynx_arm.LynxArmKinematics;
 
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;

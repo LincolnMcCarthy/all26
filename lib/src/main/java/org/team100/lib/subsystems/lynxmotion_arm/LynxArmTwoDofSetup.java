@@ -1,5 +1,6 @@
 package org.team100.lib.subsystems.lynxmotion_arm;
 
+import org.team100.lib.subsystems.lynxmotion_arm.commands.MoveCommandTwoDof;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.driverstation.Gamepad;
 import org.wpilib.command2.Commands;

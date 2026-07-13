@@ -31,22 +31,21 @@ public class DiscusMech extends SubsystemBase {
     private static final double SUPPLY_LIMIT = 100;
     private static final double STATOR_LIMIT = 100;
 
-    private final RotaryMechanism m_mechP1;
+    private final RotaryMechanism m_mech;
 
-    private final BareMotor m_motorP1;
+    private final BareMotor m_motor;
 
-    private final HomingRotaryPositionSensor m_sensorP1;
+    private final HomingRotaryPositionSensor m_sensor;
 
     public DiscusMech(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory logger = parent.type(this);
         /** Units of positional PID are volts per revolution. */
-        PIDConstants pid = PIDConstants.makePositionPID(
-                logger, 0.0); // 2.0
-        Friction friction = new Friction(logger, 0.16, 0.15, 0, 0);
+        PIDConstants pid = PIDConstants.makePositionPID(0.0); // 2.0
+        Friction friction = new Friction(0.16, 0.15, 0, 0);
 
         switch (Identity.instance) {
             case TEAM100_2018 -> {
-                Falcon500Motor motorP1 = new Falcon500Motor(
+                Falcon500Motor motor = new Falcon500Motor(
                         logger,
                         currentLog,
                         new CanId(36),
@@ -56,32 +55,32 @@ public class DiscusMech extends SubsystemBase {
                         friction,
                         pid);
 
-                m_motorP1 = motorP1;
+                m_motor = motor;
 
-                m_sensorP1 = new HomingRotaryPositionSensor(
-                        new ProxyRotaryPositionSensor(motorP1.encoder(), 1.0));
+                m_sensor = new HomingRotaryPositionSensor(
+                        new ProxyRotaryPositionSensor(motor.encoder(), 1.0));
 
-                m_mechP1 = new RotaryMechanism(
+                m_mech = new RotaryMechanism(
                         logger,
-                        motorP1,
-                        m_sensorP1,
+                        motor,
+                        m_sensor,
                         1.0,
                         -100.0,
                         100.0);
 
             }
             default -> {
-                SimulatedBareMotor motorP1 = new SimulatedBareMotor(logger, 600);
-                m_motorP1 = motorP1;
+                SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
+                m_motor = motor;
 
-                m_sensorP1 = new HomingRotaryPositionSensor(
+                m_sensor = new HomingRotaryPositionSensor(
                         new ProxyRotaryPositionSensor(
-                                motorP1.encoder(), 1.0));
+                                motor.encoder(), 1.0));
 
-                m_mechP1 = new RotaryMechanism(
+                m_mech = new RotaryMechanism(
                         logger,
-                        motorP1,
-                        m_sensorP1,
+                        motor,
+                        m_sensor,
                         1.0,
                         -100.0,
                         100.0);
@@ -91,34 +90,34 @@ public class DiscusMech extends SubsystemBase {
     }
 
     /** Update position by adding. */
-    public void add(double p1) {
-        double q1 = m_mechP1.getUnwrappedPositionRad() + p1;
+    public void add(double p) {
+        double q1 = m_mech.getUnwrappedPositionRad() + p;
         setPosition(q1);
     }
 
     /** Set position goal, motionless. */
-    public void setPosition(double p1) {
-        m_mechP1.setUnwrappedPosition(p1, 0, 0);
+    public void setPosition(double p) {
+        m_mech.setUnwrappedPosition(p, 0, 0);
     }
 
     public void setVelocity(double v) {
-        m_mechP1.setVelocity(v, 0);
+        m_mech.setVelocity(v, 0);
     }
 
     @Override
     public void periodic() {
-        m_mechP1.periodic();
+        m_mech.periodic();
     }
 
     public double getPosition() {
-        return m_mechP1.getWrappedPositionRad();
+        return m_mech.getWrappedPositionRad();
     }
 
     //////////////////////
 
     /** For homing; ignores feasibility and limits. */
-    private void setDutyCycle(double p1) {
-        m_mechP1.setDutyCycleUnlimited(p1);
+    private void setDutyCycle(double p) {
+        m_mech.setDutyCycleUnlimited(p);
     }
 
     /**
@@ -126,7 +125,7 @@ public class DiscusMech extends SubsystemBase {
      * cycle (gently) to the end of travel before pushing the "home" button.
      */
     private void setHomePosition() {
-        m_motorP1.setUnwrappedEncoderPositionRad(0);
+        m_motor.setUnwrappedEncoderPositionRad(0);
     }
 
     ///////////////////////
@@ -153,6 +152,6 @@ public class DiscusMech extends SubsystemBase {
 
     /** Voltage should be something like 0.1. */
     public Command friction(DoubleSupplier v) {
-        return run(() -> m_mechP1.setVoltage(v.getAsDouble()));
+        return run(() -> m_mech.setVoltage(v.getAsDouble()));
     }
 }
