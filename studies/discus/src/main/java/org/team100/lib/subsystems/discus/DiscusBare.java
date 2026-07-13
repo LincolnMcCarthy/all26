@@ -35,8 +35,8 @@ public class DiscusBare extends SubsystemBase {
         LoggerFactory logger = parent.type(this);
         switch (Identity.instance) {
             case TEAM100_2018 -> {
-                Friction friction = new Friction(logger, 0.1, 0.1, 0, 0);
-                PIDConstants pid = PIDConstants.makePositionPID(logger, 0.0);
+                Friction friction = new Friction(0.1, 0.1, 0, 0);
+                PIDConstants pid = PIDConstants.makePositionPID(0.0);
                 m_motor = new Falcon500Motor(
                         logger,
                         currentLog,

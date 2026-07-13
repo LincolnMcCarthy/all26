@@ -32,7 +32,7 @@ public class ClimberExtension extends SubsystemBase {
 
     public ClimberExtension(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory log = parent.type(this);
-        ProfileR1 profile = new TrapezoidProfileR1(log, 0.1, 2, 0.05);
+        ProfileR1 profile = new TrapezoidProfileR1(0.1, 2, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         double wheelDiameterM = 0.001275;
         int gearRatio = 1;
@@ -48,8 +48,8 @@ public class ClimberExtension extends SubsystemBase {
                         NeutralMode100.BRAKE,
                         MotorPhase.FORWARD,
                         limit,
-                        new Friction(log, 0, 0, 0, 0),
-                        new PIDConstants(log, 1, 0, 0, 0, 0, 0),
+                        new Friction(0, 0, 0, 0),
+                        new PIDConstants(1, 0, 0, 0, 0, 0),
                         0,
                         0);
                 IncrementalBareEncoder encoder = m_motor.encoder();

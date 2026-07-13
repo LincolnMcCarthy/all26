@@ -40,28 +40,27 @@ public class DiscusServo extends SubsystemBase {
     private static final double MAX_VELOCITY = 10; // rad/s
     private static final double MAX_ACCEL = 20; // rad/s/s
 
-    private final ProxyRotaryPositionSensor m_sensorP1;
-    private final AngularPositionServo m_servoP1;
+    private final ProxyRotaryPositionSensor m_sensor;
+    private final AngularPositionServo m_servo;
 
     public DiscusServo(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory logger = parent.type(this);
-        LoggerFactory loggerP1 = logger.name("p1");
 
         // zeros
         // PID = 1.0, 0.0, 0.05
-        PIDConstants pid = PIDConstants.makePositionPID(logger, 1.0, 0, 0); // d = 0.12 was experimentally found
-        Friction friction = new Friction(logger, 0.16, 0.15, 0, 0);
+        PIDConstants pid = PIDConstants.makePositionPID(1.0, 0, 0); // d = 0.12 was experimentally found
+        Friction friction = new Friction(0.16, 0.15, 0, 0);
         ProfileR1 profile = new TrapezoidProfileR1(
-                logger, MAX_VELOCITY, MAX_ACCEL, POSITION_TOLERANCE);
-        ReferenceR1 refP1 = new ProfileReferenceR1(
-                loggerP1, () -> profile, POSITION_TOLERANCE, VELOCITY_TOLERANCE);
-        RDynamics dynP1 = new RDynamics(0, 0, 0);
+                MAX_VELOCITY, MAX_ACCEL, POSITION_TOLERANCE);
+        ReferenceR1 ref = new ProfileReferenceR1(
+                logger, () -> profile, POSITION_TOLERANCE, VELOCITY_TOLERANCE);
+        RDynamics dyn = new RDynamics(0, 0, 0);
 
-        BareMotor motorP1;
+        BareMotor motor;
         switch (Identity.instance) {
             case TEAM100_2018 -> {
-                motorP1 = new Falcon500Motor(
-                        loggerP1,
+                motor = new Falcon500Motor(
+                        logger,
                         currentLog,
                         new CanId(36),
                         NeutralMode100.COAST,
@@ -71,49 +70,49 @@ public class DiscusServo extends SubsystemBase {
                         pid);
             }
             default -> {
-                motorP1 = new SimulatedBareMotor(loggerP1, 600);
+                motor = new SimulatedBareMotor(logger, 600);
             }
         }
-        m_sensorP1 = new ProxyRotaryPositionSensor(motorP1.encoder(), 1.0);
+        m_sensor = new ProxyRotaryPositionSensor(motor.encoder(), 1.0);
 
-        RotaryMechanism mechP1 = new RotaryMechanism(
-                loggerP1,
-                motorP1,
-                m_sensorP1,
+        RotaryMechanism mech = new RotaryMechanism(
+                logger,
+                motor,
+                m_sensor,
                 1.0,
                 -100.0,
                 100.0);
 
-        m_servoP1 = new OutboardAngularPositionServo(
-                loggerP1,
-                mechP1,
-                dynP1,
-                refP1);
+        m_servo = new OutboardAngularPositionServo(
+                logger,
+                mech,
+                dyn,
+                ref);
 
     }
 
-    public void setPosition(double p1) {
+    public void setPosition(double p) {
         // m_servoP1.setPositionProfiled(p1, 0);
-        m_servoP1.actuateWithProfile(p1);
+        m_servo.actuateWithProfile(p);
     }
 
     public double getPosition() {
-        return m_servoP1.getWrappedPositionRad();
+        return m_servo.getWrappedPositionRad();
     }
 
     @Override
     public void periodic() {
-        m_servoP1.periodic();
+        m_servo.periodic();
     }
 
     //////////////////////
 
-    private void setDutyCycle(double p1) {
-        m_servoP1.setDutyCycle(p1);
+    private void setDutyCycle(double p) {
+        m_servo.setDutyCycle(p);
     }
 
     private void resetEncoderPosition() {
-        m_sensorP1.setEncoderPosition(0);
+        m_sensor.setEncoderPosition(0);
     }
 
     ///////////////////////
@@ -128,7 +127,7 @@ public class DiscusServo extends SubsystemBase {
         return runOnce(this::resetEncoderPosition);
     }
 
-    public Command position(DoubleSupplier p1) {
-        return run(() -> setPosition(p1.getAsDouble()));
+    public Command position(DoubleSupplier p) {
+        return run(() -> setPosition(p.getAsDouble()));
     }
 }
