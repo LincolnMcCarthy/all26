@@ -7,14 +7,14 @@ import org.team100.lib.trajectory.path.PathSE3Parameter;
 import org.team100.lib.trajectory.path.PathSE3Point;
 import org.team100.lib.trajectory.path.PathUtil;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N3;
+import org.wpilib.math.util.MathUtil;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.numbers.N3;
 
 /**
  * Holonomic spline in the SE(3) manifold.
@@ -92,7 +92,7 @@ public class SplineSE3 {
         }
         if (DEBUG) {
             System.out.printf("r0 %f %f %f\n", r0.getX(), r0.getY(), r0.getZ());
-            Rotation3d r0inv = r0.unaryMinus();
+            Rotation3d r0inv = r0.inverse();
             System.out.printf("r0inv %f %f %f\n", r0inv.getX(), r0inv.getY(), r0inv.getZ());
         }
 

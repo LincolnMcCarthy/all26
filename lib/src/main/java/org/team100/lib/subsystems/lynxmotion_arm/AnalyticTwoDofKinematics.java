@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.lynxmotion_arm;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 /**
  * Planar serial arm kinematics: two revolute joints and two links.

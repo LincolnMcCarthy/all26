@@ -26,9 +26,9 @@ import org.team100.lib.subsystems.five_bar.kinematics.JointPositions;
 import org.team100.lib.subsystems.five_bar.kinematics.Scenario;
 import org.team100.lib.util.CanId;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.SubsystemBase;
 
 /**
  * Cartesian control using inverse kinematics, and without profiling.

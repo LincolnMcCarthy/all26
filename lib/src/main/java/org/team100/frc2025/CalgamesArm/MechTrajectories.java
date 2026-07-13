@@ -18,7 +18,7 @@ import org.team100.lib.trajectory.constraint.TimingConstraint;
 import org.team100.lib.trajectory.constraint.TorqueConstraint;
 import org.team100.lib.trajectory.constraint.YawRateConstraint;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.command2.Command;
 
 /** Make a trajectory from the start to the end and follow it. */
 public class MechTrajectories extends Command {

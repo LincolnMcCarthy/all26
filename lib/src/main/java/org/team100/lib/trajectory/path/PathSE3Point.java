@@ -3,8 +3,8 @@ package org.team100.lib.trajectory.path;
 import org.team100.lib.geometry.Metrics;
 import org.team100.lib.geometry.WaypointSE3;
 
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.numbers.N3;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.numbers.N3;
 
 /**
  * Represents a point on a path in SE(3) (3d space with rotation).

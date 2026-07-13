@@ -7,7 +7,7 @@ import org.team100.lib.geometry.WaypointSE3;
 import org.team100.lib.trajectory.constraint.TimingConstraintSE3;
 import org.team100.lib.trajectory.path.PathSE3Point;
 
-import edu.wpi.first.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Pose3d;
 
 public class TrajectorySE3 {
     private final List<TrajectorySE3Entry> m_points;

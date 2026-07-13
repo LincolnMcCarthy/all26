@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
 
 public class LynxArmVisualizerTest {
     private static final boolean DEBUG = false;

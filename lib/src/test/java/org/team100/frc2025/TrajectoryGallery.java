@@ -32,7 +32,7 @@ import org.team100.lib.trajectory.constraint.YawRateConstraint;
 import org.team100.lib.trajectory.path.PathSE2Factory;
 import org.team100.lib.util.ChartUtil;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose2d;
 
 /** Show some trajectories from 2025 in a vector series chart. */
 public class TrajectoryGallery {

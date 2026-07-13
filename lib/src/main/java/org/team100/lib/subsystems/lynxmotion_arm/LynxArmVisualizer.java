@@ -14,22 +14,21 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 import org.opencv.core.Point3;
-
-import edu.wpi.first.cscore.OpenCvLoader;
-import edu.wpi.first.math.MatBuilder;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.MatBuilder;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.Nat;
+import org.wpilib.smartdashboard.Mechanism2d;
+import org.wpilib.smartdashboard.MechanismLigament2d;
+import org.wpilib.smartdashboard.MechanismRoot2d;
+import org.wpilib.smartdashboard.SmartDashboard;
+import org.wpilib.util.Color;
+import org.wpilib.util.Color8Bit;
+import org.wpilib.vision.camera.OpenCvLoader;
 
 /**
  * Use the glass "mechanism" display to show the arm position in 3d.
@@ -75,7 +74,7 @@ public class LynxArmVisualizer {
         m_root = m_view.getRoot("root", 50, 50);
 
         // base angle is zero (pointing right)
-        m_base = new MechanismLigament2d("link", 0, 0, 0, new Color8Bit(Color.kBlack));
+        m_base = new MechanismLigament2d("link", 0, 0, 0, new Color8Bit(Color.BLACK));
         m_root.append(m_base);
 
         m_cameraRange = 0.866;
@@ -121,7 +120,7 @@ public class LynxArmVisualizer {
                 p.p4(),
                 p.p5(),
                 p.p6());
-        paint(m_base, "actual_arm", m_cameraPose, pList, Color.kOrangeRed);
+        paint(m_base, "actual_arm", m_cameraPose, pList, Color.ORANGE_RED);
 
         // List<Translation3d> tList2 = List.of(
         // new Translation3d(0, 0, 0),
@@ -138,7 +137,7 @@ public class LynxArmVisualizer {
                 new Pose3d(0.5, -0.5, 0, Rotation3d.kZero),
                 new Pose3d(0, -0.5, 0, Rotation3d.kZero),
                 new Pose3d(0, 0, 0, Rotation3d.kZero));
-        paint(m_base, "tabletop", m_cameraPose, tList3, Color.kGray);
+        paint(m_base, "tabletop", m_cameraPose, tList3, Color.GRAY);
     }
 
     void paint(
@@ -177,7 +176,7 @@ public class LynxArmVisualizer {
                         length,
                         Math.toDegrees(relativeAngle),
                         LINE_WIDTH,
-                        i == 0 ? new Color8Bit(Color.kBlack) : new Color8Bit(color));
+                        i == 0 ? new Color8Bit(Color.BLACK) : new Color8Bit(color));
                 base.append(link);
                 base = link;
                 ligaments.put(fullname, link);

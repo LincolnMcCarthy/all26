@@ -8,11 +8,10 @@ import java.util.function.DoubleSupplier;
 import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.DoubleCache;
 import org.team100.lib.logging.LoggerFactory;
-
-import edu.wpi.first.networktables.DoubleEntry;
-import edu.wpi.first.networktables.DoubleTopic;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.RobotBase;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.networktables.DoubleEntry;
+import org.wpilib.networktables.DoubleTopic;
+import org.wpilib.networktables.NetworkTableInstance;
 
 /**
  * A mutable double linked to Network Tables, for tuning.

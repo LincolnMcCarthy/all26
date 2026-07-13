@@ -4,8 +4,8 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.trajectory.path.PathSE2Point;
 import org.team100.lib.tuning.Mutable;
 
-import edu.wpi.first.math.geometry.Rectangle2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Rectangle2d;
+import org.wpilib.math.geometry.Translation2d;
 
 /**
  * A constant velocity limit within a rectangle; no limit outside.

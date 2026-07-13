@@ -4,7 +4,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.trajectory.path.PathSE2Point;
 import org.team100.lib.tuning.Mutable;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation2d;
 
 /**
  * Mecanum drive has a diamond-shaped velocity envelope. If the x and y

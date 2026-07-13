@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.subsystems.prr.CoordinatedKinematics.Joints;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 public class CoordinatedKinematicsTest {
     private static final double DELTA = 0.001;

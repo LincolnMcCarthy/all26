@@ -3,9 +3,9 @@ package org.team100.lib.optimization;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.Num;
-import edu.wpi.first.math.Vector;
+import org.wpilib.math.util.Nat;
+import org.wpilib.math.util.Num;
+import org.wpilib.math.linalg.Vector;
 
 /**
  * Line search over each coordinate.

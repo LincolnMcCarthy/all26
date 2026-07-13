@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.lynxmotion_arm;
 
-import edu.wpi.first.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Pose3d;
 
 /**
  * Workspace pose of each joint. The rotation is the rotation of the parent

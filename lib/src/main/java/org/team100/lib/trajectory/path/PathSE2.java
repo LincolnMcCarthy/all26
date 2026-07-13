@@ -6,8 +6,8 @@ import java.util.List;
 import org.team100.lib.geometry.DirectionSE2;
 import org.team100.lib.geometry.Metrics;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Twist2d;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Twist2d;
 
 /**
  * Represents a 2d holonomic path, i.e. with heading independent from course.

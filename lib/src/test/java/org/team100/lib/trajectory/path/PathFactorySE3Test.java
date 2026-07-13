@@ -10,9 +10,9 @@ import org.team100.lib.geometry.WaypointSE3;
 import org.team100.lib.trajectory.spline.SplineSE3;
 import org.team100.lib.trajectory.spline.SplineSE3Factory;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Translation3d;
 
 public class PathFactorySE3Test {
     private static final double DELTA = 0.001;

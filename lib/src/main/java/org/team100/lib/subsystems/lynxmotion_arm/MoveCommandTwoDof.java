@@ -6,9 +6,9 @@ import org.team100.lib.profile.r1.WPITrapezoidProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ModelR1;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.system.Timer;
+import org.wpilib.command2.Command;
 
 public class MoveCommandTwoDof extends Command {
     private final LynxArmTwoDof m_arm;

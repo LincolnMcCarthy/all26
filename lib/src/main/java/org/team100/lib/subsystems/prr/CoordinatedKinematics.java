@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.prr;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 /**
  * Kinematics for the arm/elevator combination.

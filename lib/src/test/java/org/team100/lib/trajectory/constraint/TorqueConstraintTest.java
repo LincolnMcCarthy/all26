@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.WaypointSE2;
 import org.team100.lib.trajectory.path.PathSE2Point;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 
 public class TorqueConstraintTest {
     private static final double DELTA = 0.001;
