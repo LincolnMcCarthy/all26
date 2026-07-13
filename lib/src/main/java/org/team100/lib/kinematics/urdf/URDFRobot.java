@@ -7,13 +7,12 @@ import java.util.function.Function;
 
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.optimization.NewtonsMethod;
-
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.Num;
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.numbers.N6;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.numbers.N6;
+import org.wpilib.math.util.Nat;
+import org.wpilib.math.util.Num;
 
 /**
  * This is a partial implementation of the URDF object model.
@@ -103,7 +102,7 @@ public class URDFRobot<Q extends Num> {
             return pose;
         };
 
-        Function<Vector<Q>, Vector<N6>> err = q -> GeometryUtil.toVec(goal.log(fwd.apply(q)));
+        Function<Vector<Q>, Vector<N6>> err = q -> GeometryUtil.toVec(fwd.apply(q).minus(goal).log());
 
         // this function always uses pose3d so the goal dim is always N6.
         Nat<N6> twistDim = Nat.N6();
@@ -141,7 +140,7 @@ public class URDFRobot<Q extends Num> {
         return qMap(qVec);
     }
 
-    ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////
 
     URDFJoint getJoint(String name) {
         for (URDFJoint joint : m_joints) {
@@ -151,7 +150,7 @@ public class URDFRobot<Q extends Num> {
         return null;
     }
 
-    ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////
 
     /**
      * Populate poses with the pose of the specified joint and those of its parent

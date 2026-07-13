@@ -2,9 +2,9 @@ package org.team100.lib.subsystems.lynxmotion_arm;
 
 import org.junit.jupiter.api.Test;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.geometry.Translation3d;
 
 public class NumericLynxArmKinematicsTest {
     @Test

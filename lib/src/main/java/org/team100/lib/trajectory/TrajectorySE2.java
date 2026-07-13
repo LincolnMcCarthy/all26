@@ -6,7 +6,7 @@ import java.util.List;
 import org.team100.lib.geometry.WaypointSE2;
 import org.team100.lib.trajectory.path.PathSE2Point;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose2d;
 
 /**
  * A trajectory in SE(2), the space Pose2d lives in.

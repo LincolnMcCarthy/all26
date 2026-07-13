@@ -5,9 +5,9 @@ import java.util.Map;
 import org.team100.lib.kinematics.urdf.URDFAL5D;
 import org.team100.lib.kinematics.urdf.URDFRobot;
 
-import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.numbers.N5;
+import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.numbers.N5;
 
 /** Uses URDFRobot for the Lynxmotion arm. */
 public class NumericLynxArmKinematics implements LynxArmKinematics {

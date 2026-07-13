@@ -7,8 +7,8 @@ import java.util.Map;
 import org.team100.lib.subsystems.lynxmotion_arm.LynxArmConfig;
 import org.team100.lib.util.StrUtil;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Transform3d;
 
 public class TestUtil {
     private static final boolean DEBUG = false;

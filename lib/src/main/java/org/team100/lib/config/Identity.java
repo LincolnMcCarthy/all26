@@ -3,8 +3,8 @@ package org.team100.lib.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotController;
+import org.wpilib.framework.RobotBase;
+import org.wpilib.system.RobotController;
 
 /*
  * Represents a specific RoboRIO, as a key for configurations.

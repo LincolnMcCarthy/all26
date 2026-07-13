@@ -1,6 +1,6 @@
 package org.team100.lib.geometry;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Rotation2d;
 
 /**
  * Velocity in three dimensions, companion to Translation3d.

@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.lynxmotion_arm;
 
-import edu.wpi.first.math.MathUtil;
+import org.wpilib.math.util.MathUtil;
 
 /**
  * Configuration of the joints.

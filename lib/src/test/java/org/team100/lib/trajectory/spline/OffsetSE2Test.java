@@ -20,9 +20,9 @@ import org.team100.lib.trajectory.path.PathSE2Factory;
 import org.team100.lib.trajectory.path.PathSE2ToVectorSeries;
 import org.team100.lib.util.ChartUtil;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Translation2d;
 
 public class OffsetSE2Test {
     private static final LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());

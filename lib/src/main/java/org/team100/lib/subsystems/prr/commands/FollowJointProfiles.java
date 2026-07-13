@@ -10,7 +10,7 @@ import org.team100.lib.subsystems.prr.JointAccelerations;
 import org.team100.lib.subsystems.prr.JointVelocities;
 import org.team100.lib.subsystems.prr.SubsystemPRR;
 
-import edu.wpi.first.math.MathUtil;
+import org.wpilib.math.util.MathUtil;
 
 /**
  * Follow three uncoordinated profiles in configuration space.
