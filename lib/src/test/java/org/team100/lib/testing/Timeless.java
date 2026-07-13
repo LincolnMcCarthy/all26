@@ -36,8 +36,6 @@ public interface Timeless {
         DriverStationSim.setEnabled(true);
         DriverStationSim.notifyNewData();
 
-        // Avoid mixing mutable values between tests.
-        Mutable.unpublishAll();
         try {
             // wait for CTRE threads
             Thread.sleep(10);

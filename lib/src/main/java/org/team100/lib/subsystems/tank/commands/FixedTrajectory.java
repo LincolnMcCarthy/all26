@@ -29,7 +29,6 @@ import org.wpilib.command2.Command;
  * The rotation error has a greater effect at greater speeds.
  */
 public class FixedTrajectory extends Command {
-    // a supplier so that, for example, constraints can be mutable.
     private final Supplier<TrajectorySE2> m_trajectorySupplier;
     private final TankDrive m_drive;
     private final TrajectoryVisualization m_viz;

@@ -81,7 +81,7 @@ public class Machinery2025 {
 
         final LoggerFactory driveLog = logger.name("Drive");
 
-        m_swerveKinodynamics = SwerveKinodynamicsFactory.get(driveLog);
+        m_swerveKinodynamics = SwerveKinodynamicsFactory.get();
 
         ////////////////////////////////////////////////////////////
         //

@@ -197,7 +197,7 @@ public class Binder2025 {
         //
         // for testing
         //
-        BigLoop bigloop = new BigLoop(rootLogger, m_machinery.m_swerveKinodynamics);
+        BigLoop bigloop = new BigLoop(m_machinery.m_swerveKinodynamics);
         DriveWithTrajectoryFunction navigator = new DriveWithTrajectoryFunction(
                 rootLogger, m_machinery.m_drive, holonomicController, m_machinery.m_trajectoryViz,
                 bigloop);
