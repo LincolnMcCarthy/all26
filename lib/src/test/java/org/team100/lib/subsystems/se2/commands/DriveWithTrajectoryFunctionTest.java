@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.controller.se2.ControllerFactorySE2;
 import org.team100.lib.controller.se2.FullStateControllerSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -39,8 +39,8 @@ public class DriveWithTrajectoryFunctionTest implements Timeless {
     FullStateControllerSE2 controller = ControllerFactorySE2.test(log);
     TrajectoryVisualization viz = new TrajectoryVisualization(log);
     List<TimingConstraint> constraints = List.of(
-            new ConstantConstraint(log, 2, 2),
-            new YawRateConstraint(log, 1, 1));
+            new ConstantConstraint(2, 2),
+            new YawRateConstraint(1, 1));
     PathSE2Factory pathFactory = new PathSE2Factory();
     TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
     TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);

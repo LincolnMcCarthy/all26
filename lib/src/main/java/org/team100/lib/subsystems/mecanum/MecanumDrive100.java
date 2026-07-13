@@ -2,8 +2,10 @@ package org.team100.lib.subsystems.mecanum;
 
 import org.team100.lib.dynamics.mecanum.MecanumDynamics;
 import org.team100.lib.dynamics.mecanum.MecanumEffort;
-import org.team100.lib.geometry.ChassisAcceleration;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.ChassisAcceleration;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100.Slip;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
@@ -12,8 +14,6 @@ import org.team100.lib.mechanism.LinearMechanism;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.state.ModelSE2;
 import org.team100.lib.state.VelocityControlSE2;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100.Slip;
 import org.team100.lib.subsystems.se2.VelocitySubsystemSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 
@@ -81,7 +81,7 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
         Translation2d rl = new Translation2d(-m_wheelbaseM / 2, m_trackWidthM / 2);
         Translation2d rr = new Translation2d(-m_wheelbaseM / 2, -m_trackWidthM / 2);
         m_kinematics = new MecanumKinematics100(
-                log, slip, fl, fr, rl, rr);
+                slip, fl, fr, rl, rr);
         m_dynamics = new MecanumDynamics(m, I, fl, fr, rl, rr);
         m_positions = new MecanumDriveWheelPositions();
         m_input = VelocitySE2.ZERO;

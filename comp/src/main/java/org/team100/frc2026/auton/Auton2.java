@@ -11,8 +11,8 @@ import java.util.function.Function;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.controller.se2.ControllerSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -45,20 +45,18 @@ public class Auton2 implements AnnotatedCommand {
         log = parent.name(name());
         this.controller = controller;
         this.machinery = machinery;
-        constraints = new TimingConstraintFactory(kinodynamics).auto(log.type(this));
+        constraints = new TimingConstraintFactory(kinodynamics).auto();
         // In meters/second
         double maxBumpVelocity = 1;
         List<TimingConstraint> new_constraints = new ArrayList<>(constraints);
 
-        // create a new VelocityRegionContstraint `slow_bump_zone`
-        // the "name" values here separate the "Mutables" inside.
-        VelocityLimitRegionConstraint slow_bump_zone = new VelocityLimitRegionConstraint(log.name("bumpzone"),
+        VelocityLimitRegionConstraint slow_bump_zone = new VelocityLimitRegionConstraint(
                 BumpZones.BLUE_BUMP_LEFT, maxBumpVelocity);
-        VelocityLimitRegionConstraint slow_bump_zone2 = new VelocityLimitRegionConstraint(log.name("bumpzone2"),
+        VelocityLimitRegionConstraint slow_bump_zone2 = new VelocityLimitRegionConstraint(
                 BumpZones.BLUE_BUMP_RIGHT, maxBumpVelocity);
-        VelocityLimitRegionConstraint slow_bump_zone3 = new VelocityLimitRegionConstraint(log.name("bumpzone3"),
+        VelocityLimitRegionConstraint slow_bump_zone3 = new VelocityLimitRegionConstraint(
                 BumpZones.RED_BUMP_LEFT, maxBumpVelocity);
-        VelocityLimitRegionConstraint slow_bump_zone4 = new VelocityLimitRegionConstraint(log.name("bumpzone4"),
+        VelocityLimitRegionConstraint slow_bump_zone4 = new VelocityLimitRegionConstraint(
                 BumpZones.RED_BUMP_RIGHT, maxBumpVelocity);
         new_constraints.add(slow_bump_zone);
         new_constraints.add(slow_bump_zone2);

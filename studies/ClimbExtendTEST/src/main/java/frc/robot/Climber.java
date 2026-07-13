@@ -39,7 +39,7 @@ public class Climber extends SubsystemBase {
         LoggerFactory log = parent.type(this);
         LoggerFactory log1 = log.name("motor1");
         LoggerFactory log2 = log.name("motor2");
-        ProfileR1 profile = new TrapezoidProfileR1(log, 3, 5, 0.05);
+        ProfileR1 profile = new TrapezoidProfileR1(3, 5, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         RDynamics dyn = new RDynamics(0, 0, 0);
         double gearRatio = 28;
@@ -48,8 +48,8 @@ public class Climber extends SubsystemBase {
         switch (Identity.instance) {
             case COMP_BOT, TEST_BOARD_B0 -> {
                 CurrentLimit limit = new CurrentLimit(40, 60);
-                Friction friction = new Friction(log, 0, 0, 0, 0);
-                PIDConstants pid = new PIDConstants(log, 1, 0, 0, 0, 0, 0);
+                Friction friction = new Friction(0, 0, 0, 0);
+                PIDConstants pid = new PIDConstants(1, 0, 0, 0, 0, 0);
                 m_motor = new KrakenX60Motor(
                         log1,
                         currentLog,

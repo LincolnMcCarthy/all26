@@ -4,6 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100.Slip;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
@@ -14,7 +15,6 @@ import org.team100.lib.motor.rev.NeoCANSparkMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.sensor.gyro.ReduxGyro;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100.Slip;
 import org.team100.lib.util.CanId;
 
 public class MecanumDriveFactory {
@@ -42,8 +42,8 @@ public class MecanumDriveFactory {
         LoggerFactory logRL = log.name("rearLeft");
         LoggerFactory logRR = log.name("rearRight");
 
-        PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.01);
-        Friction friction = new Friction(log, 0.5, 0.5, 0.0, 0.5);
+        PIDConstants pid = PIDConstants.makeVelocityPID(0.01);
+        Friction friction = new Friction(0.5, 0.5, 0.0, 0.5);
 
         Gyro gyro = gyro(log, gyroId);
         slip = slip(slip);

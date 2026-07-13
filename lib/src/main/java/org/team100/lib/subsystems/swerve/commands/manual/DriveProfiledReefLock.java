@@ -9,9 +9,9 @@ import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.experiments.Experiment;
 import org.team100.lib.experiments.Experiments;
 import org.team100.lib.framework.TimedRobot100;
-import org.team100.lib.geometry.AccelerationSE2;
 import org.team100.lib.geometry.GeometryUtil;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.hid.Velocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
@@ -246,7 +246,6 @@ public class DriveProfiledReefLock extends Command {
         m_log_max_accel.log(() -> maxAccelRad_S2);
 
         return new TrapezoidProfileR1(
-                m_log,
                 maxSpeedRad_S,
                 maxAccelRad_S2,
                 0.01);

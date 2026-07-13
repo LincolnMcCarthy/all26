@@ -9,8 +9,8 @@ import java.util.function.Function;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.controller.se2.ControllerSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -45,18 +45,18 @@ public class MajorDisruptLTrench implements AnnotatedCommand {
         double bumpV = 2; // cartesian velocity over the bump
         List<TimingConstraint> new_constraints = new ArrayList<>(List.of(
                 // high velocity, moderate accel
-                new ConstantConstraint(log, 8, 20),
+                new ConstantConstraint(8, 20),
                 // absolute maxima
                 // new SwerveDriveDynamicsConstraint(log, kinodynamics, 1, 1),
                 // high yaw limits
                 // new YawRateConstraint(log, 8, 20),
                 // moderate capsize limits. Note we're not actually concerned about capsize
                 // here, we just want to limit tire tread shear
-                new CapsizeAccelerationConstraint(log, 8, 20),
-                new VelocityLimitRegionConstraint(log, BumpZones.BLUE_BUMP_LEFT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.BLUE_BUMP_RIGHT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.RED_BUMP_LEFT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.RED_BUMP_RIGHT, bumpV)));
+                new CapsizeAccelerationConstraint(8, 20),
+                new VelocityLimitRegionConstraint(BumpZones.BLUE_BUMP_LEFT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.BLUE_BUMP_RIGHT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.RED_BUMP_LEFT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.RED_BUMP_RIGHT, bumpV)));
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(new_constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);

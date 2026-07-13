@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.commands.MoveAndHold;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
+import org.team100.lib.kinematics.prr.AnalyticalPRRJacobian;
+import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.subsystems.prr.AnalyticalJacobian;
-import org.team100.lib.subsystems.prr.ElevatorArmWristKinematics;
 import org.team100.lib.subsystems.se2.commands.GoToPosePosition;
 import org.team100.lib.trajectory.TrajectorySE2Factory;
 import org.team100.lib.trajectory.TrajectorySE2Planner;
@@ -30,15 +30,15 @@ public class MechTrajectories extends Command {
     public MechTrajectories(
             LoggerFactory parent,
             CalgamesMech mech,
-            ElevatorArmWristKinematics k,
-            AnalyticalJacobian j) {
+            PRRKinematics k,
+            AnalyticalPRRJacobian j) {
         m_log = parent.type(this);
         m_subsystem = mech;
         List<TimingConstraint> c = new ArrayList<>();
 
         // These are known to work, but suboptimal.
-        c.add(new ConstantConstraint(m_log, 10, 5));
-        c.add(new YawRateConstraint(m_log, 10, 5));
+        c.add(new ConstantConstraint( 10, 5));
+        c.add(new YawRateConstraint( 10, 5));
         // This is new
         c.add(new TorqueConstraint(20));
 

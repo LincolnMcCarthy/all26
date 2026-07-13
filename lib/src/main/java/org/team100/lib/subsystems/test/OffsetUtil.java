@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.test;
 
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 
 import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.numbers.N3;

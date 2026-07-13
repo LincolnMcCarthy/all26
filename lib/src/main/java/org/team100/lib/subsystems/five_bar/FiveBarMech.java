@@ -7,6 +7,9 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
+import org.team100.lib.kinematics.five_bar.FiveBarKinematics;
+import org.team100.lib.kinematics.five_bar.JointPositions;
+import org.team100.lib.kinematics.five_bar.Scenario;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.RotaryMechanism;
@@ -17,9 +20,6 @@ import org.team100.lib.motor.ctre.Falcon500Motor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
 import org.team100.lib.sensor.position.absolute.HomingRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.ProxyRotaryPositionSensor;
-import org.team100.lib.subsystems.five_bar.kinematics.FiveBarKinematics;
-import org.team100.lib.subsystems.five_bar.kinematics.JointPositions;
-import org.team100.lib.subsystems.five_bar.kinematics.Scenario;
 import org.team100.lib.util.CanId;
 
 import org.wpilib.command2.Command;
@@ -191,9 +191,8 @@ public class FiveBarMech extends SubsystemBase {
 
     private Falcon500Motor makeMotor(LoggerFactory logger, TotalCurrentLog currentLog, CanId canId) {
         /** Units of positional PID are volts per revolution. */
-        PIDConstants pid = PIDConstants.makePositionPID(
-                logger, 2.0);
-        Friction friction = new Friction(logger, 0, 0, 0, 0);
+        PIDConstants pid = PIDConstants.makePositionPID(2.0);
+        Friction friction = new Friction(0, 0, 0, 0);
         return new Falcon500Motor(
                 logger,
                 currentLog,

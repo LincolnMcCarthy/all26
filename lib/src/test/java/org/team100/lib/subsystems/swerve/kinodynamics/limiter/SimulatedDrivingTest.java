@@ -10,7 +10,7 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.experiments.Experiment;
 import org.team100.lib.experiments.Experiments;
 import org.team100.lib.geometry.GeometryUtil;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.localization.AprilTagFieldLayoutWithCorrectOrientation;
 import org.team100.lib.localization.AprilTagRobotLocalizer;
 import org.team100.lib.localization.FreshSwerveEstimate;
@@ -56,7 +56,7 @@ public class SimulatedDrivingTest implements Timeless {
 
     SimulatedDrivingTest() throws IOException {
         LoggerFactory logger = new TestLoggerFactory(new TestPrimitiveLogger());
-        swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
         collection = SwerveModuleCollection.forTest(
                 logger, swerveKinodynamics);
         gyro = new SimulatedGyro(logger, swerveKinodynamics, collection, 0);

@@ -12,8 +12,8 @@ import org.team100.frc2026.field.FieldConstants2026;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.controller.se2.ControllerSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunctionWithOverride;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -55,18 +55,18 @@ public class DoubleCircleAuton implements AnnotatedCommand {
         double bumpV = 2; // cartesian velocity over the bump
         List<TimingConstraint> new_constraints = new ArrayList<>(List.of(
                 // high velocity, moderate accel
-                new ConstantConstraint(log, 5, 20),
+                new ConstantConstraint(5, 20),
                 // absolute maxima
-                new SwerveDriveDynamicsConstraint(log, kinodynamics, 1, 1),
+                new SwerveDriveDynamicsConstraint(kinodynamics, 1, 1),
                 // high yaw limits
-                new YawRateConstraint(log, 10, 20),
+                new YawRateConstraint(10, 20),
                 // moderate capsize limits. Note we're not actually concerned about capsize
                 // here, we just want to limit tire tread shear
-                new CapsizeAccelerationConstraint(log, 5, 20),
-                new VelocityLimitRegionConstraint(log, BumpZones.BLUE_BUMP_LEFT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.BLUE_BUMP_RIGHT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.RED_BUMP_LEFT, bumpV),
-                new VelocityLimitRegionConstraint(log, BumpZones.RED_BUMP_RIGHT, bumpV)));
+                new CapsizeAccelerationConstraint(5, 20),
+                new VelocityLimitRegionConstraint(BumpZones.BLUE_BUMP_LEFT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.BLUE_BUMP_RIGHT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.RED_BUMP_LEFT, bumpV),
+                new VelocityLimitRegionConstraint(BumpZones.RED_BUMP_RIGHT, bumpV)));
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(new_constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);

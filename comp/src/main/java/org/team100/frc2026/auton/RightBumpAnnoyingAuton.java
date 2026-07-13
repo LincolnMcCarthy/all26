@@ -10,8 +10,8 @@ import java.util.function.Function;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.controller.se2.ControllerSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -45,20 +45,20 @@ public class RightBumpAnnoyingAuton implements AnnotatedCommand {
         log = parent.name(name());
         this.controller = controller;
         this.machinery = machinery;
-        constraints = new TimingConstraintFactory(kinodynamics).auto(log.type(this));
+        constraints = new TimingConstraintFactory(kinodynamics).auto();
         // In meters/second
         double maxBumpVelocity = 2;
         List<TimingConstraint> new_constraints = new ArrayList<>(constraints);
 
         // create a new VelocityRegionContstraint `slow_bump_zone`
         VelocityLimitRegionConstraint slow_bump_zone = new VelocityLimitRegionConstraint(
-                log, BumpZones.BLUE_BUMP_LEFT, maxBumpVelocity);
+                BumpZones.BLUE_BUMP_LEFT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone2 = new VelocityLimitRegionConstraint(
-                log, BumpZones.BLUE_BUMP_RIGHT, maxBumpVelocity);
+                BumpZones.BLUE_BUMP_RIGHT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone3 = new VelocityLimitRegionConstraint(
-                log, BumpZones.RED_BUMP_LEFT, maxBumpVelocity);
+                BumpZones.RED_BUMP_LEFT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone4 = new VelocityLimitRegionConstraint(
-                log, BumpZones.RED_BUMP_RIGHT, maxBumpVelocity);
+                BumpZones.RED_BUMP_RIGHT, maxBumpVelocity);
         new_constraints.add(slow_bump_zone);
         new_constraints.add(slow_bump_zone2);
         new_constraints.add(slow_bump_zone3);
@@ -132,31 +132,30 @@ public class RightBumpAnnoyingAuton implements AnnotatedCommand {
                 parallel(
                         IntakeSetUp.until(IntakeSetUp::isDone).withTimeout(4),
                         // Assumed that the intake shouldn't deploy over the bump
-                     //   waitSeconds(1).andThen(machinery.m_intakeExtend.goToExtendedPosition())),
-              // waitSeconds(1),
-                
+                        // waitSeconds(1).andThen(machinery.m_intakeExtend.goToExtendedPosition())),
+                        // waitSeconds(1),
 
-                parallel(
-                        IntakeBalls
-              //          machinery.m_intake.intake()).until(IntakeBalls::isDone),
-                // Without telling it to, the intake would only stop spinning
-                // at the end of the auton. Without the timeout, the robot
-                // would not continue the rest of the auton
-               // machinery.m_intake.stop().withTimeout(1),
-         //       waitSeconds(1),
-                ),
+                        parallel(
+                                IntakeBalls
+                        // machinery.m_intake.intake()).until(IntakeBalls::isDone),
+                        // Without telling it to, the intake would only stop spinning
+                        // at the end of the auton. Without the timeout, the robot
+                        // would not continue the rest of the auton
+                        // machinery.m_intake.stop().withTimeout(1),
+                        // waitSeconds(1),
+                        ),
 
-                ScoreSetUp.until(ScoreSetUp::isDone)
-                //parallel(
-                //        machinery.m_conveyor.convey(),
-                //        machinery.m_feeder.proportional(),
-                 //       machinery.m_shooterHood.autoPosition(),
-                 //       machinery.m_shooter.auto()),
+                        ScoreSetUp.until(ScoreSetUp::isDone)
+                // parallel(
+                // machinery.m_conveyor.convey(),
+                // machinery.m_feeder.proportional(),
+                // machinery.m_shooterHood.autoPosition(),
+                // machinery.m_shooter.auto()),
                 // .withTimeout(1),
                 // machinery.m_shooterHood.autoPosition().withTimeout(0.5),
                 // machinery.m_shooter.auto().withTimeout(1),
-              //  waitSeconds(5),
-             //   machinery.m_shooter.stop().withTimeout(1)
+                // waitSeconds(5),
+                // machinery.m_shooter.stop().withTimeout(1)
                 ));
     }
 

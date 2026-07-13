@@ -4,8 +4,8 @@ import java.util.function.Supplier;
 
 import org.team100.lib.coherence.Takt;
 import org.team100.lib.framework.TimedRobot100;
-import org.team100.lib.geometry.AccelerationSE2;
-import org.team100.lib.geometry.ChassisAcceleration;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.ChassisAcceleration;
 import org.team100.lib.state.ControlSE2;
 import org.team100.lib.subsystems.tank.TankDrive;
 import org.team100.lib.trajectory.TrajectorySE2;
@@ -29,7 +29,6 @@ import org.wpilib.command2.Command;
  * The rotation error has a greater effect at greater speeds.
  */
 public class FixedTrajectory extends Command {
-    // a supplier so that, for example, constraints can be mutable.
     private final Supplier<TrajectorySE2> m_trajectorySupplier;
     private final TankDrive m_drive;
     private final TrajectoryVisualization m_viz;
