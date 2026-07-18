@@ -1,8 +1,8 @@
 package org.team100.frc2026.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.parallel;
-import static edu.wpi.first.wpilibj2.command.Commands.sequence;
-import static edu.wpi.first.wpilibj2.command.Commands.waitUntil;
+import static org.wpilib.command2.Commands.parallel;
+import static org.wpilib.command2.Commands.sequence;
+import static org.wpilib.command2.Commands.waitUntil;
 import static org.team100.frc2026.util.TriggerUtil.onTrue;
 import static org.team100.frc2026.util.TriggerUtil.whileTrue;
 

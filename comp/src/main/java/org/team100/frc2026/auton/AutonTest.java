@@ -1,7 +1,7 @@
 package org.team100.frc2026.auton;
 
-import static edu.wpi.first.wpilibj2.command.Commands.sequence;
-import static edu.wpi.first.wpilibj2.command.Commands.waitSeconds;
+import static org.wpilib.command2.Commands.sequence;
+import static org.wpilib.command2.Commands.waitSeconds;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +22,9 @@ import org.team100.lib.trajectory.constraint.TimingConstraint;
 import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
 import org.team100.lib.trajectory.constraint.VelocityLimitRegionConstraint;
 import org.team100.lib.trajectory.path.PathSE2Factory;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.Command;
+import org.wpilib.command2.Command;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 
 /** An example of a simple sequence */
 public class AutonTest implements AnnotatedCommand {
