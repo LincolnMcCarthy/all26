@@ -45,7 +45,7 @@ import org.wpilib.math.util.Num;
  * @param Q the number of joints
  */
 public class URDFRobot<Q extends Num> {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     @SuppressWarnings("unused")
     private final String m_name;
     @SuppressWarnings("unused")
@@ -64,6 +64,8 @@ public class URDFRobot<Q extends Num> {
      * Solve forward kinematics for all joints.
      * 
      * Key is joint name.
+     * 
+     * TODO: replace the map with a vector
      */
     public Map<String, Pose3d> forward(Map<String, Double> qMap) {
         Map<String, Pose3d> poses = new HashMap<>();
@@ -91,6 +93,8 @@ public class URDFRobot<Q extends Num> {
      * 
      * if not, then the "error" is between two tangent vectors whose origin is far
      * away.
+     * 
+     * TODO: replace the returned map with a vector
      */
     public Map<String, Double> inverse(
             Vector<Q> q0,
@@ -140,7 +144,7 @@ public class URDFRobot<Q extends Num> {
         return qMap(qVec);
     }
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////
 
     URDFJoint getJoint(String name) {
         for (URDFJoint joint : m_joints) {
@@ -150,7 +154,7 @@ public class URDFRobot<Q extends Num> {
         return null;
     }
 
-    //////////////////////////////////////////////////
+    ////////////////////////////////////////////////
 
     /**
      * Populate poses with the pose of the specified joint and those of its parent
@@ -160,8 +164,14 @@ public class URDFRobot<Q extends Num> {
             Map<String, Pose3d> poses,
             String jointName,
             Map<String, Double> qMap) {
+        if (DEBUG) {
+            System.out.printf("joint %s\n", jointName);
+        }
         URDFJoint joint = getJoint(jointName);
         Transform3d t = joint.transform(qMap.get(jointName));
+        if (DEBUG) {
+            System.out.printf("transform %s\n", t);
+        }
         URDFJoint parent = parentJoint(jointName);
         if (parent == null) {
             // this is the root

@@ -102,7 +102,9 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 null,
                                 gripper,
                                 tool_center_point,
-                                // 55mm is the distance to the *end* of the end effector, not the target grip point
-                                new Pose3d(0.055, 0, 0, new Rotation3d()), null)));
+                                // 55mm is the distance to the *end* of the end effector, not the target grip
+                                // point
+                                new Pose3d(0.055, 0, 0, new Rotation3d()),
+                                null)));
     }
 }
