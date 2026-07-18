@@ -10,6 +10,7 @@ import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.config.Identity;
 import org.team100.lib.experiments.Experiment;
 import org.team100.lib.experiments.Experiments;
+import org.team100.lib.framework.SerialNumber;
 import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
@@ -23,7 +24,6 @@ import org.wpilib.driverstation.internal.DriverStationBackend;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.networktables.NetworkTableInstance;
 import org.wpilib.smartdashboard.SmartDashboard;
-import org.wpilib.system.RobotController;
 import org.wpilib.system.WPILibVersion;
 
 // import com.reduxrobotics.canand.CanandEventLoop;
@@ -52,9 +52,9 @@ public class Robot extends TimedRobot100 {
         // CanBridge.runTCP();
         StatusLogger.disableAutoLogging();
         System.out.printf("WPILib Version: %s\n", WPILibVersion.Version);
-        System.out.printf("RoboRIO serial number: %s\n", RobotController.getSerialNumber());
+        System.out.printf("RoboRIO serial number: %s\n", SerialNumber.get());
         System.out.printf("Identity: %s\n", Identity.instance.name());
-        RobotController.setBrownoutVoltage(5.5);
+        // RobotController.setBrownoutVoltage(5.5);
         DriverStationBackend.silenceJoystickConnectionWarning(true);
         Experiments.instance.show();
 
