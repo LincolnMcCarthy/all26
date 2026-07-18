@@ -2,8 +2,10 @@ package org.team100.lib.geometry.se2;
 
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.numbers.N1;
 import org.wpilib.math.numbers.N3;
 
 /**
@@ -72,6 +74,10 @@ public record AccelerationSE2(double x, double y, double theta) {
 
     public static AccelerationSE2 fromVector(Vector<N3> v) {
         return new AccelerationSE2(v.get(0), v.get(1), v.get(2));
+    }
+
+    public static AccelerationSE2 fromVector(Matrix<N3, N1> v) {
+        return new AccelerationSE2(v.get(0, 0), v.get(1, 0), v.get(2, 0));
     }
 
     public Vector<N3> toVector() {
