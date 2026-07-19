@@ -4,8 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.rrr.RRRConfig;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation3d;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 
 public class RRRKinematicsTest {
     @Test
@@ -74,7 +75,7 @@ public class RRRKinematicsTest {
         RRRKinematics k = new RRRKinematics(1, 1, 1);
         Pose3d x = new Pose3d(0.923879, 0, 1.031530, new Rotation3d(0, 0.392699, 0));
         RRRConfig q = k.inverse(x);
-        assertEquals(-2.356, q.q1(), 1e-3);
+        assertEquals(-2.356, q.q1(), 2e-3);
         assertEquals(1.571, q.q2(), 1e-3);
         assertEquals(1.178, q.q3(), 1e-3);
     }

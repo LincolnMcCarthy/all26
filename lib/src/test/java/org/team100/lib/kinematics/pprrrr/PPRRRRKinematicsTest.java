@@ -4,10 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.pprrrr.PPRRRRConfig;
-import org.team100.lib.geometry.rrr.RRRConfig;
-import org.team100.lib.kinematics.rrr.RRRKinematics;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation3d;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 
 public class PPRRRRKinematicsTest {
     @Test

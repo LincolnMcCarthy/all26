@@ -4,18 +4,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.team100.lib.geometry.pprrrr.PPRRRRConfig;
-import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.kinematics.urdf.URDFJoint;
 import org.team100.lib.kinematics.urdf.URDFJoint.JointType;
 import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
 import org.team100.lib.kinematics.urdf.URDFLink;
 import org.team100.lib.kinematics.urdf.URDFRobot;
-import org.wpilib.math.geometry.Pose3d;
-import org.wpilib.math.geometry.Rotation3d;
-import org.wpilib.math.linalg.VecBuilder;
-import org.wpilib.math.linalg.Vector;
-import org.wpilib.math.numbers.N6;
-import org.wpilib.math.util.Nat;
+
+import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.numbers.N6;
+
 
 /**
  * 6 DOF mechanism: 3 drivetrain DOF (swerve), 3 arm DOF (like RRR).
