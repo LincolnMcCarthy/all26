@@ -1,10 +1,8 @@
-package org.team100.lib.geometry;
+package org.team100.lib.geometry.se2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.se2.AccelerationSE2;
-import org.team100.lib.geometry.se2.VelocitySE2;
 
 public class AccelerationSE2Test {
     /** Accel in Y while moving in X. */
