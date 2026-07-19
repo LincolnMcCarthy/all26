@@ -7,7 +7,10 @@ import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.state.VelocityControlSE2;
 
+import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -416,6 +419,21 @@ public class GeometryUtil {
     /** Vector determinant, like the cross product in R2 */
     public static double det(Vector<N2> a, Vector<N2> b) {
         return a.get(0) * b.get(1) - a.get(1) * b.get(0);
+    }
+
+    /**
+     * Skew-symmetric matrix of the translation vector.
+     * 
+     * See https://en.wikipedia.org/wiki/Skew-symmetric_matrix
+     */
+    public static Matrix<N3, N3> skewSymmetric(Translation3d t) {
+        double x = t.getX();
+        double y = t.getY();
+        double z = t.getZ();
+        return MatBuilder.fill(Nat.N3(), Nat.N3(), //
+                0, -z, y, //
+                z, 0, -x, //
+                -y, x, 0);
     }
 
     /////////////////////////////////////////////////////////////////
