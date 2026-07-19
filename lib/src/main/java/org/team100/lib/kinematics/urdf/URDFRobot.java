@@ -46,7 +46,7 @@ import edu.wpi.first.math.numbers.N6;
  * @param Q the number of joints
  */
 public class URDFRobot<Q extends Num> {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     @SuppressWarnings("unused")
     private final String m_name;
     @SuppressWarnings("unused")

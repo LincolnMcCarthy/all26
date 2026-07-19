@@ -33,7 +33,7 @@ public record URDFJoint(
         URDFLink child,
         Pose3d origin,
         Vector<N3> axis) {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * @param effort
