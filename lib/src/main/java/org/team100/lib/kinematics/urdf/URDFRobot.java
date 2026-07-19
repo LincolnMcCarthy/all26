@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.team100.lib.geometry.GeometryUtil;
+import org.team100.lib.optimization.CoordinateDescent;
 import org.team100.lib.optimization.NewtonsMethod;
 
 import edu.wpi.first.math.Nat;
@@ -45,20 +46,35 @@ import edu.wpi.first.math.numbers.N6;
  * 
  * @param Q the number of joints
  */
+@SuppressWarnings("unused")
 public class URDFRobot<Q extends Num> {
-    private static final boolean DEBUG = false;
+    public enum Solver {
+        NEWTON, CD
+    };
+
+    private final Solver m_solver;
+    private static final int DEBUG = 0;
     @SuppressWarnings("unused")
     private final String m_name;
     @SuppressWarnings("unused")
     private final List<URDFLink> m_links;
     private final List<URDFJoint> m_joints;
     private final Nat<Q> m_qDim;
+    private final Vector<Q> m_dqLimit;
 
-    public URDFRobot(Nat<Q> qDim, String name, List<URDFLink> links, List<URDFJoint> joints) {
+    public URDFRobot(
+            Solver solver,
+            Nat<Q> qDim,
+            String name,
+            List<URDFLink> links,
+            List<URDFJoint> joints,
+            Vector<Q> dqLimit) {
+        m_solver = solver;
         m_qDim = qDim;
         m_name = name;
         m_links = links;
         m_joints = joints;
+        m_dqLimit = dqLimit;
     }
 
     /**
@@ -99,15 +115,14 @@ public class URDFRobot<Q extends Num> {
      */
     public Map<String, Double> inverse(
             Vector<Q> q0,
-            double dqLimit,
             String jointName,
             Pose3d goal) {
-        Function<Vector<Q>, Pose3d> fwd = q -> {
-            Pose3d pose = forward(qMap(q)).get(jointName);
-            return pose;
-        };
+        Function<Vector<Q>, Pose3d> fwd = //
+                q -> forward(qMap(q)).get(jointName);
 
-        Function<Vector<Q>, Vector<N6>> err = q -> GeometryUtil.toVec(goal.log(fwd.apply(q)));
+        Function<Vector<Q>, Vector<N6>> err = //
+                q -> GeometryUtil.toVec(goal.minus(fwd.apply(q)));
+        // q -> GeometryUtil.toVec(goal.log(fwd.apply(q)));
 
         // this function always uses pose3d so the goal dim is always N6.
         Nat<N6> twistDim = Nat.N6();
@@ -124,27 +139,37 @@ public class URDFRobot<Q extends Num> {
         // regardless, each iteration (on my fast machine) takes 50 us,
         // so we can only afford to do, say, 20, even when random-restarting, so make
         // each iteration limit low.
-        int iterations = 8;
+        int iterations = 30;
 
         // random restart tries to escape local minima.
         // don't try for too long, it's better to have the wrong answer sooner than the
         // right answer after a long delay.
-        int restarts = 3;
+        int restarts = 6;
 
-        NewtonsMethod<Q, N6> solver = new NewtonsMethod<>(
+        // Newton seems to oscillate.
+        NewtonsMethod<Q, N6> newton = new NewtonsMethod<>(
                 m_qDim, twistDim, err,
                 minQ(m_qDim), maxQ(m_qDim),
-                tolerance, iterations, dqLimit);
-        long startTime = System.nanoTime();
-        Vector<Q> qVec = solver.solve2(q0, restarts, true);
+                tolerance, iterations, m_dqLimit);
 
-        if (DEBUG) {
+        // Try coordinate descent. The tolerance is quite
+        // coarse, to speed it up.
+        CoordinateDescent<Q> cd = new CoordinateDescent<>(
+                m_qDim, q -> err.apply(q).norm(), 1e-2, 30);
+
+        long startTime = System.nanoTime();
+
+        Vector<Q> qVec = switch (m_solver) {
+            case NEWTON -> newton.solve(q0, restarts, true);
+            case CD -> cd.solve(minQ(m_qDim), q0, maxQ(m_qDim));
+        };
+
+        if (DEBUG > 0) {
             long finishTime = System.nanoTime();
             System.out.printf("ET (ms): %6.3f\n", ((double) finishTime - startTime) / 1000000);
         }
         return qMap(qVec);
     }
-
 
     URDFJoint getJoint(String name) {
         for (URDFJoint joint : m_joints) {
@@ -154,7 +179,6 @@ public class URDFRobot<Q extends Num> {
         return null;
     }
 
-
     /**
      * Populate poses with the pose of the specified joint and those of its parent
      * chain.
@@ -163,12 +187,12 @@ public class URDFRobot<Q extends Num> {
             Map<String, Pose3d> poses,
             String jointName,
             Map<String, Double> qMap) {
-        if (DEBUG) {
+        if (DEBUG > 1) {
             System.out.printf("joint %s\n", jointName);
         }
         URDFJoint joint = getJoint(jointName);
         Transform3d t = joint.transform(qMap.get(jointName));
-        if (DEBUG) {
+        if (DEBUG > 1) {
             System.out.printf("transform %s\n", t);
         }
         URDFJoint parent = parentJoint(jointName);

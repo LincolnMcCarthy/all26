@@ -384,8 +384,18 @@ public class GeometryUtil {
         return VecBuilder.fill(twist.dx, twist.dy, twist.dtheta);
     }
 
-    public static Vector<N6> toVec(Twist3d twist) {
-        return VecBuilder.fill(twist.dx, twist.dy, twist.dz, twist.rx, twist.ry, twist.rz);
+    public static Vector<N6> toVec(Twist3d t) {
+        return VecBuilder.fill(t.dx, t.dy, t.dz, t.rx, t.ry, t.rz);
+    }
+
+    public static Vector<N6> toVec(Transform3d t) {
+        return VecBuilder.fill(
+                t.getX(),
+                t.getY(),
+                t.getZ(),
+                t.getRotation().getX(),
+                t.getRotation().getY(),
+                t.getRotation().getZ());
     }
 
     public static Vector<N2> toVec(Translation2d t) {

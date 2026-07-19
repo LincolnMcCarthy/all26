@@ -59,11 +59,11 @@ public class StrUtil {
 
     public static String vecStr(Vector<?> m) {
         StringBuilder b = new StringBuilder();
-        b.append("[");
+        b.append("[ ");
         for (int i = 0; i < m.getNumRows(); ++i) {
             b.append(String.format(" %10.6f", m.get(i)));
         }
-        b.append("]");
+        b.append(" ]");
         return b.toString();
     }
 

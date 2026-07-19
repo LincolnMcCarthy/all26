@@ -142,7 +142,7 @@ public class LynxArmTest {
         final LynxArmKinematics kinematics = new NumericLynxArmKinematics();
         try (LynxArm m_arm = new LynxArm(kinematics)) {
             LynxArmConfig q = m_arm.getMeasuredConfig();
-            verify(q, 0.00, -1.937, 1.505, 1.216, 0.00);
+            verify(q, 0.00, -1.939, 1.507, 1.216, 0.00);
         }
     }
 

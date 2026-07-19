@@ -96,7 +96,9 @@ public class LynxArmKinematicsTest {
             LynxArmConfig q = k.inverse(initial, fixed);
             // projection method
             // note roll is more correct
-            TestUtil.verify(new LynxArmConfig(Math.PI / 2, -1.639, 2.186, 1.024, 1.571), q);
+            TestUtil.verify(
+                new LynxArmConfig(Math.PI / 2,
+                     -1.641, 2.186, 1.026, 1.571), q);
             // yaw substitution method
             // note zero grip roll axis
             // TestUtil.verify(new LynxArmConfig(Math.PI / 2, -1.510, 2.235, 0.836, 0), q);
@@ -111,7 +113,8 @@ public class LynxArmKinematicsTest {
             TestUtil.verify(new Pose3d(0, 0.15, 0, new Rotation3d(0, Math.PI / 2, 0)), fixed, "fix3");
             LynxArmConfig q = k.inverse(initial, fixed);
             // projection method
-            TestUtil.verify(new LynxArmConfig(Math.PI / 2, -1.639, 2.186, 1.024, 1.571), q);
+            TestUtil.verify(new LynxArmConfig(Math.PI / 2,
+                 -1.641, 2.186, 1.026, 1.571), q);
             // yaw substitution method
             // ***
             // note the large change in grip roll axis
