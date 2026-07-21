@@ -89,8 +89,10 @@ public class RRKinematics {
         // Use law of cosines.
         double r = x.getNorm();
         double gamma = Math.atan2(x.getY(), x.getX());
-        double beta = Math.acos((r * r + l1 * l1 - l2 * l2) / (2 * r * l1));
-        double alpha = Math.acos((l1 * l1 + l2 * l2 - r * r) / (2 * l1 * l2));
+        double c1 = (r * r + l1 * l1 - l2 * l2) / (2 * r * l1);
+        double beta = Math.acos(c1);
+        double c2 = (l1 * l1 + l2 * l2 - r * r) / (2 * l1 * l2);
+        double alpha = Math.acos(c2);
 
         double q1 = gamma + beta;
         double q2 = alpha + Math.PI;

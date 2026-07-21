@@ -5,6 +5,7 @@ import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.util.StrUtil;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -96,9 +97,15 @@ public class SixDofKinematics {
         // The wrist rotation
         Rotation3d R36 = R.relativeTo(R03);
 
+        Matrix<N3, N3> r = R36.toMatrix();
+        // ZXZ case
+        double q4 = Math.atan2(r.get(1, 3), -r.get(2, 3));
+        double q5 = Math.atan2(Math.sqrt(Math.pow(r.get(1, 3), 2) + Math.pow(r.get(2, 3), 2)), r.get(3, 3));
+        double q6 = Math.atan2(r.get(3, 1), r.get(3, 2));
+
         // Decompose the rotation into roll-pitch-roll components.
 
-        return new SixDofConfig(q1, q2, q3, 0, 0, 0);
+        return new SixDofConfig(q1, q2, q3, q4, q5, q6);
     }
 
     private Transform3d t1(double q1) {
