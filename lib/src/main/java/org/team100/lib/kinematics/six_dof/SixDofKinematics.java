@@ -5,6 +5,7 @@ import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.util.StrUtil;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -23,6 +24,10 @@ import edu.wpi.first.math.numbers.N3;
  */
 public class SixDofKinematics {
     private static final boolean DEBUG = true;
+
+    record WristConfig(double q4, double q5, double q6) {
+    }
+
     /** height of the shoulder */
     private final double base;
     /** Boom length between shoulder and elbow */
@@ -65,47 +70,90 @@ public class SixDofKinematics {
     /**
      * Similar to the Lynx arm case.
      * For now this ignores the singularity on the swing axis.
+     * 
+     * If q5 is zero, the wrist is in a singularity, and q4 and q6 should be handled
+     * differently.
      */
     public SixDofConfig inverse(Pose3d p) {
         Translation3d t = p.getTranslation();
+        if (DEBUG)
+            System.out.printf("t %s\n", StrUtil.transStr(t));
+
         Rotation3d R = p.getRotation();
 
-        // Tool translation.
-        Translation3d b = new Translation3d(tool, p.getRotation());
-        // Wrist origin.
+        // Tool translation = tool translation in tool frame, rotated by R.
+        Translation3d b = new Translation3d(0, 0, tool).rotateBy(R);
+        // Wrist origin = start at tool point, walk backwards along tool.
         Translation3d w = t.minus(b);
-        double q1 = w.toTranslation2d().getAngle().getRadians();
-
-        double hypot = Math.hypot(w.getX(), w.getY()) * Math.signum(w.getX());
-        // 3d z becomes y, offset by the shoulder height.
+        if (DEBUG)
+            System.out.printf("w %s\n", StrUtil.transStr(w));
+        // Note: IEEE 754 defined atan2(0,0) as 0 in 1985.  It's wrong.
+        Translation2d w2d = w.toTranslation2d();
+        if (w2d.getNorm() < 1e-3) {
+            if (DEBUG)
+                System.out.println("base singularity");
+        }
+        // Swing joint = wrist origin must be in the swing plane.
+        double q1 = w2d.getAngle().getRadians();
+        // Horizontal distance from base to wrist.
+        double twoDofX = Math.hypot(w.getX(), w.getY()) * Math.signum(w.getX());
+        // Vertical distance from base to wrist..
         double twoDofY = w.getZ() - base;
-        Translation2d twoDofEnd = new Translation2d(
-                hypot,
-                twoDofY);
+        // RR sub-problem
+        Translation2d twoDofEnd = new Translation2d(twoDofX, twoDofY);
         RRConfig twoDofConfig = twodof.inverse(twoDofEnd);
         double q2 = twoDofConfig.q1();
         double q3 = twoDofConfig.q2();
 
-        // now compute the full pose at the wrist parent.
+        // Each joint pose up to the wrist.
         Pose3d p1 = Pose3d.kZero.plus(t1(q1));
         Pose3d p2 = p1.plus(t2(q2));
         Pose3d p3 = p2.plus(t3(q3));
+        // The pose when the wrist roll is zero.
+        Pose3d p4 = p3.plus(t4(0));
+        // The rotation for zero wrist roll.
+        Rotation3d R04 = p4.getRotation();
+        if (DEBUG)
+            System.out.printf("R04 %s\n", StrUtil.rotStr(R04));
 
-        // The rotation of the wrist parent
-        Rotation3d R03 = p3.getRotation();
+        // The RPR wrist rotation is whatever is left.
+        Rotation3d R36 = R.relativeTo(R04);
+        WristConfig wq = wristInverse(R36);
 
-        // The wrist rotation
-        Rotation3d R36 = R.relativeTo(R03);
+        return new SixDofConfig(q1, q2, q3, wq.q4, wq.q5, wq.q6);
+    }
 
-        Matrix<N3, N3> r = R36.toMatrix();
-        // ZXZ case
-        double q4 = Math.atan2(r.get(1, 3), -r.get(2, 3));
-        double q5 = Math.atan2(Math.sqrt(Math.pow(r.get(1, 3), 2) + Math.pow(r.get(2, 3), 2)), r.get(3, 3));
-        double q6 = Math.atan2(r.get(3, 1), r.get(3, 2));
+    /**
+     * Decomposition of R into ZXZ Euler angles.
+     * 
+     * If q5 is zero, the wrist is in a singularity, and q4 and q6 should be handled
+     * differently.
+     *
+     * https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2016/KinematicsSingleBody.pdf
+     */
+    static WristConfig wristInverse(Rotation3d R) {
+        if (DEBUG)
+            System.out.printf("R %s\n", StrUtil.rotStr(R));
+        Matrix<N3, N3> r = R.toMatrix();
+        if (DEBUG)
+            System.out.printf("R %s\n", StrUtil.matStr(r));
+        double r13 = r.get(0, 2);
+        double r23 = r.get(1, 2);
+        double r31 = r.get(2, 0);
+        double r32 = r.get(2, 1);
+        double r33 = r.get(2, 2);
 
-        // Decompose the rotation into roll-pitch-roll components.
+        if (MathUtil.isNear(1, r33, 1e-2)) {
+            if (DEBUG)
+                System.out.println("wrist singularity");
+        }
 
-        return new SixDofConfig(q1, q2, q3, q4, q5, q6);
+        double q4 = Math.atan2(r13, -r23);
+        // Negative sign here because our convention for the orientation of q5 is
+        // opposite the ZXZ convention.
+        double q5 = -1.0 * Math.atan2(Math.sqrt(Math.pow(r13, 2) + Math.pow(r23, 2)), r33);
+        double q6 = Math.atan2(r31, r32);
+        return new WristConfig(q4, q5, q6);
     }
 
     private Transform3d t1(double q1) {

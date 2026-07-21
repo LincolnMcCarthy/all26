@@ -6,6 +6,7 @@ import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPosition;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
@@ -24,6 +25,7 @@ import edu.wpi.first.math.numbers.N2;
  * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
  */
 public class RRKinematics {
+    private static final boolean DEBUG = true;
     /** Proximal link length, meters. */
     private final double l1;
     /** Distal link length, meters. */
@@ -86,6 +88,8 @@ public class RRKinematics {
      * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
      */
     public RRConfig inverse(Translation2d x) {
+        if (DEBUG)
+            System.out.printf("t %s\n", StrUtil.transStr(x));
         // Use law of cosines.
         double r = x.getNorm();
         double gamma = Math.atan2(x.getY(), x.getX());
