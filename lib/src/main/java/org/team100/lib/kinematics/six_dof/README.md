@@ -194,7 +194,6 @@ joints:
 * Move the shoulder joint so that the wrist origin never intersects the base axis.
   This introduces another symmetry, the "left/right" symmetry, which is
   coupled to the "flip/no-flip" symmetry.
-* Add a small angle in the wrist so that the two roll axes can't be aligned.
 
 
 ## Joint Limits
