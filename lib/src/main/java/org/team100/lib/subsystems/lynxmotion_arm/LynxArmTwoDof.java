@@ -79,7 +79,7 @@ public class LynxArmTwoDof extends SubsystemBase implements AutoCloseable {
 
     /** Translation coordinates are x-forward y-up, measured from the boom joint. */
     public void setPosition(Translation2d end) {
-        RRConfig q = m_kinematics.inverse(end);
+        RRConfig q = m_kinematics.inverse(end).elbowUp();
         // the joint coordinates use the 3d convention which is inverted
         // from the 2d one, so fix it here.
         m_boom.set(-1.0 * q.q1());

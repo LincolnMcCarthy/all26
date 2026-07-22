@@ -1,4 +1,4 @@
-package org.team100.lib.kinematics.rrr;
+package org.team100.lib.kinematics.rrr_se2;
 
 import java.util.List;
 import java.util.Map;

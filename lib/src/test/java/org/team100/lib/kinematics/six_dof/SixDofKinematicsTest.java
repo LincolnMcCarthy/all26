@@ -2,9 +2,10 @@ package org.team100.lib.kinematics.six_dof;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
-import org.team100.lib.kinematics.six_dof.SixDofKinematics.WristConfig;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -13,7 +14,7 @@ public class SixDofKinematicsTest {
     @Test
     void testForward1() {
         // all zeros => arm is extended along +x
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
         Pose3d p = k.forward(q);
         verify(new Pose3d(1.65, 0, 0.25, new Rotation3d(Math.PI / 2, 0, Math.PI / 2)), p);
@@ -22,7 +23,7 @@ public class SixDofKinematicsTest {
     @Test
     void testForward2() {
         // make the wrist frame parallel with the world frame
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         SixDofConfig q = new SixDofConfig(
                 0, // yaw +x
                 Math.PI / 2, // shoulder up
@@ -39,39 +40,65 @@ public class SixDofKinematicsTest {
     void testInverse1() {
         // This is the wrist singularity and the elbow singularity.
         // TODO: fix this case.
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(1.65, 0, 0.25,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        SixDofConfig q = k.inverse(p);
+        List<SixDofConfig> q = k.inverse(p);
         // q4 and q6 are nonsense
-        verify(new SixDofConfig(0, 0, 0, -3.141, 0, -3.141), q);
+        verify(new SixDofConfig(0, 0, 0, -3.141, 0, -3.141), q.get(0));
+        verify(new SixDofConfig(0, 0, 0, 0, 0, 0), q.get(1));
+        verify(new SixDofConfig(0, 0, 0, -3.141, 0, -3.141), q.get(2));
+        verify(new SixDofConfig(0, 0, 0, 0, 0, 0), q.get(3));
     }
 
     @Test
     void testInverse2() {
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global -z, tool x at global -y
         Pose3d p = new Pose3d(0.5, 0, 0.5,
                 new Rotation3d(Math.PI, 0, Math.PI / 2));
-        SixDofConfig q = k.inverse(p);
+        List<SixDofConfig> q = k.inverse(p);
+        // elbow-up cases
         verify(new SixDofConfig(0, // along +x
                 1.804, // slightly back
                 -2.259, // down from the elbow
                 0, // zero means the "pitch" is really global pitch
                 -1.116, // aim tool down
                 0), // no tool rotation
-                q);
+                q.get(0));
+        verify(new SixDofConfig(0, // along +x
+                1.804, // slightly back
+                -2.259, // down from the elbow
+                3.141, // zero means the "pitch" is really global pitch
+                1.116, // aim tool down
+                3.141), // no tool rotation
+                q.get(1));
+        // elbow-down cases
+        verify(new SixDofConfig(0, // along +x
+                -0.455, // slightly down
+                2.259, // up from the elbow
+                -3.141, // invert the wrist
+                -2.908, // aim tool down
+                -3.141), // rotate tool back
+                q.get(2));
+        verify(new SixDofConfig(0, // along +x
+                -0.455, // slightly down
+                2.259, // up from the elbow
+                0, // zero means the "pitch" is really global pitch
+                2.908, // opposite
+                0), // no tool rotation
+                q.get(3));
     }
 
     @Test
     void testInverse3() {
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x, tool x at global -y
         // note position offset +y, wrist should be at (0.5,0.5,0.5)
         Pose3d p = new Pose3d(0.65, 0.5, 0.5,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        SixDofConfig q = k.inverse(p);
+        List<SixDofConfig> q = k.inverse(p);
         verify(new SixDofConfig(
                 0.785, // diagonal, +x+y
                 1.387, // slightly forward
@@ -79,7 +106,32 @@ public class SixDofKinematicsTest {
                 -2.147, // the q5 axis is pointing kinda -x+y+z
                 -1.003, // total bend is around 60?
                 2.451), // turn back so tool is correct
-                q);
+                q.get(0));
+        verify(new SixDofConfig(
+                0.785, // diagonal, +x+y
+                1.387, // slightly forward
+                -2.094, // down from the elbow
+                0.994, // the q5 axis is pointing kinda -x+y+z
+                1.003, // total bend is around 60?
+                -0.691), // turn back so tool is correct
+                q.get(1));
+        // elbow-down cases
+        verify(new SixDofConfig(
+                0.785, // diagonal, +x+y
+                -0.707, // slightly down
+                2.094, // up from the elbow
+                -0.794, //
+                -1.441, //
+                0.131), // turn back so tool is correct
+                q.get(2));
+        verify(new SixDofConfig(
+                0.785, // diagonal, +x+y
+                -0.707, // slightly down
+                2.094, // up from the elbow
+                2.348, // the q5 axis is pointing kinda -x+y+z
+                1.441, // total bend is around 60?
+                -3.011), // turn back so tool is correct
+                q.get(3));
     }
 
     @Test
@@ -88,12 +140,18 @@ public class SixDofKinematicsTest {
         // Currently at the base singularity we always choose
         // q1 = 0, which is not correct in general.
         // TODO: fix this case
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        SixDofConfig q = k.inverse(p);
-        verify(new SixDofConfig(0, 2.618, -2.094, 0, -0.523, 0), q);
+        List<SixDofConfig> q = k.inverse(p);
+        // elbow-up
+        verify(new SixDofConfig(0, 2.618, -2.094, 0, -0.523, 0), q.get(0));
+        verify(new SixDofConfig(0, 2.618, -2.094, 3.141, 0.523, 3.141), q.get(1));
+        // elbow-down
+        verify(new SixDofConfig(0, 0.523, 2.094, 0, -2.618, 0), q.get(2));
+        verify(new SixDofConfig(0, 0.523, 2.094, 3.141, 2.618, 3.141), q.get(3));
+
     }
 
     @Test
@@ -102,34 +160,19 @@ public class SixDofKinematicsTest {
         // Currently the base swings all the way around, and the
         // wrist goes "backward".
         // TODO: fix this case.
-        SixDofKinematics k = new SixDofKinematics();
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        SixDofConfig q = k.inverse(p);
+        List<SixDofConfig> q = k.inverse(p);
         // note q1=pi :(
         // note q5 is very sharp
-        verify(new SixDofConfig(3.141, 2.804, -2.071, -3.141, -2.409, 0), q);
-    }
-
-    @Test
-    void testEuler1() {
-        // identity => singularity
-        // TODO: fix this case.
-        Rotation3d r = new Rotation3d();
-        WristConfig q = SixDofKinematics.wristInverse(r);
-        // q4 is nonsense
-        assertEquals(0, q.q5(), 1e-3);
-        // q6 is nonsense.
-    }
-
-    @Test
-    void testEuler2() {
-        // zero q4 is z to +x, x to +y, so pointing z left
-        // is a rotation around y.
-        Rotation3d r = new Rotation3d(0, Math.PI / 2, 0);
-        WristConfig q = SixDofKinematics.wristInverse(r);
-        verify(new WristConfig(1.571, -1.571, -1.571), q);
+        // elbow-up
+        verify(new SixDofConfig(3.141, 2.804, -2.071, -3.141, -2.409, 0), q.get(0));
+        verify(new SixDofConfig(3.141, 2.804, -2.071, 0, 2.409, 3.141), q.get(1));
+        // elbow-down
+        verify(new SixDofConfig(3.141, 0.732, 2.071, 3.141, -0.338, 0), q.get(2));
+        verify(new SixDofConfig(3.141, 0.732, 2.071, 0, 0.338, 3.141), q.get(3));
     }
 
     void verify(Pose3d expected, Pose3d actual) {
@@ -150,9 +193,4 @@ public class SixDofKinematicsTest {
         assertEquals(expected.q6(), actual.q6(), 1e-3, "q6");
     }
 
-    void verify(WristConfig expected, WristConfig actual) {
-        assertEquals(expected.q4(), actual.q4(), 1e-3, "q4");
-        assertEquals(expected.q5(), actual.q5(), 1e-3, "q5");
-        assertEquals(expected.q6(), actual.q6(), 1e-3, "q6");
-    }
 }

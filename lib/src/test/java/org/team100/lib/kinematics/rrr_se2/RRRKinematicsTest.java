@@ -1,4 +1,4 @@
-package org.team100.lib.kinematics.rrr;
+package org.team100.lib.kinematics.rrr_se2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

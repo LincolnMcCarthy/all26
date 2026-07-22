@@ -4,7 +4,6 @@ import java.util.OptionalDouble;
 
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.geometry.lynx_arm.LynxArmPose;
-import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.kinematics.rr.RRKinematics;
 
 import edu.wpi.first.math.MathUtil;
@@ -134,11 +133,11 @@ public class AnalyticLynxArmKinematics implements LynxArmKinematics {
         Translation2d twoDofEnd = new Translation2d(
                 hypot,
                 twoDofY);
-        RRConfig twoDofConfig = twodof.inverse(twoDofEnd);
+        RRKinematics.ConfigSolution twoDofConfig = twodof.inverse(twoDofEnd);
 
         // the 2d coordinates are inverted for convenience, so fix it here.
-        boom = -1.0 * twoDofConfig.q1();
-        stick = -1.0 * twoDofConfig.q2();
+        boom = -1.0 * twoDofConfig.elbowUp().q1();
+        stick = -1.0 * twoDofConfig.elbowUp().q2();
 
         Rotation3d endRotation = end.getRotation();
         if (translation.getNorm() < 1e-3) {

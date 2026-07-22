@@ -85,33 +85,44 @@ public class RRKinematicsTest {
 
     @Test
     void testInverseV() {
+        // TODO: add elbow-down cases.
         RRKinematics k = new RRKinematics(1, 1);
-        RRVelocity qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(0, 0));
+        RRVelocity qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(0, 0)).elbowUp();
         verify(0, 0, qdot);
-        qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(1, 0));
+        qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(1, 0)).elbowUp();
         verify(0, 0, qdot);
-        qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(0, 1));
+        qdot = k.inverse(new Translation2d(2, 0), new VelocityR2(0, 1)).elbowUp();
         verify(0, 1, qdot);
-        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 0));
+        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 0)).elbowUp();
         verify(0, 0, qdot);
-        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(1, 0));
+        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(1, 0)).elbowUp();
         verify(-1, 0, qdot);
-        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 1));
+        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 1)).elbowUp();
         verify(0, 1, qdot);
-        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(-1, 1));
+        qdot = k.inverse(new Translation2d(1, 1), new VelocityR2(-1, 1)).elbowUp();
         verify(1, 0, qdot);
     }
 
     @Test
     void testInverseA() {
+        // TODO: add elbow-down cases
         RRKinematics k = new RRKinematics(1, 1);
-        RRAcceleration qddot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 0), new AccelerationR2(0, 0));
+        RRAcceleration qddot = k.inverse(
+                new Translation2d(1, 1),
+                new VelocityR2(0, 0),
+                new AccelerationR2(0, 0)).elbowUp();
         verify(0, 0, qddot);
         // steady +x does not require accel.
-        qddot = k.inverse(new Translation2d(1, 1), new VelocityR2(1, 0), new AccelerationR2(0, 0));
+        qddot = k.inverse(
+                new Translation2d(1, 1),
+                new VelocityR2(1, 0),
+                new AccelerationR2(0, 0)).elbowUp();
         verify(0, 0, qddot);
         // steady +y requires shoulder accel
-        qddot = k.inverse(new Translation2d(1, 1), new VelocityR2(0, 1), new AccelerationR2(0, 0));
+        qddot = k.inverse(
+                new Translation2d(1, 1),
+                new VelocityR2(0, 1),
+                new AccelerationR2(0, 0)).elbowUp();
         verify(-1, 0, qddot);
     }
 
@@ -129,8 +140,9 @@ public class RRKinematicsTest {
     }
 
     void verify(RRKinematics k, RRPosition p, RRConfig q) {
+        // TODO: add elbow-down cases
         verifyFwd(p, k.forward(q));
-        verifyInv(q, k.inverse(p.p2()));
+        verifyInv(q, k.inverse(p.p2()).elbowUp());
     }
 
     void verifyFwd(RRPosition expected, RRPosition actual) {

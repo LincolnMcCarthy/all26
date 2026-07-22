@@ -93,7 +93,8 @@ public class URDFRobot<Q extends Num> {
     }
 
     /**
-     * Solve inverse kinematics for all joints using Newton's method.
+     * Solve inverse kinematics for all joints using Newton's method,
+     * or coordinate descent.
      * 
      * qDim indicates the dimensionality of the configuration space.
      * q0 is the initial (e.g. current) configuration.

@@ -130,17 +130,42 @@ Following [ETH](https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-
 
 Beware the singularity in these three joints:
 
-* **Roll singularity:** if $r_{33}$ is 1, the two "roll" joints are collinear, and redundant.
+* **Roll singularity:** if $r_{33}$ is 1, the two wrist "roll" joints are collinear, and
+  redundant.
 
 There is one more overall singularity:
 
-*  **Base-tool singularity:** when the base joint and the tool axis are collinear and redundant.
+* **Base-wrist singularity:** when the base axis intersects the wrist origin, then there
+  is a redundancy between the base and some combination of wrist axes.
 
 In these cases, do something convenient (e.g. note the
 most-recent setting of one of the joints, keep it the same,
 and move the other).
 
-## Handling Singularities
+## Multiple Solutions
+
+The six-DOF arm inverse kinematics produces up to eight solutions:
+
+* base alternatives
+  * base ("non-flip") case, arm reaching "forward"
+  * opposite angle, arm reaching "backward" ("flipped")
+* elbow alternatives
+  * "elbow up"
+  * "elbow down"
+* wrist alternatives
+  * base case
+  * opposite roll, opposite pitch, opposite tool angle
+
+Putting these three together, there are eight combinations.
+
+Many of these options may be outside the range of one or more of the
+joints.
+
+The IK code should enumerate all the solutions, and then there
+should be a "filter" that discards out-of-bounds solutions.
+
+
+## Singularities
 
 There are two types of singularities:
 
@@ -155,23 +180,31 @@ workspace, in the path planning phase.
 
 The other singularities are harder to avoid: they can appear in
 the middle of a feasible path, with no velocity issues, just
-a brief indeterminacy.  To handle this case, the path follower
-should substitute "nearby" values for the indeterminate joints,
+a brief indeterminacy or redundancy.
+
+To handle this case, the path follower
+could substitute "nearby" values for the indeterminate joints,
 e.g. by simply using the previous (non-indeterminate) one,
 or by looking ahead and averaging a pair of non-indeterminate
 joint positions.
+
+Another way to avoid interior singularities is to offset some of the
+joints:
+
+* Move the shoulder joint so that the wrist origin never intersects the base axis.
+  This introduces another symmetry, the "left/right" symmetry, which is
+  coupled to the "flip/no-flip" symmetry.
+* Add a small angle in the wrist so that the two roll axes can't be aligned.
+
 
 ## Joint Limits
 
 Most tool poses can be satisfied with multiple robot configurations.
 For example, the "elbow up" and "elbow down" configurations are
 usually both possible, and the base ("swing") joint can
-occupy two feasible positions, 180 degrees apart.
-
-How should we include joint limits in the kinematics?  For example, the
-"pitch" aspect of the wrist is often limited to $[-\pi/2,\pi/2]$.
-
-TODO: finish this part.
+occupy two feasible positions, 180 degrees apart, but the base
+may only have a range of 180 degrees, so one of the solutions would
+be infeasible.
 
 ## References
 
@@ -188,3 +221,7 @@ TODO: finish this part.
 * [Yudhisteer](https://github.com/yudhisteer/Digital-Twin-of-Anthropomorphic-Robotic-Arm) kind of a student survey project?
 * [RoboDK discussion of singularities](https://robodk.com/blog/robot-singularities/)
 * [Mecademic on singularities](https://mecademic.com/insights/academic-tutorials/what-are-singularities-6-axis-robot-arm/)
+* [Bruyninckx 2010](https://u0011821.pages.gitlab.kuleuven.be/robotics/2009-HermanBruyninckx-robot-kinematics-and-dynamics.pdf)
+* [Williams 1999](https://people.ohio.edu/williams/html/PDF/IASTED.pdf) wrist kinematics
+* [Rudrasamudram 2026](https://arxiv.org/html/2604.13405v1) a student paper, i think
+* [Verheye 2021](https://achille0.medium.com/under-the-radar-cuspidal-robots-7091eca01271) about singularity elimination
