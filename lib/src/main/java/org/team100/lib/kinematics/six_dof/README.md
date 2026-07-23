@@ -174,26 +174,31 @@ There are two types of singularities:
 * **Positional singularities:** where joint angles become indeterminate.
   All the other singularities above are of this type.
 
-The velocity singularity always occurs at the edge of the workspace,
-and so it can be avoided by by avoiding the edges of the
-workspace, in the path planning phase.
+There are two ways to avoid the velocity singularity:
 
-The other singularities are harder to avoid: they can appear in
+* Realize that it always occurs at the edge of the workspace,
+  and so it can be avoided by by avoiding the edges of the
+  workspace, in the path planning phase.
+* Control the robot between non-singular poses using joint-space
+  splines.  For some tasks, joint-space splines are a fine control
+  strategy for long paths.  For others, using shorter spline segments
+  would be fine.
+
+Positional singularities are harder to avoid: they can appear in
 the middle of a feasible path, with no velocity issues, just
 a brief indeterminacy or redundancy.
 
-To handle this case, the path follower
-could substitute "nearby" values for the indeterminate joints,
-e.g. by simply using the previous (non-indeterminate) one,
-or by looking ahead and averaging a pair of non-indeterminate
-joint positions.
+To avoid them:
 
-Another way to avoid interior singularities is to offset some of the
-joints:
-
-* Move the shoulder joint so that the wrist origin never intersects the base axis.
-  This introduces another symmetry, the "left/right" symmetry, which is
-  coupled to the "flip/no-flip" symmetry.
+* The path follower could substitute "nearby" values for the
+  indeterminate joints, e.g. by simply using the previous
+  (non-indeterminate) one, or by looking ahead and averaging a
+  pair of non-indeterminate joint positions.
+* Add offset. move the shoulder joint so that the wrist origin never
+  intersects the base axis.  This introduces another symmetry, the
+  "left/right" symmetry, which is coupled to the "flip/no-flip" symmetry.
+  It's not obvious that trading a singularity for a symmetry is really
+  all that helpful, but maybe?
 
 
 ## Joint Limits
@@ -224,3 +229,5 @@ be infeasible.
 * [Williams 1999](https://people.ohio.edu/williams/html/PDF/IASTED.pdf) wrist kinematics
 * [Rudrasamudram 2026](https://arxiv.org/html/2604.13405v1) a student paper, i think
 * [Verheye 2021](https://achille0.medium.com/under-the-radar-cuspidal-robots-7091eca01271) about singularity elimination
+* [Nickens 2009](https://homepages.hass.rpi.edu/heuveb/Teaching/CognitiveRobotics/Documents/Glenn%20Nickens%20Thesis%20Proposal%20Slides.pdf) MSCS proposal which include RRT path planning in configuration-space.  Note this does not care about the cartesian path.
+* [Cookie Robotics on Euler angles](https://cookierobotics.com/081/)

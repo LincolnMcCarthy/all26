@@ -1,5 +1,8 @@
 package org.team100.lib.kinematics.rr;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.team100.lib.geometry.r2.AccelerationR2;
 import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
@@ -26,17 +29,6 @@ import edu.wpi.first.math.numbers.N2;
  */
 public class RRKinematics {
     private static final boolean DEBUG = true;
-
-    // we use these containers instead of lists so that there's no
-    // question about which solution is which.
-    public record ConfigSolution(RRConfig elbowUp, RRConfig elbowDown) {
-    }
-
-    public record VelocitySolution(RRVelocity elbowUp, RRVelocity elbowDown) {
-    }
-
-    public record AccelerationSolution(RRAcceleration elbowUp, RRAcceleration elbowDown) {
-    }
 
     /** Proximal link length, meters. */
     private final double l1;
@@ -96,35 +88,45 @@ public class RRKinematics {
      * 
      * q = f(x)
      * 
-     * Note there are two possible configurations, "elbow up" and "elbow down",
-     * so this returns a list.
+     * Returns 0 (infeasible), 1 (singularity), or 2 (usual case) solutions.
      * 
      * Refer to the diagram, or README.md
      * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
      */
-    public ConfigSolution inverse(Translation2d x) {
+    public List<RRConfig> inverse(Translation2d x) {
         if (DEBUG)
             System.out.printf("t %s\n", StrUtil.transStr(x));
         // Use law of cosines.
         double r = x.getNorm();
+        // TODO: handle zero r
         double gamma = Math.atan2(x.getY(), x.getX());
         double c1 = (r * r + l1 * l1 - l2 * l2) / (2 * r * l1);
         double beta = Math.acos(c1);
         double c2 = (l1 * l1 + l2 * l2 - r * r) / (2 * l1 * l2);
         double alpha = Math.acos(c2);
 
-        if (Double.isNaN(alpha) || Double.isNaN(beta) || Double.isNaN(gamma))
-            throw new IllegalArgumentException(String.format("invalid two-dof parameter %s", x));
+        if (Double.isNaN(alpha) || Double.isNaN(beta) || Double.isNaN(gamma)) {
+            if (DEBUG) {
+                System.out.println("infeasible");
+            }
+            return List.of();
+        }
 
-        // There are two solutions, "elbow up" ...
         double q1up = MathUtil.angleModulus(gamma + beta);
         double q2up = MathUtil.angleModulus(alpha + Math.PI);
-        // ... and "elbow down":
+
+        if (Math.abs(q2up) < 1e-3) {
+            if (DEBUG)
+                System.out.println("elbow singularity");
+            return List.of(new RRConfig(q1up, q2up));
+        }
+
         double q1down = MathUtil.angleModulus(gamma - beta);
         double q2down = -q2up;
 
-        return new ConfigSolution(
-                new RRConfig(q1up, q2up), new RRConfig(q1down, q2down));
+        return List.of(
+                new RRConfig(q1up, q2up),
+                new RRConfig(q1down, q2down));
     }
 
     /**
@@ -132,16 +134,16 @@ public class RRKinematics {
      * 
      * \dot{q} = J^{-1} \dot{x}
      */
-    public VelocitySolution inverse(Translation2d x, VelocityR2 xdot) {
-        ConfigSolution q = inverse(x);
+    public List<RRVelocity> inverse(Translation2d x, VelocityR2 xdot) {
+        List<RRConfig> q = inverse(x);
 
-        Matrix<N2, N2> JinvUp = Jinv(q.elbowUp);
-        RRVelocity vUp = RRVelocity.fromVector(JinvUp.times(xdot.toVector()));
-
-        Matrix<N2, N2> JinvDown = Jinv(q.elbowDown);
-        RRVelocity vDown = RRVelocity.fromVector(JinvDown.times(xdot.toVector()));
-
-        return new VelocitySolution(vUp, vDown);
+        List<RRVelocity> result = new ArrayList<>();
+        for (RRConfig rrq : q) {
+            Matrix<N2, N2> Jinv = Jinv(rrq);
+            RRVelocity v = RRVelocity.fromVector(Jinv.times(xdot.toVector()));
+            result.add(v);
+        }
+        return result;
     }
 
     /**
@@ -151,13 +153,13 @@ public class RRKinematics {
      * 
      * See doc/README.md equation 9
      */
-    public AccelerationSolution inverse(Translation2d x, VelocityR2 xdot, AccelerationR2 xddot) {
-        ConfigSolution s = inverse(x);
-
-        RRAcceleration up = getJdot(xdot, xddot, s.elbowUp);
-        RRAcceleration down = getJdot(xdot, xddot, s.elbowDown);
-
-        return new AccelerationSolution(up, down);
+    public List<RRAcceleration> inverse(Translation2d x, VelocityR2 xdot, AccelerationR2 xddot) {
+        List<RRConfig> s = inverse(x);
+        List<RRAcceleration> result = new ArrayList<>();
+        for (RRConfig q : s) {
+            result.add(getJdot(xdot, xddot, q));
+        }
+        return result;
     }
 
     private RRAcceleration getJdot(VelocityR2 xdot, AccelerationR2 xddot, RRConfig q) {

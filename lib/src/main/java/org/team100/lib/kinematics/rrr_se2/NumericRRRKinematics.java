@@ -20,13 +20,15 @@ import edu.wpi.first.math.numbers.N3;
 /**
  * RRR planar linkage.
  * 
+ * Uses URDF numeric inverse.
+ * 
  * NOTE! Coordinates are different from other planar examples.
  * 
  * The arm is in the XZ plane.
  * The rotational zero is along +x.
  * Joint rotation is around Y, and thus rotations "up" are negative.
  */
-public class RRRKinematics {
+public class NumericRRRKinematics {
 
     private final URDFRobot<N3> m_arm;
 
@@ -35,7 +37,7 @@ public class RRRKinematics {
      * @param l2 lower arm length
      * @param l3 "hand" length
      */
-    public RRRKinematics(double l1, double l2, double l3) {
+    public NumericRRRKinematics(double l1, double l2, double l3) {
         URDFLink base = new URDFLink("base");
         URDFLink upper_arm_link = new URDFLink("upper_arm_link");
         URDFLink lower_arm_link = new URDFLink("lower_arm_link");

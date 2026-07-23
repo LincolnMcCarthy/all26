@@ -1,6 +1,7 @@
 package org.team100.lib.kinematics.rrr_so3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -41,15 +42,35 @@ public class SphericalWristKinematicsTest {
 
     @Test
     void testInverse1() {
-        // identity => singularity
-        // TODO: fix this case.
+        // identity => singularity, throws because default is null.
         SphericalWristKinematics wk = new SphericalWristKinematics();
         Rotation3d r = new Rotation3d();
-        List<SphericalWristConfig> q = wk.inverse(r);
-        // q4 is nonsense
+        assertThrows(IllegalArgumentException.class, () -> wk.inverse(r, null));
+    }
+
+    @Test
+    void testInverse1a() {
+        // identity => singularity, uses default, roll sum is zero.
+        SphericalWristKinematics wk = new SphericalWristKinematics();
+        Rotation3d r = new Rotation3d();
+        List<SphericalWristConfig> q = wk.inverse(r, 1.0);
+        assertEquals(1, q.size());
+        assertEquals(1, q.get(0).q4(), 1e-3);
         assertEquals(0, q.get(0).q5(), 1e-3);
-        assertEquals(0, q.get(1).q5(), 1e-3);
-        // q6 is nonsense.
+        assertEquals(-1, q.get(0).q6(), 1e-3);
+    }
+
+    @Test
+    void testInverse1b() {
+        // roll only => singularity, uses default, roll sum is zero.
+        SphericalWristKinematics wk = new SphericalWristKinematics();
+        // "Roll" in the wrist frame is around z, which wpi calls "yaw".
+        Rotation3d r = new Rotation3d(0, 0, 1);
+        List<SphericalWristConfig> q = wk.inverse(r, 1.0);
+        assertEquals(1, q.size());
+        assertEquals(1, q.get(0).q4(), 1e-3);
+        assertEquals(0, q.get(0).q5(), 1e-3);
+        assertEquals(0, q.get(0).q6(), 1e-3);
     }
 
     @Test
@@ -58,7 +79,8 @@ public class SphericalWristKinematicsTest {
         // is a rotation around y.
         SphericalWristKinematics wk = new SphericalWristKinematics();
         Rotation3d r = new Rotation3d(0, Math.PI / 2, 0);
-        List<SphericalWristConfig> q = wk.inverse(r);
+        List<SphericalWristConfig> q = wk.inverse(r, 0.0);
+        assertEquals(2, q.size());
         // note two opposite cases
         verify(new SphericalWristConfig(1.571, -1.571, -1.571), q.get(0));
         verify(new SphericalWristConfig(-1.571, 1.571, 1.571), q.get(1));

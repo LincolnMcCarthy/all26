@@ -7,7 +7,6 @@ import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
 import org.team100.lib.kinematics.rr.RRKinematics;
-import org.team100.lib.kinematics.rr.RRKinematics.ConfigSolution;
 import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
 import org.team100.lib.util.StrUtil;
 
@@ -77,10 +76,10 @@ public class SixDofKinematics {
      * Similar to the Lynx arm case.
      * For now this ignores the singularity on the swing axis.
      * 
-     * If q5 is zero, the wrist is in a singularity, and q4 and q6 should be handled
-     * differently.
+     * @param p         tool point pose
+     * @param q4Default in case of singularity
      */
-    public List<SixDofConfig> inverse(Pose3d p) {
+    public List<SixDofConfig> inverse(Pose3d p, Double q4Default) {
         Translation3d t = p.getTranslation();
         if (DEBUG)
             System.out.printf("t %s\n", StrUtil.transStr(t));
@@ -103,29 +102,21 @@ public class SixDofKinematics {
         // Swing joint = wrist origin must be in the swing plane.
         double q1 = w2d.getAngle().getRadians();
         // Find shoulder, elbow, and wrist origin.
-        ConfigSolution rrq = rrConfig(w);
+        List<RRConfig> rrq = rrConfig(w);
         List<SixDofConfig> result = new ArrayList<>();
-        {
-            RRConfig rr = rrq.elbowUp();
+        for (RRConfig rr : rrq) {
             double q2 = rr.q1();
             double q3 = rr.q2();
-            List<SphericalWristConfig> wq = wristQ(R, wristOrigin(q1, q2, q3));
-            result.add(new SixDofConfig(q1, q2, q3, wq.get(0).q4(), wq.get(0).q5(), wq.get(0).q6()));
-            result.add(new SixDofConfig(q1, q2, q3, wq.get(1).q4(), wq.get(1).q5(), wq.get(1).q6()));
-        }
-        {
-            RRConfig rr = rrq.elbowDown();
-            double q2 = rr.q1();
-            double q3 = rr.q2();
-            List<SphericalWristConfig> wq = wristQ(R, wristOrigin(q1, q2, q3));
-            result.add(new SixDofConfig(q1, q2, q3, wq.get(0).q4(), wq.get(0).q5(), wq.get(0).q6()));
-            result.add(new SixDofConfig(q1, q2, q3, wq.get(1).q4(), wq.get(1).q5(), wq.get(1).q6()));
+            List<SphericalWristConfig> wq = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
+            for (SphericalWristConfig swq : wq) {
+                result.add(new SixDofConfig(q1, q2, q3, swq.q4(), swq.q5(), swq.q6()));
+            }
         }
         // TODO: eight configs total
         return result;
     }
 
-    private ConfigSolution rrConfig(Translation3d w) {
+    private List<RRConfig> rrConfig(Translation3d w) {
         // Horizontal distance from base to wrist.
         double x = Math.hypot(w.getX(), w.getY()) * Math.signum(w.getX());
         // Vertical distance from base to wrist..
@@ -136,10 +127,17 @@ public class SixDofKinematics {
         return rrk.inverse(end);
     }
 
-    private List<SphericalWristConfig> wristQ(Rotation3d R, Rotation3d R04) {
+    /**
+     * Wrist config
+     * 
+     * @param R         tool origin rotation
+     * @param R04       wrist origin rotation
+     * @param q4Default in case of singularity, pass null if you have no idea.
+     */
+    private List<SphericalWristConfig> wristQ(Rotation3d R, Rotation3d R04, Double q4Default) {
         // The RPR wrist rotation is whatever is left.
         Rotation3d R36 = R.relativeTo(R04);
-        List<SphericalWristConfig> wq = wk.inverse(R36);
+        List<SphericalWristConfig> wq = wk.inverse(R36, q4Default);
         return wq;
     }
 

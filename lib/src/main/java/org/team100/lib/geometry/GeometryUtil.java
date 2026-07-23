@@ -207,6 +207,10 @@ public class GeometryUtil {
         return new Rotation2d(MathUtil.angleModulus(a.getRadians() + Math.PI));
     }
 
+    public static double flip(double theta) {
+        return MathUtil.angleModulus(theta + Math.PI);
+    }
+
     /** Straight-line (not constant-twist) interpolation. */
     public static Pose2d interpolate(Pose2d a, Pose2d b, double x) {
         if (x <= 0.0) {
