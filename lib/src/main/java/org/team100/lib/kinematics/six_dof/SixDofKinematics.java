@@ -10,9 +10,11 @@ import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
 import org.team100.lib.util.StrUtil;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -26,7 +28,7 @@ import edu.wpi.first.math.numbers.N3;
  * ("origin" in URDF) is arranged to make that work.
  */
 public class SixDofKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     /** Height of the shoulder */
     private final double base;
     /** Boom length between shoulder and elbow */
@@ -74,6 +76,8 @@ public class SixDofKinematics {
 
     /**
      * Similar to the Lynx arm case.
+     *
+     * Zero, one, two, four, or eight solutions.
      * 
      * For defaults, use the previous value, or null if you have no idea (and in
      * that case, catch the exception that may occur).
@@ -98,44 +102,66 @@ public class SixDofKinematics {
             System.out.printf("w %s\n", StrUtil.transStr(w));
         // Note: IEEE 754 defined atan2(0,0) as 0 in 1985. It's wrong.
         Translation2d w2d = w.toTranslation2d();
-        double q1 = getQ1(w2d, q1Default);
-        // Find shoulder, elbow, and wrist origin.
-        List<RRConfig> rrq = rrConfig(w);
+        // One or two swing options
+        List<Double> q1s = getQ1(w2d, q1Default);
         List<SixDofConfig> result = new ArrayList<>();
-        for (RRConfig rr : rrq) {
-            double q2 = rr.q1();
-            double q3 = rr.q2();
-            List<SphericalWristConfig> wq = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
-            for (SphericalWristConfig swq : wq) {
-                result.add(new SixDofConfig(q1, q2, q3, swq.q4(), swq.q5(), swq.q6()));
+        for (double q1 : q1s) {
+            List<RRConfig> rrs = rrConfig(w, q1);
+            for (RRConfig rr : rrs) {
+                double q2 = rr.q1();
+                double q3 = rr.q2();
+                List<SphericalWristConfig> wql = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
+                for (SphericalWristConfig wq : wql) {
+                    result.add(new SixDofConfig(q1, q2, q3, wq.q4(), wq.q5(), wq.q6()));
+                }
             }
         }
-        // TODO: eight configs total
         return result;
     }
 
     /**
-     * Swing joint. Wrist origin must be in the swing plane.
+     * Swing joint. Wrist origin must be in the swing plane. One or two solutions.
+     * 
+     * In the non-singular case, there are two alternatives here: the "no-flip"
+     * case, shoulder near zero, and the "flip" case, with the base pointing the
+     * opposite way and the shoulder pointing "back" to the same result.
      * 
      * @param w         Wrist position in the xy plane
      * @param q1Default Used if the position is the origin. A good choice would be
      *                  the previous value of q1. If you have no idea, pass null and
      *                  catch the exception.
      */
-    private double getQ1(Translation2d w, Double q1Default) {
+    static List<Double> getQ1(Translation2d w, Double q1Default) {
         if (w.getNorm() < 1e-3) {
             if (DEBUG)
                 System.out.println("base singularity");
             if (q1Default == null)
                 throw new IllegalArgumentException("q1Default is null");
-            return q1Default;
+            // in this case we don't do both alternatives, just the one default.
+            return List.of(q1Default);
         }
-        return w.getAngle().getRadians();
+        double radians = w.getAngle().getRadians();
+        return List.of(radians, MathUtil.angleModulus(radians + Math.PI));
     }
 
-    private List<RRConfig> rrConfig(Translation3d w) {
+    /**
+     * 0, 1, or 2 solutions
+     * 
+     * @param w  wrist position
+     * @param q1 swing configuration
+     */
+    private List<RRConfig> rrConfig(Translation3d w, double q1) {
+        // is this the "inline" or the "flip" case?
+        Rotation2d rot = w.toTranslation2d().getAngle();
+        double signum = 0;
+        if (MathUtil.isNear(q1, rot.getRadians(), 1e-3))
+            // forward
+            signum = 1;
+        else
+            // backward
+            signum = -1;
         // Horizontal distance from base to wrist.
-        double x = Math.hypot(w.getX(), w.getY()) * Math.signum(w.getX());
+        double x = Math.hypot(w.getX(), w.getY()) * signum;
         // Vertical distance from base to wrist..
         double y = w.getZ() - base;
         // RR sub-problem.
@@ -145,7 +171,7 @@ public class SixDofKinematics {
     }
 
     /**
-     * Wrist config
+     * Wrist config. One (if singular) or two solutions.
      * 
      * @param R         tool origin rotation
      * @param R04       wrist origin rotation

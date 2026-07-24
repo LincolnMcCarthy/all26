@@ -41,6 +41,8 @@ public class SphericalWristKinematics {
     /**
      * Decomposition of R into ZXZ Euler angles.
      * 
+     * One (if singular) or two solutions.
+     * 
      * The RPR wrist involves a singularity when q4 and q6 are collinear. In
      * that case, the default q4 value will be used, and this returns a single
      * solutoin.
@@ -70,6 +72,8 @@ public class SphericalWristKinematics {
         double r33 = r.get(2, 2);
 
         // 1e-3 means within about 1.5 degrees of zero.
+        if (DEBUG)
+            System.out.printf("R33 %f\n", r33);
         if (MathUtil.isNear(1, r33, 1e-3)) {
             if (DEBUG)
                 System.out.println("wrist singularity");

@@ -17,7 +17,7 @@ import edu.wpi.first.math.numbers.N3;
  * Canfield joint kinematics. See README.md
  */
 public class CanfieldKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private final double l;
 

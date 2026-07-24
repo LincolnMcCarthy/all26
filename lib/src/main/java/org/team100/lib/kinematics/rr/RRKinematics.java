@@ -28,7 +28,7 @@ import edu.wpi.first.math.numbers.N2;
  * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
  */
 public class RRKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** Proximal link length, meters. */
     private final double l1;
