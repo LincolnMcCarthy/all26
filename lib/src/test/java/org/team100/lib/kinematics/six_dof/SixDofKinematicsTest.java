@@ -1,6 +1,7 @@
 package org.team100.lib.kinematics.six_dof;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class SixDofKinematicsTest {
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(1.65, 0, 0.25,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        List<SixDofConfig> q = k.inverse(p, 1.0);
+        List<SixDofConfig> q = k.inverse(p, null, 1.0);
         assertEquals(1, q.size());
         verify(new SixDofConfig(0, 0, 0, 1, 0, -1), q.get(0));
     }
@@ -55,7 +56,7 @@ public class SixDofKinematicsTest {
         // tool (z) points at global -z, tool x at global -y
         Pose3d p = new Pose3d(0.5, 0, 0.5,
                 new Rotation3d(Math.PI, 0, Math.PI / 2));
-        List<SixDofConfig> q = k.inverse(p, null);
+        List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(4, q.size());
 
         // elbow-up cases
@@ -97,7 +98,7 @@ public class SixDofKinematicsTest {
         // note position offset +y, wrist should be at (0.5,0.5,0.5)
         Pose3d p = new Pose3d(0.65, 0.5, 0.5,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        List<SixDofConfig> q = k.inverse(p, null);
+        List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(4, q.size());
 
         verify(new SixDofConfig(
@@ -136,24 +137,32 @@ public class SixDofKinematicsTest {
     }
 
     @Test
-    void testInverse4() {
-        // This is the base singularity.
-        // Currently at the base singularity we always choose
-        // q1 = 0, which is not correct in general.
-        // TODO: fix this case
+    void testInverse4a() {
+        // This is the base singularity with no default
         SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        List<SixDofConfig> q = k.inverse(p, null);
+        assertThrows(IllegalArgumentException.class, () -> k.inverse(p, null, null));
+    }
+
+    @Test
+    void testInverse4b() {
+        // This is the base singularity with a default, a good example of various
+        // solutions using the base default.
+        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        // tool (z) points at global +x with tool x at global -y
+        Pose3d p = new Pose3d(0.15, 0, 1,
+                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+        List<SixDofConfig> q = k.inverse(p, 1.0, null);
         assertEquals(4, q.size());
 
         // elbow-up
-        verify(new SixDofConfig(0, 2.618, -2.094, 0, -0.523, 0), q.get(0));
-        verify(new SixDofConfig(0, 2.618, -2.094, 3.141, 0.523, 3.141), q.get(1));
+        verify(new SixDofConfig(1.0, 2.618, -2.094, -1.260, -1.084, 0.969), q.get(0));
+        verify(new SixDofConfig(1.0, 2.618, -2.094, 1.881, 1.084, -2.172), q.get(1));
         // elbow-down
-        verify(new SixDofConfig(0, 0.523, 2.094, 0, -2.618, 0), q.get(2));
-        verify(new SixDofConfig(0, 0.523, 2.094, 3.141, 2.618, 3.141), q.get(3));
+        verify(new SixDofConfig(1.0, 0.523, 2.094, -1.260, -2.058, -0.969), q.get(2));
+        verify(new SixDofConfig(1.0, 0.523, 2.094, 1.881, 2.058, 2.172), q.get(3));
 
     }
 
@@ -167,7 +176,7 @@ public class SixDofKinematicsTest {
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
-        List<SixDofConfig> q = k.inverse(p, null);
+        List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(4, q.size());
 
         // note q1=pi :(

@@ -74,12 +74,15 @@ public class SixDofKinematics {
 
     /**
      * Similar to the Lynx arm case.
-     * For now this ignores the singularity on the swing axis.
      * 
-     * @param p         tool point pose
-     * @param q4Default in case of singularity
+     * For defaults, use the previous value, or null if you have no idea (and in
+     * that case, catch the exception that may occur).
+     * 
+     * @param p         Tool point pose.
+     * @param q1Default In case of base singularity.
+     * @param q4Default In case of wrst singularity.
      */
-    public List<SixDofConfig> inverse(Pose3d p, Double q4Default) {
+    public List<SixDofConfig> inverse(Pose3d p, Double q1Default, Double q4Default) {
         Translation3d t = p.getTranslation();
         if (DEBUG)
             System.out.printf("t %s\n", StrUtil.transStr(t));
@@ -95,12 +98,7 @@ public class SixDofKinematics {
             System.out.printf("w %s\n", StrUtil.transStr(w));
         // Note: IEEE 754 defined atan2(0,0) as 0 in 1985. It's wrong.
         Translation2d w2d = w.toTranslation2d();
-        if (w2d.getNorm() < 1e-3) {
-            if (DEBUG)
-                System.out.println("base singularity");
-        }
-        // Swing joint = wrist origin must be in the swing plane.
-        double q1 = w2d.getAngle().getRadians();
+        double q1 = getQ1(w2d, q1Default);
         // Find shoulder, elbow, and wrist origin.
         List<RRConfig> rrq = rrConfig(w);
         List<SixDofConfig> result = new ArrayList<>();
@@ -114,6 +112,25 @@ public class SixDofKinematics {
         }
         // TODO: eight configs total
         return result;
+    }
+
+    /**
+     * Swing joint. Wrist origin must be in the swing plane.
+     * 
+     * @param w         Wrist position in the xy plane
+     * @param q1Default Used if the position is the origin. A good choice would be
+     *                  the previous value of q1. If you have no idea, pass null and
+     *                  catch the exception.
+     */
+    private double getQ1(Translation2d w, Double q1Default) {
+        if (w.getNorm() < 1e-3) {
+            if (DEBUG)
+                System.out.println("base singularity");
+            if (q1Default == null)
+                throw new IllegalArgumentException("q1Default is null");
+            return q1Default;
+        }
+        return w.getAngle().getRadians();
     }
 
     private List<RRConfig> rrConfig(Translation3d w) {
