@@ -231,3 +231,4 @@ be infeasible.
 * [Verheye 2021](https://achille0.medium.com/under-the-radar-cuspidal-robots-7091eca01271) about singularity elimination
 * [Nickens 2009](https://homepages.hass.rpi.edu/heuveb/Teaching/CognitiveRobotics/Documents/Glenn%20Nickens%20Thesis%20Proposal%20Slides.pdf) MSCS proposal which include RRT path planning in configuration-space.  Note this does not care about the cartesian path.
 * [Cookie Robotics on Euler angles](https://cookierobotics.com/081/)
+* [Jeon 2018](https://arxiv.org/pdf/1808.03891) about configuration metrics

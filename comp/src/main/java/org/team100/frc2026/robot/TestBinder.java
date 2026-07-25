@@ -3,8 +3,8 @@ package org.team100.frc2026.robot;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 import static edu.wpi.first.wpilibj2.command.Commands.repeatingSequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitUntil;
-import static org.team100.frc2026.util.TriggerUtil.onTrue;
-import static org.team100.frc2026.util.TriggerUtil.whileTrue;
+import static org.team100.lib.util.TriggerUtil.onTrue;
+import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.frc2026.auton.CenterFullSweepAuton;
 import org.team100.frc2026.auton.CenterHalfSweepAuton;

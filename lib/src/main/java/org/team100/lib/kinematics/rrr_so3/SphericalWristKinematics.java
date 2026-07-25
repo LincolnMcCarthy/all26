@@ -3,6 +3,7 @@ package org.team100.lib.kinematics.rrr_so3;
 import java.util.List;
 
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
+import org.team100.lib.geometry.six_dof.SphericalWristPose;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.MathUtil;
@@ -25,8 +26,8 @@ import edu.wpi.first.math.numbers.N3;
 public class SphericalWristKinematics {
     private static final boolean DEBUG = false;
 
-    /** Forward kinematics is simply a composition of rotations. */
-    public Rotation3d forward(SphericalWristConfig q) {
+    /** Forward kinematics is simply composition. */
+    public SphericalWristPose forward(SphericalWristConfig q) {
         Pose3d p4 = Pose3d.kZero.plus(R(q.q4()));
         Pose3d p5 = p4.plus(o5()).plus(R(q.q5()));
         Pose3d p6 = p5.plus(o6()).plus(R(q.q6()));
@@ -35,7 +36,7 @@ public class SphericalWristKinematics {
             System.out.printf("p5  %s\n", StrUtil.poseStr2(p5));
             System.out.printf("p6  %s\n", StrUtil.poseStr2(p6));
         }
-        return p6.getRotation();
+        return new SphericalWristPose(p4, p5, p6);
     }
 
     /**

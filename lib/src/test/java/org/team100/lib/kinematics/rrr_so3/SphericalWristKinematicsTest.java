@@ -18,7 +18,7 @@ public class SphericalWristKinematicsTest {
         // all zero: rot is identity
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(0, 0, 0);
-        Rotation3d r = wk.forward(q);
+        Rotation3d r = wk.forward(q).p6().getRotation();
         verify(new Rotation3d(), r);
     }
 
@@ -27,7 +27,7 @@ public class SphericalWristKinematicsTest {
         // pitch up produces a negative roll in the wrist frame
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(0, Math.PI / 2, 0);
-        Rotation3d r = wk.forward(q);
+        Rotation3d r = wk.forward(q).p6().getRotation();
         verify(new Rotation3d(-Math.PI / 2, 0, 0), r);
     }
 
@@ -36,7 +36,7 @@ public class SphericalWristKinematicsTest {
         // roll 180 and then pitch down, then roll again -> same
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(Math.PI, -Math.PI / 2, Math.PI);
-        Rotation3d r = wk.forward(q);
+        Rotation3d r = wk.forward(q).p6().getRotation();
         verify(new Rotation3d(-Math.PI / 2, 0, 0), r);
     }
 

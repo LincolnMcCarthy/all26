@@ -18,7 +18,7 @@ public class SixDofKinematicsTest {
         // all zeros => arm is extended along +x
         SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
         SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
-        Pose3d p = k.forward(q);
+        Pose3d p = k.forward(q).p6();
         verify(new Pose3d(1.65, 0, 0.25, new Rotation3d(Math.PI / 2, 0, Math.PI / 2)), p);
     }
 
@@ -33,7 +33,7 @@ public class SixDofKinematicsTest {
                 0, // use pitch axis for pitch
                 Math.PI / 2, // pitch up so wrist axes are parallel
                 -Math.PI / 2);
-        Pose3d p = k.forward(q);
+        Pose3d p = k.forward(q).p6();
         // tool is pointing up
         verify(new Pose3d(0.75, 0, 1.15, new Rotation3d(0, 0, 0)), p);
     }

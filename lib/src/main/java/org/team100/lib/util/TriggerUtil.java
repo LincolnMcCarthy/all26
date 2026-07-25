@@ -1,4 +1,4 @@
-package org.team100.frc2026.util;
+package org.team100.lib.util;
 
 import java.util.function.BooleanSupplier;
 

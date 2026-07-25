@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
+import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
+import org.team100.lib.geometry.six_dof.SphericalWristPose;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
 import org.team100.lib.util.StrUtil;
@@ -51,7 +53,7 @@ public class SixDofKinematics {
         wk = new SphericalWristKinematics();
     }
 
-    public Pose3d forward(SixDofConfig q) {
+    public SixDofPose forward(SixDofConfig q) {
         Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q.q1()));
         Pose3d p2 = p1.plus(o2()).plus(R(q.q2()));
         Pose3d p3 = p2.plus(o3()).plus(R(q.q3()));
@@ -63,15 +65,14 @@ public class SixDofKinematics {
 
         // wrist origin
         Pose3d p4o = p3.plus(o4());
-        Rotation3d wr = wk.forward(new SphericalWristConfig(q.q4(), q.q5(), q.q6()));
-
-        Pose3d p6 = p4o.plus(new Transform3d(Translation3d.kZero, wr));
+        SphericalWristPose wp = wk.forward(new SphericalWristConfig(q.q4(), q.q5(), q.q6()));
+        Pose3d p6 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p6()));
         Pose3d tcp = p6.plus(tool());
         if (DEBUG) {
             System.out.printf("p6  %s\n", StrUtil.poseStr2(p6));
             System.out.printf("tcp %s\n", StrUtil.poseStr2(tcp));
         }
-        return tcp;
+        return new SixDofPose(p1, p2, p3, p4o, p4o, p6, tcp);
     }
 
     /**
