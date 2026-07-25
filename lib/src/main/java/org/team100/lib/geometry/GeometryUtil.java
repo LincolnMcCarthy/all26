@@ -248,46 +248,9 @@ public class GeometryUtil {
                 MathUtil.interpolate(a.scale(), b.scale(), x));
     }
 
-    /**
-     * Interpolate between a and b, treating each dimension separately. This will
-     * make straight lines, whereas the WPI Pose3d interpolator will make
-     * constant-twist curves.
-     */
-    public static Pose3d interpolate(Pose3d a, Pose3d b, double x) {
-        if (x <= 0.0) {
-            return a;
-        }
-        if (x >= 1.0) {
-            return b;
-        }
-        Translation3d aT = a.getTranslation();
-        Translation3d bT = b.getTranslation();
-        Rotation3d aR = a.getRotation();
-        Rotation3d bR = b.getRotation();
-        // each translation axis is interpolated separately
-        Translation3d lerpT = aT.interpolate(bT, x);
-        // Rotation3d lerpR = aR.interpolate(bR, x);
-        Rotation3d lerpR = interpolate(aR, bR, x);
-        return new Pose3d(lerpT, lerpR);
-    }
 
-    /**
-     * Interpolate between a and b, treating each dimension separately. This will
-     * make straight lines, whereas the WPI Rotation3d interpolator uses quaternion
-     * composition.
-     */
-    public static Rotation3d interpolate(Rotation3d a, Rotation3d b, double x) {
-        if (x <= 0.0) {
-            return a;
-        }
-        if (x >= 1.0) {
-            return b;
-        }
-        return new Rotation3d(
-                MathUtil.interpolate(a.getX(), b.getX(), x),
-                MathUtil.interpolate(a.getY(), b.getY(), x),
-                MathUtil.interpolate(a.getZ(), b.getZ(), x));
-    }
+
+
 
     public static Translation2d inverse(Translation2d a) {
         return new Translation2d(-a.getX(), -a.getY());

@@ -75,6 +75,8 @@ public class PRKinematics {
      * pointing down" orientation. The use of arcsin below prefers the "arm pointing
      * up" case.
      * 
+     * TODO: make this return both options in a list
+     * 
      * There are also unreachable points outside the envelope; in that case we
      * return null.
      */

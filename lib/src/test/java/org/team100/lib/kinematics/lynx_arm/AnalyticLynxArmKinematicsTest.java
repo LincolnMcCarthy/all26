@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.OptionalDouble;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.geometry.lynx_arm.LynxArmPose;
 import org.team100.lib.util.StrUtil;
@@ -83,7 +82,7 @@ public class AnalyticLynxArmKinematicsTest {
         Pose3d end = new Pose3d(0.15, 0.1, 0.1, new Rotation3d(0, Math.PI / 2, 0));
         LynxArmConfig q = new LynxArmConfig(0, 0, 0, 0, 0);
         for (double s = 0; s <= 1; s += 0.1) {
-            Pose3d lerp = GeometryUtil.interpolate(start, end, s);
+            Pose3d lerp = LynxArmPose.interpolate(start, end, s);
             // wrist should be pointing down the whole time
             q = k.inverse(q, lerp);
             if (DEBUG)

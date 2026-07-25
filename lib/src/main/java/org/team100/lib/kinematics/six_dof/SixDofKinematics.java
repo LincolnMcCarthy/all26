@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.geometry.rr.RRConfig;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
+import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
 import org.team100.lib.geometry.six_dof.SphericalWristPose;
 import org.team100.lib.kinematics.rr.RRKinematics;
@@ -28,6 +30,10 @@ import edu.wpi.first.math.numbers.N3;
  * 
  * In this implementation, the joint axis is always +z, and the link transform
  * ("origin" in URDF) is arranged to make that work.
+ * 
+ * The "zero" rotation, with the tool pointing down +z, results in a TCP pose
+ * of (pi, 0, pi), which may be confusing if you're thinking the tool frame is
+ * +x
  */
 public class SixDofKinematics {
     private static final boolean DEBUG = false;
@@ -53,6 +59,9 @@ public class SixDofKinematics {
         wk = new SphericalWristKinematics();
     }
 
+    /**
+     * Forward position kinematics: cartesian joint poses from joint configurations.
+     */
     public SixDofPose forward(SixDofConfig q) {
         Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q.q1()));
         Pose3d p2 = p1.plus(o2()).plus(R(q.q2()));
@@ -78,7 +87,15 @@ public class SixDofKinematics {
     }
 
     /**
-     * Similar to the Lynx arm case.
+     * Forward velocity kinematics
+     * \dot{x} = J(q) \dot{q}
+     */
+    public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
+
+    }
+
+    /**
+     * Inverse position kinematics: joint configs from cartesian pose.
      *
      * Zero, one, two, four, or eight solutions.
      * 
@@ -107,20 +124,28 @@ public class SixDofKinematics {
         Translation2d w2d = w.toTranslation2d();
         // One or two swing options
         List<Double> q1s = getQ1(w2d, q1Default);
+        if (DEBUG)
+            System.out.printf("swing options %d\n", q1s.size());
         List<SixDofConfig> result = new ArrayList<>();
         for (double q1 : q1s) {
             List<RRConfig> rrs = rrConfig(w, q1);
+            if (DEBUG)
+                System.out.printf("RR options %d\n", rrs.size());
             for (RRConfig rr : rrs) {
                 double q2 = rr.q1();
                 double q3 = rr.q2();
-                List<SphericalWristConfig> wql = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
-                for (SphericalWristConfig wq : wql) {
+                List<SphericalWristConfig> wqs = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
+                if (DEBUG)
+                    System.out.printf("wrist options %d\n", wqs.size());
+                for (SphericalWristConfig wq : wqs) {
                     result.add(new SixDofConfig(q1, q2, q3, wq.q4(), wq.q5(), wq.q6()));
                 }
             }
         }
         return result;
     }
+
+    //////////////////////////////////////////////////////////////////
 
     /**
      * Swing joint. Wrist origin must be in the swing plane. One or two solutions.

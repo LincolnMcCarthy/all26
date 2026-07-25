@@ -9,6 +9,8 @@ import org.team100.lib.kinematics.six_dof.SixDofKinematics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.subsystems.six_dof.commands.MoveWithProfile;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,9 +20,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * Six-DOF arm, for training.
  */
 public class SixDofArm extends SubsystemBase {
+    private static final boolean DEBUG = false;
 
-    private final SixDofKinematics m_kinematics;
-    private final SixDofFeasibility m_feasibility;
+    final SixDofKinematics m_kinematics;
+    final SixDofFeasibility m_feasibility;
     private final BareMotor m_q1;
     private final BareMotor m_q2;
     private final BareMotor m_q3;
@@ -42,32 +45,38 @@ public class SixDofArm extends SubsystemBase {
         m_q6 = new SimulatedBareMotor(log, 600);
     }
 
-    
-
     @Override
     public void periodic() {
-       m_q1.periodic();
-       m_q2.periodic();
-       m_q3.periodic();
-       m_q4.periodic();
-       m_q5.periodic();
-       m_q6.periodic();
+        m_q1.periodic();
+        m_q2.periodic();
+        m_q3.periodic();
+        m_q4.periodic();
+        m_q5.periodic();
+        m_q6.periodic();
     }
 
-
+    /**
+     * @param p tool center point pose, aimed at +z
+     */
+    public SixDofConfig config(Pose3d p) {
+        SixDofConfig q0 = getConfig();
+        List<SixDofConfig> qAll = m_kinematics.inverse(p, q0.q1(), q0.q4());
+        List<SixDofConfig> qFeasible = m_feasibility.filter(qAll);
+        if (qFeasible.isEmpty()) {
+            System.out.println("infeasible pose " + StrUtil.poseStr(p));
+            return null;
+        }
+        return getBest(qFeasible, q0);
+    }
 
     public void setPosition(Pose3d p) {
-        List<SixDofConfig> qAll = m_kinematics.inverse(p, 0.0, 0.0);
-        List<SixDofConfig> qFeasible = m_feasibility.filter(qAll);
-        if (qFeasible.isEmpty())
-            return;
-        SixDofConfig q0 = getConfig();
-        SixDofConfig q = getBest(qFeasible, q0);
+        SixDofConfig q = config(p);
         if (q == null)
             return;
         setConfig(q);
     }
 
+    /** TODO: velocity and force in config space. */
     public void setConfig(SixDofConfig q) {
         m_q1.setUnwrappedPosition(q.q1(), 0, 0);
         m_q2.setUnwrappedPosition(q.q2(), 0, 0);
@@ -82,6 +91,8 @@ public class SixDofArm extends SubsystemBase {
         SixDofConfig best = qAll.get(0);
         for (SixDofConfig q : qAll) {
             double d = q0.distance(q);
+            if (DEBUG)
+                System.out.printf("q0 %s q %s distance %6.3f\n", q0, q, d);
             if (d < closest) {
                 closest = d;
                 best = q;
@@ -101,7 +112,11 @@ public class SixDofArm extends SubsystemBase {
     }
 
     public SixDofPose getPose() {
-        return m_kinematics.forward(getConfig());
+        return pose(getConfig());
+    }
+
+    private SixDofPose pose(SixDofConfig q) {
+        return m_kinematics.forward(q);
     }
 
     public Command warp0() {
@@ -110,6 +125,18 @@ public class SixDofArm extends SubsystemBase {
 
     public Command warp1() {
         return run(() -> setConfig(new SixDofConfig(0, 1, -1, 0, -1, 0)));
+    }
+
+    public Command move0() {
+        return new MoveWithProfile(this, pose(new SixDofConfig(0, 0, 0, 0, 0, 0)).p7());
+    }
+
+    public Command move1() {
+        return new MoveWithProfile(this, pose(new SixDofConfig(0, 1, -1, 0, -1, 0)).p7());
+    }
+
+    public Command move(Pose3d goal) {
+        return new MoveWithProfile(this, goal);
     }
 
 }

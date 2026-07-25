@@ -1,5 +1,7 @@
 package org.team100.lib.geometry.six_dof;
 
+import edu.wpi.first.math.MathUtil;
+
 /**
  * @param q1 base/swing
  * @param q2 shoulder/boom
@@ -12,18 +14,42 @@ public record SixDofConfig(double q1, double q2, double q3, double q4, double q5
 
     /**
      * For now, euclidean with weights.
-     * see https://arxiv.org/pdf/1808.03891
+     * 
+     * You can change these weights to change how configs are selected, based on
+     * their "nearness" to the current pose.
+     * 
+     * See https://arxiv.org/pdf/1808.03891
      */
     public double distance(SixDofConfig other) {
         double l2 = 0;
+        // swing movements are expensive
         l2 += 10.0 * Math.pow(q1 - other.q1, 2);
+        // shoulder movements are a little less expensive
         l2 += 5.0 * Math.pow(q2 - other.q2, 2);
+        // elbow movements are even less but still more than wrist
         l2 += 2.0 * Math.pow(q3 - other.q3, 2);
+        // don't care very much about wrist movement
         l2 += 1.0 * Math.pow(q4 - other.q4, 2);
         l2 += 1.0 * Math.pow(q5 - other.q5, 2);
         l2 += 1.0 * Math.pow(q6 - other.q6, 2);
 
         return Math.sqrt(l2);
-
     }
+
+    /** Interpolate in configuration space, never crossing pi. */
+    public static SixDofConfig interpolate(SixDofConfig a, SixDofConfig b, double s) {
+        return new SixDofConfig(
+                MathUtil.interpolate(a.q1(), b.q1(), s),
+                MathUtil.interpolate(a.q2(), b.q2(), s),
+                MathUtil.interpolate(a.q3(), b.q3(), s),
+                MathUtil.interpolate(a.q4(), b.q4(), s),
+                MathUtil.interpolate(a.q5(), b.q5(), s),
+                MathUtil.interpolate(a.q6(), b.q6(), s));
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f", q1, q2, q3, q4, q5, q6);
+    }
+
 }
