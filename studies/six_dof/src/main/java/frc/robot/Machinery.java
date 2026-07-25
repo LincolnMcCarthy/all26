@@ -13,7 +13,7 @@ public class Machinery {
 
     public Machinery() {
         m_arm = new SixDofArm(logger);
-        m_viz = new SixDofVisualizer(m_arm::getPosition);
+        m_viz = new SixDofVisualizer(m_arm::getPose);
 
     }
 
@@ -21,6 +21,6 @@ public class Machinery {
     }
 
     public void periodic() {
-
+        m_viz.periodic();
     }
 }

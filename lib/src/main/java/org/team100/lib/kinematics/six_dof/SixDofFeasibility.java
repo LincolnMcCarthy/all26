@@ -62,6 +62,8 @@ public class SixDofFeasibility {
             return false;
         if (p.p6().getZ() < 0)
             return false;
+        if (p.p7().getZ() < 0)
+            return false;
         return true;
     }
 }

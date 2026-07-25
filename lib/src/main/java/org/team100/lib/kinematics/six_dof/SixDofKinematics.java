@@ -66,13 +66,15 @@ public class SixDofKinematics {
         // wrist origin
         Pose3d p4o = p3.plus(o4());
         SphericalWristPose wp = wk.forward(new SphericalWristConfig(q.q4(), q.q5(), q.q6()));
+        Pose3d p4 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p4()));
+        Pose3d p5 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p5()));
         Pose3d p6 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p6()));
         Pose3d tcp = p6.plus(tool());
         if (DEBUG) {
             System.out.printf("p6  %s\n", StrUtil.poseStr2(p6));
             System.out.printf("tcp %s\n", StrUtil.poseStr2(tcp));
         }
-        return new SixDofPose(p1, p2, p3, p4o, p4o, p6, tcp);
+        return new SixDofPose(p1, p2, p3, p4, p5, p6, tcp);
     }
 
     /**

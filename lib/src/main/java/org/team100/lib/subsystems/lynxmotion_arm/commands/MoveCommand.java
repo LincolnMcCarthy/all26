@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * Moves the arm in a straight line by interpolating the start and end
  * end-effector poses.
+ * 
+ * Straight lines in workspace may intersect singularities, so watch out.
  */
 public class MoveCommand extends Command {
     private static final boolean DEBUG = false;

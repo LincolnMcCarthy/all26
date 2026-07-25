@@ -11,7 +11,9 @@ public class Binder {
     public Binder(Machinery machinery) {
         m_machinery = machinery;
         XboxController m_controller = new XboxController(0);
+        // button 1, "z" in sim
         whileTrue(m_controller::getAButton, m_machinery.m_arm.warp0());
+        // button 2, "x" in sim
         whileTrue(m_controller::getBButton, m_machinery.m_arm.warp1());
     }
 

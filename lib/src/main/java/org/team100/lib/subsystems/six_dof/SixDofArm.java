@@ -3,6 +3,7 @@ package org.team100.lib.subsystems.six_dof;
 import java.util.List;
 
 import org.team100.lib.geometry.six_dof.SixDofConfig;
+import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.kinematics.six_dof.SixDofFeasibility;
 import org.team100.lib.kinematics.six_dof.SixDofKinematics;
 import org.team100.lib.logging.LoggerFactory;
@@ -39,15 +40,28 @@ public class SixDofArm extends SubsystemBase {
         m_q4 = new SimulatedBareMotor(log, 600);
         m_q5 = new SimulatedBareMotor(log, 600);
         m_q6 = new SimulatedBareMotor(log, 600);
-
     }
+
+    
+
+    @Override
+    public void periodic() {
+       m_q1.periodic();
+       m_q2.periodic();
+       m_q3.periodic();
+       m_q4.periodic();
+       m_q5.periodic();
+       m_q6.periodic();
+    }
+
+
 
     public void setPosition(Pose3d p) {
         List<SixDofConfig> qAll = m_kinematics.inverse(p, 0.0, 0.0);
         List<SixDofConfig> qFeasible = m_feasibility.filter(qAll);
         if (qFeasible.isEmpty())
             return;
-        SixDofConfig q0 = getPosition();
+        SixDofConfig q0 = getConfig();
         SixDofConfig q = getBest(qFeasible, q0);
         if (q == null)
             return;
@@ -76,7 +90,7 @@ public class SixDofArm extends SubsystemBase {
         return best;
     }
 
-    public SixDofConfig getPosition() {
+    public SixDofConfig getConfig() {
         return new SixDofConfig(
                 m_q1.getUnwrappedPositionRad(),
                 m_q2.getUnwrappedPositionRad(),
@@ -84,6 +98,10 @@ public class SixDofArm extends SubsystemBase {
                 m_q4.getUnwrappedPositionRad(),
                 m_q5.getUnwrappedPositionRad(),
                 m_q6.getUnwrappedPositionRad());
+    }
+
+    public SixDofPose getPose() {
+        return m_kinematics.forward(getConfig());
     }
 
     public Command warp0() {

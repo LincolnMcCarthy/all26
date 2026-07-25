@@ -4,8 +4,6 @@ import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.Takt;
 import org.team100.lib.config.Identity;
 import org.team100.lib.experiments.Experiments;
-import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.logging.Logging;
 import org.team100.lib.util.Banner;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -16,8 +14,6 @@ import edu.wpi.first.wpilibj.util.WPILibVersion;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends TimedRobot {
-    private static final LoggerFactory logger = Logging.instance().rootLogger;
-
     private final Machinery m_machinery;
     private final Binder m_binder;
     private final Autons m_autons;
