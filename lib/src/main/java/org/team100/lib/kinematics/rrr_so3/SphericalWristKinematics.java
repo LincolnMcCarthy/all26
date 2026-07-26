@@ -17,20 +17,23 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 
 /**
- * The RPR spherical wrist has three joints with intersecting axes:
+ * The RPR spherical wrist has three joints with intersecting axes.
  * 
- * * roll: rotates around z
- * * pitch: bends the z axis
- * * roll: rotates around z again
+ * Now the rotation axes are variable.  Previously they were all z, with variable
+ * origins, which was confusing.  So at zero config:
+ * 
+ * * roll: rotates around x
+ * * pitch: rotates around -y
+ * * roll: rotates around x again
  */
 public class SphericalWristKinematics {
     private static final boolean DEBUG = false;
 
     /** Forward kinematics is simply composition. */
     public SphericalWristPose forward(SphericalWristConfig q) {
-        Pose3d p4 = Pose3d.kZero.plus(R(q.q4()));
-        Pose3d p5 = p4.plus(o5()).plus(R(q.q5()));
-        Pose3d p6 = p5.plus(o6()).plus(R(q.q6()));
+        Pose3d p4 = Pose3d.kZero.plus(r4(q.q4()));
+        Pose3d p5 = p4.plus(o5()).plus(r5(q.q5()));
+        Pose3d p6 = p5.plus(o6()).plus(r6(q.q6()));
         if (DEBUG) {
             System.out.printf("p4  %s\n", StrUtil.poseStr2(p4));
             System.out.printf("p5  %s\n", StrUtil.poseStr2(p5));
@@ -103,23 +106,38 @@ public class SphericalWristKinematics {
         return List.of(s1, s2);
     }
 
-    /** Origin of joint 5: no offset, parallel to other pitch axes. */
+       /** Axis of joint 4 is x */
+    private Transform3d r4(double q4) {
+        return R(1, 0, 0, q4);
+    }
+
+    /** Axis of joint 5 is -y */
+    private Transform3d r5(double q5) {
+        return R(0, -1, 0, q5);
+    }
+
+    /** Axis of joint 6 is x */
+    private Transform3d r6(double q6) {
+        return R(1, 0, 0, q6);
+    }
+
+    /** Origin of joint 5: no offset. */
     private Transform3d o5() {
         return new Transform3d(
                 Translation3d.kZero,
-                new Rotation3d(0, -Math.PI / 2, 0));
+                new Rotation3d(0, 0, 0));
     }
 
-    /** Origin of joint 6: no offset, roll points out. */
+    /** Origin of joint 6: no offset. */
     private Transform3d o6() {
         return new Transform3d(
                 Translation3d.kZero,
-                new Rotation3d(0, Math.PI / 2, 0));
+                new Rotation3d(0, 0, 0));
     }
 
     /** Rotate in child frame */
-    private Transform3d R(double q) {
-        return new Transform3d(Translation3d.kZero, new Rotation3d(v(0, 0, 1), q));
+    private Transform3d R(double x, double y, double z, double q) {
+        return new Transform3d(Translation3d.kZero, new Rotation3d(v(x, y, z), q));
     }
 
     /** convenience method for vector */

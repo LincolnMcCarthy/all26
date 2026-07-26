@@ -27,14 +27,14 @@ import edu.wpi.first.math.numbers.N3;
 
 /**
  * Kinematics of six-DOF all-revolute arm with spherical wrist, e.g. PUMA,
- * using links (origins) and joints (rotations about z).
+ * using links (origins) and joints (rotations).
  * 
- * In this implementation, the joint axis is always +z, and the link transform
- * ("origin" in URDF) is arranged to make that work.
+ * The joint axis is now variable, so the "zero" joint orientations are all the same.
+ * (Previously, the joint axis was always "z", with a variable joint origin, but that
+ * was harder to visualize (for me), and different from the natural PoE solution.)
  * 
- * The "zero" rotation, with the tool pointing down +z, results in a TCP pose
- * of (pi, 0, pi), which may be confusing if you're thinking the tool frame is
- * +x
+ * The "zero" rotation, with the tool pointing down +x, results in a TCP pose
+ * of (0, 0, 0).
  */
 public class SixDofKinematicsAnalytic implements SixDofKinematics {
     private static final boolean DEBUG = false;
@@ -66,12 +66,15 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
      * Note this method uses origin frames of each joint, with the z axis rotating.
      * 
      * TODO: redo this using "product of exponentials" where the axis varies.
+     * 
+     * TODO: this returns joint positions *with* the rotation of the child
+     * link, which is probably not what we want.
      */
     @Override
     public SixDofPose forward(SixDofConfig q) {
-        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q.q1()));
-        Pose3d p2 = p1.plus(o2()).plus(R(q.q2()));
-        Pose3d p3 = p2.plus(o3()).plus(R(q.q3()));
+        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(r1(q.q1()));
+        Pose3d p2 = p1.plus(o2()).plus(r2(q.q2()));
+        Pose3d p3 = p2.plus(o3()).plus(r3(q.q3()));
         if (DEBUG) {
             System.out.printf("p1  %s\n", StrUtil.poseStr2(p1));
             System.out.printf("p2  %s\n", StrUtil.poseStr2(p2));
@@ -98,7 +101,7 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
      */
     public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
         return null;
-        //TODO: finish this
+        // TODO: finish this
     }
 
     /**
@@ -223,9 +226,9 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
     /** The rotation of the wrist origin */
     private Rotation3d wristOrigin(double q1, double q2, double q3) {
         // Each joint pose up to the wrist.
-        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q1));
-        Pose3d p2 = p1.plus(o2()).plus(R(q2));
-        Pose3d p3 = p2.plus(o3()).plus(R(q3));
+        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(r1(q1));
+        Pose3d p2 = p1.plus(o2()).plus(r2(q2));
+        Pose3d p3 = p2.plus(o3()).plus(r3(q3));
         // Wrist origin.
         Pose3d p4 = p3.plus(o4());
         // The rotation for zero wrist roll.
@@ -235,44 +238,59 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
         return R04;
     }
 
-    /** Origin of joint 1: no offset, rotate around z. */
+    /** Axis of joint 1 is z */
+    private Transform3d r1(double q1) {
+        return R(0, 0, 1, q1);
+    }
+
+    /** Axis of joint 2 is -y */
+    private Transform3d r2(double q2) {
+        return R(0, -1, 0, q2);
+    }
+
+    /** Axis of joint 3 is -y */
+    private Transform3d r3(double q3) {
+        return R(0, -1, 0, q3);
+    }
+
+    /** Origin of joint 1: no offset. */
     private Transform3d o1() {
         return new Transform3d(
                 Translation3d.kZero,
                 Rotation3d.kZero);
     }
 
-    /** Origin of joint 2: offset up, shoulder axis points right. */
+    /** Origin of joint 2: offset up. */
     private Transform3d o2() {
         return new Transform3d(
                 new Translation3d(0, 0, base),
-                new Rotation3d(Math.PI / 2, 0, 0));
+                new Rotation3d(0, 0, 0));
     }
 
-    /** Origin of joint 3: offset out, parallel axis. */
+    /** Origin of joint 3: offset out. */
     private Transform3d o3() {
         return new Transform3d(
                 new Translation3d(boom, 0, 0),
                 Rotation3d.kZero);
     }
 
-    /** Origin of joint 4: offset out, wrist roll points out. */
+    /** Origin of joint 4: offset out. */
     private Transform3d o4() {
         return new Transform3d(
                 new Translation3d(stick, 0, 0),
-                new Rotation3d(0, Math.PI / 2, 0));
+                new Rotation3d(0, 0, 0));
     }
 
     /** Tool center point. */
     private Transform3d tool() {
         return new Transform3d(
-                new Translation3d(0, 0, tool),
+                new Translation3d(tool, 0, 0),
                 Rotation3d.kZero);
     }
 
     /** Rotate in child frame */
-    private Transform3d R(double q) {
-        return new Transform3d(Translation3d.kZero, new Rotation3d(v(0, 0, 1), q));
+    private Transform3d R(double x, double y, double z, double q) {
+        return new Transform3d(Translation3d.kZero, new Rotation3d(v(x, y, z), q));
     }
 
     /** convenience method for vector */

@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
+import org.team100.lib.geometry.six_dof.SphericalWristPose;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 
@@ -18,26 +20,32 @@ public class SphericalWristKinematicsTest {
         // all zero: rot is identity
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(0, 0, 0);
-        Rotation3d r = wk.forward(q).p6().getRotation();
-        verify(new Rotation3d(), r);
+        SphericalWristPose P = wk.forward(q);
+        verify(new Rotation3d(), P.p4().getRotation());
+        verify(new Rotation3d(), wk.forward(q).p5().getRotation());
+        verify(new Rotation3d(), wk.forward(q).p6().getRotation());
     }
 
     @Test
     void testForward2() {
-        // pitch up produces a negative roll in the wrist frame
+        // pitch up
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(0, Math.PI / 2, 0);
-        Rotation3d r = wk.forward(q).p6().getRotation();
-        verify(new Rotation3d(-Math.PI / 2, 0, 0), r);
+        SphericalWristPose P = wk.forward(q);
+        verify(new Rotation3d(0, 0, 0), P.p4().getRotation());
+        verify(new Rotation3d(0, -Math.PI / 2, 0), P.p5().getRotation());
+        verify(new Rotation3d(0, -Math.PI / 2, 0), P.p6().getRotation());
     }
 
     @Test
     void testForward3() {
-        // roll 180 and then pitch down, then roll again -> same
+        // roll 180 and then pitch down, then roll again -> pitch up
         SphericalWristKinematics wk = new SphericalWristKinematics();
         SphericalWristConfig q = new SphericalWristConfig(Math.PI, -Math.PI / 2, Math.PI);
-        Rotation3d r = wk.forward(q).p6().getRotation();
-        verify(new Rotation3d(-Math.PI / 2, 0, 0), r);
+        SphericalWristPose p = wk.forward(q);
+        verify(new Rotation3d(Math.PI, 0, 0), p.p4().getRotation());
+        verify(new Rotation3d(0, -Math.PI / 2, Math.PI), p.p5().getRotation());
+        verify(new Rotation3d(0, -Math.PI / 2, 0), p.p6().getRotation());
     }
 
     @Test
@@ -95,6 +103,6 @@ public class SphericalWristKinematicsTest {
     void verify(Rotation3d expected, Rotation3d actual) {
         double d = expected.getQuaternion().norm() * actual.getQuaternion().norm();
         double dot = expected.getQuaternion().dot(actual.getQuaternion());
-        assertTrue(Math.abs(Math.abs(dot) - d) < 1e-3);
+        assertTrue(Math.abs(Math.abs(dot) - d) < 1e-3, StrUtil.rotStr(actual));
     }
 }

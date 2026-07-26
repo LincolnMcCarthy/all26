@@ -10,7 +10,6 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.numbers.N3;
 
@@ -21,9 +20,14 @@ import edu.wpi.first.math.numbers.N3;
  * tool axis here, because it makes the whole thing easier to understand.
  */
 public class SixDofKinematicsPoE implements SixDofKinematics {
-
-    // Tool center point, in global frame, at zero config
-    private final Pose3d M;
+    // Joint positions, in global frame, at zero config
+    private final Pose3d M1;
+    private final Pose3d M2;
+    private final Pose3d M3;
+    private final Pose3d M4;
+    private final Pose3d M5;
+    private final Pose3d M6;
+    private final Pose3d M7;
     // Screw axes, in global frame, at zero config
     private final Twist3d S1;
     private final Twist3d S2;
@@ -33,8 +37,20 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
     private final Twist3d S6;
 
     public SixDofKinematicsPoE(double base, double boom, double stick, double tool) {
-        // tool is pointing at +x, at full extension
-        M = new Pose3d(boom + stick + tool, 0, base, Rotation3d.kZero);
+        // base
+        M1 = new Pose3d(0, 0, 0, Rotation3d.kZero);
+        // shoulder
+        M2 = new Pose3d(0, 0, base, Rotation3d.kZero);
+        // elbow
+        M3 = new Pose3d(boom, 0, base, Rotation3d.kZero);
+        // wrist pointing at +x
+        M4 = new Pose3d(boom + stick, 0, base, Rotation3d.kZero);
+        // wrist pointing at +x
+        M5 = new Pose3d(boom + stick, 0, base, Rotation3d.kZero);
+        // wrist pointing at +x, this is tool flange
+        M6 = new Pose3d(boom + stick, 0, base, Rotation3d.kZero);
+        // tool point, is pointing at +x, at full extension
+        M7 = new Pose3d(boom + stick + tool, 0, base, Rotation3d.kZero);
         // joint 1 (base) is at the origin, around z
         S1 = S(VecBuilder.fill(0, 0, 1), VecBuilder.fill(0, 0, 0));
         // joint 2 (shoulder) is at z=base, around -y
@@ -51,21 +67,27 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
 
     @Override
     public SixDofPose forward(SixDofConfig q) {
-        Pose3d eS1q1 = Pose3d.kZero.exp(GeometryUtil.scale(S1, q.q1()));
+        Pose3d eS1q1 = GeometryUtil.exp(S1, q.q1());
+        Pose3d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        Pose3d eS3q3 = GeometryUtil.exp(S3, q.q3());
+        Pose3d eS4q4 = GeometryUtil.exp(S4, q.q4());
+        Pose3d eS5q5 = GeometryUtil.exp(S5, q.q5());
+        Pose3d eS6q6 = GeometryUtil.exp(S6, q.q6());
         Pose3d p1 = eS1q1;
-        Pose3d eS2q2 = Pose3d.kZero.exp(GeometryUtil.scale(S2, q.q2()));
-        Pose3d p2 = p1.transformBy(new Transform3d(Pose3d.kZero, eS2q2));
-        Pose3d eS3q3 = Pose3d.kZero.exp(GeometryUtil.scale(S3, q.q3()));
-        Pose3d p3 = p2.transformBy(new Transform3d(Pose3d.kZero, eS3q3));
-        Pose3d `eS4q4 = Pose3d.kZero.exp(GeometryUtil.scale(S4, q.q4()));
-        Pose3d p4 = p3.transformBy(new Transform3d(Pose3d.kZero, eS4q4));
-        Pose3d eS5q5 = Pose3d.kZero.exp(GeometryUtil.scale(S5, q.q5()));
-        Pose3d p5 = p4.transformBy(new Transform3d(Pose3d.kZero, eS5q5));
-        Pose3d eS6q6 = Pose3d.kZero.exp(GeometryUtil.scale(S6, q.q6()));
-        Pose3d p6 = p5.transformBy(new Transform3d(Pose3d.kZero, eS6q6));
-        Pose3d p7 = p6.transformBy(new Transform3d(Pose3d.kZero, M));
+        Pose3d p2 = GeometryUtil.compose(p1, eS2q2);
+        Pose3d p3 = GeometryUtil.compose(p2, eS3q3);
+        Pose3d p4 = GeometryUtil.compose(p3, eS4q4);
+        Pose3d p5 = GeometryUtil.compose(p4, eS5q5);
+        Pose3d p6 = GeometryUtil.compose(p5, eS6q6);
+        // return *all* the poses
         return new SixDofPose(
-            p1, p2, p3, p4, p5, p6, p7);
+                M1,
+                GeometryUtil.compose(p1, M2),
+                GeometryUtil.compose(p2, M3),
+                GeometryUtil.compose(p3, M4),
+                GeometryUtil.compose(p4, M5),
+                GeometryUtil.compose(p5, M6),
+                GeometryUtil.compose(p6, M7));
     }
 
     @Override

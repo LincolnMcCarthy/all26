@@ -51,10 +51,51 @@ public class SixDofKinematicsPoETest {
     @Test
     void testForward1() {
         SixDofKinematicsPoE k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
-        SixDofPose sdp = k.forward(new SixDofConfig(0, 0, 0, 0, 0, 0));
-        Pose3d p = sdp.p7();
+        SixDofPose p = k.forward(new SixDofConfig(0, 0, 0, 0, 0, 0));
+        verify(new Pose3d(0, 0, 0, Rotation3d.kZero), p.p1());
+        verify(new Pose3d(0, 0, 0.25, Rotation3d.kZero), p.p2());
+        verify(new Pose3d(0.75, 0, 0.25, Rotation3d.kZero), p.p3());
+        verify(new Pose3d(1.5, 0, 0.25, Rotation3d.kZero), p.p4());
+        verify(new Pose3d(1.5, 0, 0.25, Rotation3d.kZero), p.p5());
+        verify(new Pose3d(1.5, 0, 0.25, Rotation3d.kZero), p.p6());
         // note the zero rotation, different than the other implementation.
-        verify(new Pose3d(1.65, 0, 0.25, Rotation3d.kZero), p);
+        verify(new Pose3d(1.65, 0, 0.25, Rotation3d.kZero), p.p7());
+    }
+
+    @Test
+    void testForward1a() {
+        SixDofKinematicsPoE k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofPose p = k.forward(new SixDofConfig(Math.PI / 2, 0, 0, 0, 0, 0));
+        verify(new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)), p.p1());
+        verify(new Pose3d(0, 0, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p2());
+        verify(new Pose3d(0, 0.75, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p3());
+        verify(new Pose3d(0, 1.5, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p4());
+        verify(new Pose3d(0, 1.5, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p5());
+        verify(new Pose3d(0, 1.5, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p6());
+        // note the zero rotation, different than the other implementation.
+        verify(new Pose3d(0, 1.65, 0.25, new Rotation3d(0, 0, Math.PI / 2)), p.p7());
+    }
+
+    @Test
+    void testForward2() {
+        // point up
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofConfig q = new SixDofConfig(
+                0, // yaw +x
+                Math.PI / 2, // shoulder up
+                -Math.PI / 2, // elbow out
+                0, // use pitch axis for pitch
+                Math.PI / 2, // pitch up
+                0);
+        SixDofPose p = k.forward(q);
+        // tool is pointing up
+        verify(new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)), p.p1());
+        verify(new Pose3d(0, 0, 0.25, new Rotation3d(0, 0, 0)), p.p2());
+        verify(new Pose3d(0, 0, 1.0, new Rotation3d(0, -Math.PI / 2, 0)), p.p3());
+        verify(new Pose3d(0.75, 0, 1.0, new Rotation3d(0, 0, 0)), p.p4());
+        verify(new Pose3d(0.75, 0, 1.0, new Rotation3d(0, 0, 0)), p.p5());
+        verify(new Pose3d(0.75, 0, 1.0, new Rotation3d(0, -Math.PI / 2, 0)), p.p6());
+        verify(new Pose3d(0.75, 0, 1.15, new Rotation3d(0, -Math.PI / 2, 0)), p.p7());
     }
 
     void verify(Twist3d expected, Twist3d actual) {

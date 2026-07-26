@@ -122,6 +122,21 @@ public class GeometryUtil {
         return new Twist3d(t.dx * s, t.dy * s, t.dz * s, t.rx * s, t.ry * s, t.rz * s);
     }
 
+    /** twist exponential scaled by q */
+    public static Pose3d exp(Twist3d t, double q) {
+        return Pose3d.kZero.exp(scale(t, q));
+    }
+
+    /**
+     * the pose, in the p0 frame, of p1, relative to p0
+     * 
+     * @param p0
+     * @param p1 relative to p0
+     */
+    public static Pose3d compose(Pose3d p0, Pose3d p1) {
+        return p0.transformBy(new Transform3d(Pose3d.kZero, p1));
+    }
+
     public static VelocitySE2 scale(VelocitySE2 v, double scale) {
         return new VelocitySE2(v.x() * scale, v.y() * scale, v.theta() * scale);
     }
@@ -247,10 +262,6 @@ public class GeometryUtil {
                 interpolate(a.course(), b.course(), x),
                 MathUtil.interpolate(a.scale(), b.scale(), x));
     }
-
-
-
-
 
     public static Translation2d inverse(Translation2d a) {
         return new Translation2d(-a.getX(), -a.getY());
