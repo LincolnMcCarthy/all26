@@ -6,6 +6,7 @@ import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.kinematics.six_dof.SixDofFeasibility;
 import org.team100.lib.kinematics.six_dof.SixDofKinematics;
+import org.team100.lib.kinematics.six_dof.SixDofKinematicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
@@ -34,7 +35,7 @@ public class SixDofArm extends SubsystemBase {
     public SixDofArm(LoggerFactory parent) {
         LoggerFactory log = parent.type(this);
 
-        m_kinematics = new SixDofKinematics(0.1, 0.3, 0.3, 0.1);
+        m_kinematics = new SixDofKinematicsAnalytic(0.1, 0.3, 0.3, 0.1);
         m_feasibility = new SixDofFeasibility(m_kinematics);
 
         m_q1 = new SimulatedBareMotor(log, 600);

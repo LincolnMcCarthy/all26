@@ -16,7 +16,7 @@ public class SixDofKinematicsTest {
     @Test
     void testForward1() {
         // all zeros => arm is extended along +x
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
         Pose3d p = k.forward(q).p7();
         verify(new Pose3d(1.65, 0, 0.25, new Rotation3d(Math.PI / 2, 0, Math.PI / 2)), p);
@@ -25,7 +25,7 @@ public class SixDofKinematicsTest {
     @Test
     void testForward2() {
         // make the wrist frame parallel with the world frame
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         SixDofConfig q = new SixDofConfig(
                 0, // yaw +x
                 Math.PI / 2, // shoulder up
@@ -41,7 +41,7 @@ public class SixDofKinematicsTest {
     @Test
     void testInverse1() {
         // This is the wrist singularity and the elbow singularity
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(1.65, 0, 0.25,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
@@ -54,7 +54,7 @@ public class SixDofKinematicsTest {
 
     @Test
     void testInverse2() {
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global -z, tool x at global -y
         Pose3d p = new Pose3d(0.5, 0, 0.5,
                 new Rotation3d(Math.PI, 0, Math.PI / 2));
@@ -74,7 +74,7 @@ public class SixDofKinematicsTest {
 
     @Test
     void testInverse3() {
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x, tool x at global -y
         // note position offset +y, wrist should be at (0.5,0.5,0.5)
         Pose3d p = new Pose3d(0.65, 0.5, 0.5,
@@ -92,7 +92,7 @@ public class SixDofKinematicsTest {
     @Test
     void testInverse4a() {
         // This is the base singularity with no default
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
@@ -103,7 +103,7 @@ public class SixDofKinematicsTest {
     void testInverse4b() {
         // This is the base singularity with a default, a good example of various
         // solutions using the base default.
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
@@ -122,7 +122,7 @@ public class SixDofKinematicsTest {
     @Test
     void testInverse5() {
         // This is reaching "back" behind the base singularity.
-        SixDofKinematics k = new SixDofKinematics(0.25, 0.75, 0.75, 0.15);
+        SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (z) points at global +x with tool x at global -y
         Pose3d p = new Pose3d(0, 0, 1,
                 new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
@@ -147,7 +147,7 @@ public class SixDofKinematicsTest {
 
     @Test
     void testQ1() {
-        List<Double> q1s = SixDofKinematics.getQ1(new Translation2d(1, 1), null);
+        List<Double> q1s = SixDofKinematicsAnalytic.getQ1(new Translation2d(1, 1), null);
         assertEquals(2, q1s.size());
     }
 

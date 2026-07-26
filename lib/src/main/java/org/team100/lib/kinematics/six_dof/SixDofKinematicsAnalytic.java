@@ -1,0 +1,283 @@
+package org.team100.lib.kinematics.six_dof;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.team100.lib.geometry.rr.RRConfig;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.six_dof.SixDofConfig;
+import org.team100.lib.geometry.six_dof.SixDofPose;
+import org.team100.lib.geometry.six_dof.SixDofVelocity;
+import org.team100.lib.geometry.six_dof.SphericalWristConfig;
+import org.team100.lib.geometry.six_dof.SphericalWristPose;
+import org.team100.lib.kinematics.rr.RRKinematics;
+import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
+import org.team100.lib.util.StrUtil;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N3;
+
+/**
+ * Kinematics of six-DOF all-revolute arm with spherical wrist, e.g. PUMA,
+ * using links (origins) and joints (rotations about z).
+ * 
+ * In this implementation, the joint axis is always +z, and the link transform
+ * ("origin" in URDF) is arranged to make that work.
+ * 
+ * The "zero" rotation, with the tool pointing down +z, results in a TCP pose
+ * of (pi, 0, pi), which may be confusing if you're thinking the tool frame is
+ * +x
+ */
+public class SixDofKinematicsAnalytic implements SixDofKinematics {
+    private static final boolean DEBUG = false;
+    /** Height of the shoulder */
+    private final double base;
+    /** Boom length between shoulder and elbow */
+    private final double boom;
+    /** Stick length from elbow to wrist */
+    private final double stick;
+    /** Tool length from wrist origin. */
+    private final double tool;
+    /** For solving the positional subproblem */
+    private final RRKinematics rrk;
+    /** For solving the wrist */
+    private final SphericalWristKinematics wk;
+
+    public SixDofKinematicsAnalytic(double base, double boom, double stick, double tool) {
+        this.base = base;
+        this.boom = boom;
+        this.stick = stick;
+        this.tool = tool;
+        rrk = new RRKinematics(boom, stick);
+        wk = new SphericalWristKinematics();
+    }
+
+    /**
+     * Forward position kinematics: cartesian joint poses from joint configurations.
+     * 
+     * Note this method uses origin frames of each joint, with the z axis rotating.
+     * 
+     * TODO: redo this using "product of exponentials" where the axis varies.
+     */
+    @Override
+    public SixDofPose forward(SixDofConfig q) {
+        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q.q1()));
+        Pose3d p2 = p1.plus(o2()).plus(R(q.q2()));
+        Pose3d p3 = p2.plus(o3()).plus(R(q.q3()));
+        if (DEBUG) {
+            System.out.printf("p1  %s\n", StrUtil.poseStr2(p1));
+            System.out.printf("p2  %s\n", StrUtil.poseStr2(p2));
+            System.out.printf("p3  %s\n", StrUtil.poseStr2(p3));
+        }
+
+        // wrist origin
+        Pose3d p4o = p3.plus(o4());
+        SphericalWristPose wp = wk.forward(new SphericalWristConfig(q.q4(), q.q5(), q.q6()));
+        Pose3d p4 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p4()));
+        Pose3d p5 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p5()));
+        Pose3d p6 = p4o.plus(new Transform3d(Pose3d.kZero, wp.p6()));
+        Pose3d tcp = p6.plus(tool());
+        if (DEBUG) {
+            System.out.printf("p6  %s\n", StrUtil.poseStr2(p6));
+            System.out.printf("tcp %s\n", StrUtil.poseStr2(tcp));
+        }
+        return new SixDofPose(p1, p2, p3, p4, p5, p6, tcp);
+    }
+
+    /**
+     * Forward velocity kinematics
+     * \dot{x} = J(q) \dot{q}
+     */
+    public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
+        return null;
+        //TODO: finish this
+    }
+
+    /**
+     * Inverse position kinematics: joint configs from cartesian pose.
+     *
+     * Zero, one, two, four, or eight solutions.
+     * 
+     * For defaults, use the previous value, or null if you have no idea (and in
+     * that case, catch the exception that may occur).
+     * 
+     * @param p         Tool point pose.
+     * @param q1Default In case of base singularity.
+     * @param q4Default In case of wrst singularity.
+     */
+    @Override
+    public List<SixDofConfig> inverse(Pose3d p, Double q1Default, Double q4Default) {
+        Translation3d t = p.getTranslation();
+        if (DEBUG)
+            System.out.printf("t %s\n", StrUtil.transStr(t));
+
+        // Wrist rotation is tool rotation.
+        Rotation3d R = p.getRotation();
+
+        // Tool translation = tool translation in tool frame, rotated by R.
+        Translation3d b = new Translation3d(0, 0, tool).rotateBy(R);
+        // Wrist origin = start at tool point, walk backwards along tool.
+        Translation3d w = t.minus(b);
+        if (DEBUG)
+            System.out.printf("w %s\n", StrUtil.transStr(w));
+        // Note: IEEE 754 defined atan2(0,0) as 0 in 1985. It's wrong.
+        Translation2d w2d = w.toTranslation2d();
+        // One or two swing options
+        List<Double> q1s = getQ1(w2d, q1Default);
+        if (DEBUG)
+            System.out.printf("swing options %d\n", q1s.size());
+        List<SixDofConfig> result = new ArrayList<>();
+        for (double q1 : q1s) {
+            List<RRConfig> rrs = rrConfig(w, q1);
+            if (DEBUG)
+                System.out.printf("RR options %d\n", rrs.size());
+            for (RRConfig rr : rrs) {
+                double q2 = rr.q1();
+                double q3 = rr.q2();
+                List<SphericalWristConfig> wqs = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
+                if (DEBUG)
+                    System.out.printf("wrist options %d\n", wqs.size());
+                for (SphericalWristConfig wq : wqs) {
+                    result.add(new SixDofConfig(q1, q2, q3, wq.q4(), wq.q5(), wq.q6()));
+                }
+            }
+        }
+        return result;
+    }
+
+    //////////////////////////////////////////////////////////////////
+
+    /**
+     * Swing joint. Wrist origin must be in the swing plane. One or two solutions.
+     * 
+     * In the non-singular case, there are two alternatives here: the "no-flip"
+     * case, shoulder near zero, and the "flip" case, with the base pointing the
+     * opposite way and the shoulder pointing "back" to the same result.
+     * 
+     * @param w         Wrist position in the xy plane
+     * @param q1Default Used if the position is the origin. A good choice would be
+     *                  the previous value of q1. If you have no idea, pass null and
+     *                  catch the exception.
+     */
+    static List<Double> getQ1(Translation2d w, Double q1Default) {
+        if (w.getNorm() < 1e-3) {
+            if (DEBUG)
+                System.out.println("base singularity");
+            if (q1Default == null)
+                throw new IllegalArgumentException("q1Default is null");
+            // in this case we don't do both alternatives, just the one default.
+            return List.of(q1Default);
+        }
+        double radians = w.getAngle().getRadians();
+        return List.of(radians, MathUtil.angleModulus(radians + Math.PI));
+    }
+
+    /**
+     * 0, 1, or 2 solutions
+     * 
+     * @param w  wrist position
+     * @param q1 swing configuration
+     */
+    private List<RRConfig> rrConfig(Translation3d w, double q1) {
+        // is this the "inline" or the "flip" case?
+        Rotation2d rot = w.toTranslation2d().getAngle();
+        double signum = 0;
+        if (MathUtil.isNear(q1, rot.getRadians(), 1e-3))
+            // forward
+            signum = 1;
+        else
+            // backward
+            signum = -1;
+        // Horizontal distance from base to wrist.
+        double x = Math.hypot(w.getX(), w.getY()) * signum;
+        // Vertical distance from base to wrist..
+        double y = w.getZ() - base;
+        // RR sub-problem.
+        Translation2d end = new Translation2d(x, y);
+        // Find the RR configs
+        return rrk.inverse(end);
+    }
+
+    /**
+     * Wrist config. One (if singular) or two solutions.
+     * 
+     * @param R         tool origin rotation
+     * @param R04       wrist origin rotation
+     * @param q4Default in case of singularity, pass null if you have no idea.
+     */
+    private List<SphericalWristConfig> wristQ(Rotation3d R, Rotation3d R04, Double q4Default) {
+        // The RPR wrist rotation is whatever is left.
+        Rotation3d R36 = R.relativeTo(R04);
+        List<SphericalWristConfig> wq = wk.inverse(R36, q4Default);
+        return wq;
+    }
+
+    /** The rotation of the wrist origin */
+    private Rotation3d wristOrigin(double q1, double q2, double q3) {
+        // Each joint pose up to the wrist.
+        Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q1));
+        Pose3d p2 = p1.plus(o2()).plus(R(q2));
+        Pose3d p3 = p2.plus(o3()).plus(R(q3));
+        // Wrist origin.
+        Pose3d p4 = p3.plus(o4());
+        // The rotation for zero wrist roll.
+        Rotation3d R04 = p4.getRotation();
+        if (DEBUG)
+            System.out.printf("R04 %s\n", StrUtil.rotStr(R04));
+        return R04;
+    }
+
+    /** Origin of joint 1: no offset, rotate around z. */
+    private Transform3d o1() {
+        return new Transform3d(
+                Translation3d.kZero,
+                Rotation3d.kZero);
+    }
+
+    /** Origin of joint 2: offset up, shoulder axis points right. */
+    private Transform3d o2() {
+        return new Transform3d(
+                new Translation3d(0, 0, base),
+                new Rotation3d(Math.PI / 2, 0, 0));
+    }
+
+    /** Origin of joint 3: offset out, parallel axis. */
+    private Transform3d o3() {
+        return new Transform3d(
+                new Translation3d(boom, 0, 0),
+                Rotation3d.kZero);
+    }
+
+    /** Origin of joint 4: offset out, wrist roll points out. */
+    private Transform3d o4() {
+        return new Transform3d(
+                new Translation3d(stick, 0, 0),
+                new Rotation3d(0, Math.PI / 2, 0));
+    }
+
+    /** Tool center point. */
+    private Transform3d tool() {
+        return new Transform3d(
+                new Translation3d(0, 0, tool),
+                Rotation3d.kZero);
+    }
+
+    /** Rotate in child frame */
+    private Transform3d R(double q) {
+        return new Transform3d(Translation3d.kZero, new Rotation3d(v(0, 0, 1), q));
+    }
+
+    /** convenience method for vector */
+    private Vector<N3> v(double x, double y, double z) {
+        return VecBuilder.fill(x, y, z);
+    }
+
+}

@@ -23,7 +23,17 @@ A classic example of this design is the
 
 ## Forward position kinematics
 
-The forward kinematics simply composes the joint transforms.
+There are two ways to represent the forward kinematics.
+
+One way is to follow URDF, which includes links (transforms) and joints (rotations),
+which are all composed to get to the end-effector pose.
+This is the way I started, and the WPILib geometry classes make the composition
+easy, but I got stuck writing the Jacobian.
+
+Another way is to follow Modern Robotics, which uses "screw theory"
+([ref](https://github.com/madibabaiasl/modern-robotics-course/wiki/Lesson-7:-Forward-Kinematics-of-Robot-Arms-Using-Screw-Theory)).  The 
+Jacobian is easier in this case.
+
 
 
 
