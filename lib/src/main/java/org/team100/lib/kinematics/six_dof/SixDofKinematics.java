@@ -61,6 +61,10 @@ public class SixDofKinematics {
 
     /**
      * Forward position kinematics: cartesian joint poses from joint configurations.
+     * 
+     * Note this method uses origin frames of each joint, with the z axis rotating.
+     * 
+     * TODO: redo this using "product of exponentials" where the axis varies.
      */
     public SixDofPose forward(SixDofConfig q) {
         Pose3d p1 = Pose3d.kZero.plus(o1()).plus(R(q.q1()));
@@ -91,7 +95,8 @@ public class SixDofKinematics {
      * \dot{x} = J(q) \dot{q}
      */
     public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
-
+        return null;
+        //TODO: finish this
     }
 
     /**

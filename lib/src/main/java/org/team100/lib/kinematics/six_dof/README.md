@@ -25,6 +25,8 @@ A classic example of this design is the
 
 The forward kinematics simply composes the joint transforms.
 
+
+
 ## Inverse position kinematics
 
 For an end-effector pose $(\mathbf{t}, \mathbf{R})$:
@@ -210,6 +212,11 @@ occupy two feasible positions, 180 degrees apart, but the base
 may only have a range of 180 degrees, so one of the solutions would
 be infeasible.
 
+## Velocity Kinematics
+
+The time-derivative of the forward kinematics (i.e. Jacobian) of the
+six-DOF arm is a 6x6 matrix.
+
 ## References
 
 * [Miranda 2017](https://ljvmiranda921.github.io/notebook/2017/01/25/forward-kinematics-stanford-manipulator/)
@@ -232,3 +239,6 @@ be infeasible.
 * [Nickens 2009](https://homepages.hass.rpi.edu/heuveb/Teaching/CognitiveRobotics/Documents/Glenn%20Nickens%20Thesis%20Proposal%20Slides.pdf) MSCS proposal which include RRT path planning in configuration-space.  Note this does not care about the cartesian path.
 * [Cookie Robotics on Euler angles](https://cookierobotics.com/081/)
 * [Jeon 2018](https://arxiv.org/pdf/1808.03891) about configuration metrics
+* [Rabbani](https://staticctf.ubisoft.com/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/7xXDdNpqFI3iRvWCYcRI9z/f9c6a6e37de357181226fc98a008e0c5/Jacobian.pdf) "Recipe to cook Jacobian"
+* [Babaiasl on Jacobians](https://github.com/madibabaiasl/modern-robotics-course/wiki/Lesson-9:-Robot-Velocity-Kinematics-Using-Screw-Theory-%E2%80%90-Jacobian-Matrix)
+* [Babaiasl on screw theory](https://github.com/madibabaiasl/modern-robotics-course/wiki/Lesson-7:-Forward-Kinematics-of-Robot-Arms-Using-Screw-Theory)
