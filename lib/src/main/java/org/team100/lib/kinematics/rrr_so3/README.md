@@ -24,3 +24,6 @@ the pitch axis can tilt up (which is a positive angle in our chosen coordinates)
 Another solution is for the roll axes to both be $\pi$, and for the pitch axis
 to tilt in the opposite direction.
 
+## References
+
+* [Euler angle formulas](https://www.geometrictools.com/Documentation/EulerAngles.pdf)

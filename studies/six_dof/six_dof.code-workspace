@@ -41,6 +41,10 @@
             "edu.wpi.first.math.**.proto.*",
             "edu.wpi.first.math.**.struct.*"
         ],
-        "java.dependency.enableDependencyCheckup": false
+        "java.dependency.enableDependencyCheckup": false,
+        "editor.stickyScroll.enabled": false,
+        "workbench.tree.enableStickyScroll": false,
+        "editor.stickyScroll.scrollWithEditor": false,
+        "terminal.integrated.stickyScroll.enabled": false
     }
 }

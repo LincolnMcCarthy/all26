@@ -227,6 +227,12 @@ be infeasible.
 The time-derivative of the forward kinematics (i.e. Jacobian) of the
 six-DOF arm is a 6x6 matrix.
 
+## TODO
+
+* explore Padan-Kahan subproblems
+* explore IK-Geo
+* explore Fabiko
+
 ## References
 
 * [Miranda 2017](https://ljvmiranda921.github.io/notebook/2017/01/25/forward-kinematics-stanford-manipulator/)
@@ -252,3 +258,6 @@ six-DOF arm is a 6x6 matrix.
 * [Rabbani](https://staticctf.ubisoft.com/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/7xXDdNpqFI3iRvWCYcRI9z/f9c6a6e37de357181226fc98a008e0c5/Jacobian.pdf) "Recipe to cook Jacobian"
 * [Babaiasl on Jacobians](https://github.com/madibabaiasl/modern-robotics-course/wiki/Lesson-9:-Robot-Velocity-Kinematics-Using-Screw-Theory-%E2%80%90-Jacobian-Matrix)
 * [Babaiasl on screw theory](https://github.com/madibabaiasl/modern-robotics-course/wiki/Lesson-7:-Forward-Kinematics-of-Robot-Arms-Using-Screw-Theory)
+* [IK-Geo](https://github.com/rpiRobotics/ik-geo) an analytic solver that works well
+* [FABRIK](https://andreasaristidou.com/FABRIK) iterative IK solver, fast (2016), maybe not good for 6dof geometry
+* [Fabiko](https://github.com/Elenterius/Fabiko) inverse kinematics solver in java, implements FABRIK

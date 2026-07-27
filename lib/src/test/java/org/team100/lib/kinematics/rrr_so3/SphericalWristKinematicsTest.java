@@ -72,8 +72,8 @@ public class SphericalWristKinematicsTest {
     void testInverse1b() {
         // roll only => singularity, uses default, roll sum is zero.
         SphericalWristKinematics wk = new SphericalWristKinematics();
-        // "Roll" in the wrist frame is around z, which wpi calls "yaw".
-        Rotation3d r = new Rotation3d(0, 0, 1);
+        // "Roll" in the wrist frame is around x
+        Rotation3d r = new Rotation3d(1, 0, 0);
         List<SphericalWristConfig> q = wk.inverse(r, 1.0);
         assertEquals(1, q.size());
         assertEquals(1, q.get(0).q4(), 1e-3);
@@ -83,15 +83,14 @@ public class SphericalWristKinematicsTest {
 
     @Test
     void testInverse2() {
-        // zero q4 is z to +x, x to +y, so pointing z left
-        // is a rotation around y.
+        // point up
         SphericalWristKinematics wk = new SphericalWristKinematics();
-        Rotation3d r = new Rotation3d(0, Math.PI / 2, 0);
+        Rotation3d r = new Rotation3d(0, -Math.PI / 2, 0);
         List<SphericalWristConfig> q = wk.inverse(r, 0.0);
         assertEquals(2, q.size());
         // note two opposite cases
-        verify(new SphericalWristConfig(1.571, -1.571, -1.571), q.get(0));
-        verify(new SphericalWristConfig(-1.571, 1.571, 1.571), q.get(1));
+        verify(new SphericalWristConfig(3.141, -1.571, -3.141), q.get(0));
+        verify(new SphericalWristConfig(0, 1.571, 0), q.get(1));
     }
 
     void verify(SphericalWristConfig expected, SphericalWristConfig actual) {

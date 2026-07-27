@@ -27,7 +27,7 @@ import edu.wpi.first.math.numbers.N3;
  * * roll: rotates around x again
  */
 public class SphericalWristKinematics {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     /** Forward kinematics is simply composition. */
     public SphericalWristPose forward(SphericalWristConfig q) {
@@ -43,7 +43,7 @@ public class SphericalWristKinematics {
     }
 
     /**
-     * Decomposition of R into ZXZ Euler angles.
+     * Decomposition of R into roll-pitch-roll (XYX) Euler angles.
      * 
      * One (if singular) or two solutions.
      * 
@@ -54,6 +54,7 @@ public class SphericalWristKinematics {
      * Otherwise, this returns two solutions.
      *
      * https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2016/KinematicsSingleBody.pdf
+     * https://www.geometrictools.com/Documentation/EulerAngles.pdf
      * 
      * @param R         rotation from wrist origin to tool origin
      * @param q4Default in case of singularity, use this value for q4. A good value
@@ -68,33 +69,35 @@ public class SphericalWristKinematics {
         if (DEBUG)
             System.out.printf("R %s\n", StrUtil.matStr(r));
         double r11 = r.get(0, 0);
-        double r21 = r.get(1, 0);
+        double r12 = r.get(0, 1);
         double r13 = r.get(0, 2);
-        double r23 = r.get(1, 2);
+        double r21 = r.get(1, 0);
+        double r22 = r.get(1, 1);
+        // double r23 = r.get(1, 2);
         double r31 = r.get(2, 0);
         double r32 = r.get(2, 1);
-        double r33 = r.get(2, 2);
+        // double r33 = r.get(2, 2);
 
         // 1e-3 means within about 1.5 degrees of zero.
         if (DEBUG)
-            System.out.printf("R33 %f\n", r33);
-        if (MathUtil.isNear(1, r33, 1e-3)) {
+            System.out.printf("R11 %f\n", r11);
+        if (MathUtil.isNear(1, r11, 1e-3)) {
             if (DEBUG)
                 System.out.println("wrist singularity");
             if (q4Default == null)
                 throw new IllegalArgumentException("singularity with no default");
             double q4 = q4Default;
             double q5 = 0;
-            double roll = Math.atan2(r21, r11);
+            double roll = Math.atan2(r32, r22);
             double q6 = MathUtil.angleModulus(roll - q4);
             return List.of(new SphericalWristConfig(q4, q5, q6));
         }
 
-        double q4 = Math.atan2(r13, -r23);
+        double q4 = Math.atan2(r21, -r31);
         // Negative sign here because our convention for the orientation of q5 is
-        // opposite the ZXZ convention.
-        double q5 = -1.0 * Math.atan2(Math.sqrt(Math.pow(r13, 2) + Math.pow(r23, 2)), r33);
-        double q6 = Math.atan2(r31, r32);
+        // opposite the XYX convention.
+        double q5 = -1.0 * Math.atan2(Math.sqrt(Math.pow(r21, 2) + Math.pow(r31, 2)), r11);
+        double q6 = Math.atan2(r12, r13);
 
         SphericalWristConfig s1 = new SphericalWristConfig(q4, q5, q6);
         SphericalWristConfig s2 = s1.flip();

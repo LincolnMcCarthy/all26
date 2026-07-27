@@ -55,9 +55,9 @@ public class SixDofKinematicsAnalyticTest {
     void testInverse1() {
         // This is the wrist singularity and the elbow singularity
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global +x with tool x at global -y
+        // tool (x) points at global +x 
         Pose3d p = new Pose3d(1.65, 0, 0.25,
-                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+                new Rotation3d(0, 0, 0));
         List<SixDofConfig> q = k.inverse(p, null, 1.0);
         assertEquals(2, q.size());
         // the q6 are different because of the default q4
@@ -68,19 +68,19 @@ public class SixDofKinematicsAnalyticTest {
     @Test
     void testInverse2() {
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global -z, tool x at global -y
+        // tool (x) points at global -z
         Pose3d p = new Pose3d(0.5, 0, 0.5,
-                new Rotation3d(Math.PI, 0, Math.PI / 2));
+                new Rotation3d(0, Math.PI/2, 0));
         List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(8, q.size());
         verify(new SixDofConfig(0, 1.804, -2.259, 0, -1.116, 0), q.get(0));
         verify(new SixDofConfig(0, 1.804, -2.259, 3.141, 1.116, 3.141), q.get(1));
-        verify(new SixDofConfig(0, -0.455, 2.259, -3.141, -2.908, -3.141), q.get(2));
+        verify(new SixDofConfig(0, -0.455, 2.259, 3.141, -2.908, 3.141), q.get(2));
         verify(new SixDofConfig(0, -0.455, 2.259, 0, 2.908, 0), q.get(3));
 
         verify(new SixDofConfig(3.141, -2.687, -2.259, 0, -2.908, 3.141), q.get(4));
         verify(new SixDofConfig(3.141, -2.687, -2.259, 3.141, 2.908, 0), q.get(5));
-        verify(new SixDofConfig(3.141, 1.337, 2.259, 3.141, -1.116, 0), q.get(6));
+        verify(new SixDofConfig(3.141, 1.337, 2.259, -3.141, -1.116, 0), q.get(6));
         verify(new SixDofConfig(3.141, 1.337, 2.259, 0, 1.116, 3.141), q.get(7));
 
     }
@@ -88,10 +88,10 @@ public class SixDofKinematicsAnalyticTest {
     @Test
     void testInverse3() {
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global +x, tool x at global -y
+        // tool (x) points at global +x
         // note position offset +y, wrist should be at (0.5,0.5,0.5)
         Pose3d p = new Pose3d(0.65, 0.5, 0.5,
-                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+                new Rotation3d(0, 0, 0));
         List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(8, q.size());
 
@@ -106,9 +106,9 @@ public class SixDofKinematicsAnalyticTest {
     void testInverse4a() {
         // This is the base singularity with no default
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global +x with tool x at global -y
+        // tool (x) points at global +x
         Pose3d p = new Pose3d(0.15, 0, 1,
-                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+                new Rotation3d(0, 0, 0));
         assertThrows(IllegalArgumentException.class, () -> k.inverse(p, null, null));
     }
 
@@ -117,9 +117,9 @@ public class SixDofKinematicsAnalyticTest {
         // This is the base singularity with a default, a good example of various
         // solutions using the base default.
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global +x with tool x at global -y
+        // tool (x) points at global +x
         Pose3d p = new Pose3d(0.15, 0, 1,
-                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+                new Rotation3d(0, 0, 0));
         List<SixDofConfig> q = k.inverse(p, 1.0, null);
         assertEquals(4, q.size());
 
@@ -136,9 +136,9 @@ public class SixDofKinematicsAnalyticTest {
     void testInverse5() {
         // This is reaching "back" behind the base singularity.
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (z) points at global +x with tool x at global -y
+        // tool (x) points at global +x
         Pose3d p = new Pose3d(0, 0, 1,
-                new Rotation3d(Math.PI / 2, 0, Math.PI / 2));
+                new Rotation3d(0, 0, 0));
         List<SixDofConfig> q = k.inverse(p, null, null);
         assertEquals(8, q.size());
 
@@ -147,7 +147,7 @@ public class SixDofKinematicsAnalyticTest {
         verify(new SixDofConfig(3.141, 2.409, -2.071, 0, 2.804, 3.141), q.get(1));
 
         // flip, elbow down
-        verify(new SixDofConfig(3.141, 0.338, 2.071, 3.141, -0.732, 0), q.get(2));
+        verify(new SixDofConfig(3.141, 0.338, 2.071, -3.141, -0.732, 0), q.get(2));
         verify(new SixDofConfig(3.141, 0.338, 2.071, 0, 0.732, 3.141), q.get(3));
 
         // noflip, elbow

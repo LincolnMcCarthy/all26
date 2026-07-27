@@ -29,15 +29,16 @@ import edu.wpi.first.math.numbers.N3;
  * Kinematics of six-DOF all-revolute arm with spherical wrist, e.g. PUMA,
  * using links (origins) and joints (rotations).
  * 
- * The joint axis is now variable, so the "zero" joint orientations are all the same.
- * (Previously, the joint axis was always "z", with a variable joint origin, but that
- * was harder to visualize (for me), and different from the natural PoE solution.)
+ * The joint axis is now variable, so the "zero" joint orientations are all the
+ * same. (Previously, the joint axis was always "z", with a variable joint
+ * origin, but that was harder to visualize (for me), and different from the
+ * natural PoE solution.)
  * 
  * The "zero" rotation, with the tool pointing down +x, results in a TCP pose
  * of (0, 0, 0).
  */
 public class SixDofKinematicsAnalytic implements SixDofKinematics {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     /** Height of the shoulder */
     private final double base;
     /** Boom length between shoulder and elbow */
@@ -62,10 +63,6 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
 
     /**
      * Forward position kinematics: cartesian joint poses from joint configurations.
-     * 
-     * Note this method uses origin frames of each joint, with the z axis rotating.
-     * 
-     * TODO: redo this using "product of exponentials" where the axis varies.
      * 
      * TODO: this returns joint positions *with* the rotation of the child
      * link, which is probably not what we want.
@@ -126,29 +123,34 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
         Rotation3d R = p.getRotation();
 
         // Tool translation = tool translation in tool frame, rotated by R.
-        Translation3d b = new Translation3d(0, 0, tool).rotateBy(R);
+        Translation3d b = new Translation3d(tool, 0, 0).rotateBy(R);
         // Wrist origin = start at tool point, walk backwards along tool.
         Translation3d w = t.minus(b);
         if (DEBUG)
             System.out.printf("w %s\n", StrUtil.transStr(w));
-        // Note: IEEE 754 defined atan2(0,0) as 0 in 1985. It's wrong.
         Translation2d w2d = w.toTranslation2d();
         // One or two swing options
-        List<Double> q1s = getQ1(w2d, q1Default);
+        List<Double> q1List = getQ1(w2d, q1Default);
         if (DEBUG)
-            System.out.printf("swing options %d\n", q1s.size());
+            System.out.printf("swing options %d\n", q1List.size());
         List<SixDofConfig> result = new ArrayList<>();
-        for (double q1 : q1s) {
+        for (double q1 : q1List) {
+            if (DEBUG)
+                System.out.printf("swing %f\n", q1);
             List<RRConfig> rrs = rrConfig(w, q1);
             if (DEBUG)
                 System.out.printf("RR options %d\n", rrs.size());
             for (RRConfig rr : rrs) {
                 double q2 = rr.q1();
                 double q3 = rr.q2();
+                if (DEBUG)
+                    System.out.printf("q2 %f q3 %f\n ", q2, q3);
                 List<SphericalWristConfig> wqs = wristQ(R, wristOrigin(q1, q2, q3), q4Default);
                 if (DEBUG)
                     System.out.printf("wrist options %d\n", wqs.size());
                 for (SphericalWristConfig wq : wqs) {
+                    if (DEBUG)
+                        System.out.printf("q4 %f q5 %f q6 %f\n", wq.q4(), wq.q5(), wq.q6());
                     result.add(new SixDofConfig(q1, q2, q3, wq.q4(), wq.q5(), wq.q6()));
                 }
             }
@@ -190,7 +192,7 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
      * @param q1 swing configuration
      */
     private List<RRConfig> rrConfig(Translation3d w, double q1) {
-        // is this the "inline" or the "flip" case?
+        // Is this the "inline" or the "flip" case?
         Rotation2d rot = w.toTranslation2d().getAngle();
         double signum = 0;
         if (MathUtil.isNear(q1, rot.getRadians(), 1e-3))

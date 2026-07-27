@@ -1,5 +1,6 @@
 package org.team100.lib.subsystems.six_dof.commands;
 
+import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.profile.r1.ProfileR1;
@@ -10,10 +11,9 @@ import org.team100.lib.subsystems.six_dof.SixDofArm;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.wpilibj2.command.Command;
 
 /**
- * Move the arm to the goal.
+ * Move the arm to the goal, endlessly.
  * 
  * Uses a single profile.
  * 
@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
  * but it might exceed the workspace limits, e.g.
  * by hitting the floor.
  */
-public class MoveWithProfile extends Command {
+public class MoveWithProfile extends MoveAndHold {
 
     private final SixDofArm m_arm;
     private final Pose3d m_goal;
@@ -40,11 +40,14 @@ public class MoveWithProfile extends Command {
 
     /**
      * @param arm
-     * @param goal tool points at +z
+     * @param goal tool points at +x
      */
     public MoveWithProfile(SixDofArm arm, Pose3d goal) {
         m_arm = arm;
         m_goal = goal;
+        // Check feasibility in constructor to avoid later exception.
+        if (m_arm.config(m_goal) == null)
+            throw new IllegalArgumentException("infeasible goal");
         m_profile = new WPITrapezoidProfileR1(1, 1);
         addRequirements(arm);
     }
@@ -71,6 +74,16 @@ public class MoveWithProfile extends Command {
 
         SixDofConfig c = SixDofConfig.interpolate(m_start, m_configGoal, s);
         m_arm.setConfig(c);
+    }
+
+    @Override
+    public boolean isDone() {
+        return toGo() < 0.01;
+    }
+
+    @Override
+    public double toGo() {
+        return m_arm.getConfig().distance(m_configGoal);
     }
 
 }

@@ -2,11 +2,12 @@ package org.team100.lib.subsystems.six_dof;
 
 import java.util.List;
 
+import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.kinematics.six_dof.SixDofFeasibility;
 import org.team100.lib.kinematics.six_dof.SixDofKinematics;
-import org.team100.lib.kinematics.six_dof.SixDofKinematicsAnalytic;
+import org.team100.lib.kinematics.six_dof.SixDofKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
@@ -35,7 +36,8 @@ public class SixDofArm extends SubsystemBase {
     public SixDofArm(LoggerFactory parent) {
         LoggerFactory log = parent.type(this);
 
-        m_kinematics = new SixDofKinematicsAnalytic(0.1, 0.3, 0.3, 0.1);
+        // m_kinematics = new SixDofKinematicsAnalytic(0.1, 0.3, 0.3, 0.1);
+        m_kinematics = new SixDofKinematicsPoE(0.1, 0.3, 0.3, 0.1);
         m_feasibility = new SixDofFeasibility(m_kinematics);
 
         m_q1 = new SimulatedBareMotor(log, 600);
@@ -128,15 +130,15 @@ public class SixDofArm extends SubsystemBase {
         return run(() -> setConfig(new SixDofConfig(0, 1, -1, 0, -1, 0)));
     }
 
-    public Command move0() {
+    public MoveAndHold move0() {
         return new MoveWithProfile(this, pose(new SixDofConfig(0, 0, 0, 0, 0, 0)).p7());
     }
 
-    public Command move1() {
+    public MoveAndHold move1() {
         return new MoveWithProfile(this, pose(new SixDofConfig(0, 1, -1, 0, -1, 0)).p7());
     }
 
-    public Command move(Pose3d goal) {
+    public MoveAndHold move(Pose3d goal) {
         return new MoveWithProfile(this, goal);
     }
 
