@@ -261,3 +261,5 @@ six-DOF arm is a 6x6 matrix.
 * [IK-Geo](https://github.com/rpiRobotics/ik-geo) an analytic solver that works well
 * [FABRIK](https://andreasaristidou.com/FABRIK) iterative IK solver, fast (2016), maybe not good for 6dof geometry
 * [Fabiko](https://github.com/Elenterius/Fabiko) inverse kinematics solver in java, implements FABRIK
+* [Illinois ECE470 notes](https://publish.illinois.edu/ece470-intro-robotics/files/2024/02/ECE470Lec9-2-1.pdf) re jacobian
+* [ETH notes](https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/multiscaleroboticlab-dam/documents/trm/HS2019/TRM19.pdf) including jacobian

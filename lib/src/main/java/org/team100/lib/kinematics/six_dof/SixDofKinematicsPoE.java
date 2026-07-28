@@ -5,14 +5,19 @@ import java.util.List;
 
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.rr.RRConfig;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se3.AdjointSE3;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
+import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -22,6 +27,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N6;
 
 /**
  * Six-DOF kinematics using the Modern Robotics approach.
@@ -38,6 +44,7 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
     private final Pose3d M4;
     private final Pose3d M5;
     private final Pose3d M6;
+    /** The pose usually called "M". */
     private final Pose3d M7;
     // Screw axes, in global frame, at zero config
     private final Twist3d S1;
@@ -113,6 +120,59 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
                 GeometryUtil.compose(p4, M5),
                 GeometryUtil.compose(p5, M6),
                 GeometryUtil.compose(p6, M7));
+    }
+
+    /**
+     * Forward velocity kinematics
+     * 
+     * \dot{x} = J(q) \dot{q}
+     * 
+     * The Jacobian can be constructed columnwise, where each column
+     * is the adjoint map of the exponentials up to that joint, applied
+     * to the screw axis of that joint.
+     * 
+     * See
+     * https://publish.illinois.edu/ece470-intro-robotics/files/2024/02/ECE470Lec9-2-1.pdf
+     * 
+     */
+    public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
+
+        return null;
+        // TODO: finish this
+    }
+
+    Matrix<N6, N6> J(SixDofConfig q) {
+        // construct J
+        Pose3d eS1q1 = GeometryUtil.exp(S1, q.q1());
+        Pose3d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        Pose3d eS3q3 = GeometryUtil.exp(S3, q.q3());
+        Pose3d eS4q4 = GeometryUtil.exp(S4, q.q4());
+        Pose3d eS5q5 = GeometryUtil.exp(S5, q.q5());
+        Pose3d eS6q6 = GeometryUtil.exp(S6, q.q6());
+        Pose3d p1 = eS1q1;
+        Pose3d p2 = GeometryUtil.compose(p1, eS2q2);
+        Pose3d p3 = GeometryUtil.compose(p2, eS3q3);
+        Pose3d p4 = GeometryUtil.compose(p3, eS4q4);
+        Pose3d p5 = GeometryUtil.compose(p4, eS5q5);
+        Pose3d p6 = GeometryUtil.compose(p5, eS6q6);
+
+        Vector<N6> J1 = GeometryUtil.toVec(S1);
+        Vector<N6> J2 = new Vector<>(AdjointSE3.ad(p1).times(GeometryUtil.toVec(S2)));
+        Vector<N6> J3 = new Vector<>(AdjointSE3.ad(p2).times(GeometryUtil.toVec(S3)));
+        Vector<N6> J4 = new Vector<>(AdjointSE3.ad(p3).times(GeometryUtil.toVec(S4)));
+        Vector<N6> J5 = new Vector<>(AdjointSE3.ad(p4).times(GeometryUtil.toVec(S5)));
+        Vector<N6> J6 = new Vector<>(AdjointSE3.ad(p5).times(GeometryUtil.toVec(S6)));
+        Matrix<N6, N6> result = new Matrix<>(Nat.N6(), Nat.N6());
+        result.assignBlock(0, 0, J1);
+        result.assignBlock(0, 1, J2);
+        result.assignBlock(0, 2, J3);
+        result.assignBlock(0, 3, J4);
+        result.assignBlock(0, 4, J5);
+        result.assignBlock(0, 5, J6);
+        // this is the jacobian of q6
+        // but I want the jacobian of the TCP
+
+        return result;
     }
 
     /**

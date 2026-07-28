@@ -9,12 +9,16 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N6;
 
 public class SixDofKinematicsPoETest {
     /**
@@ -206,6 +210,33 @@ public class SixDofKinematicsPoETest {
 
         verify(new SixDofConfig(0, 0.732, 2.071, 0, -2.804, 0), q.get(6));
         verify(new SixDofConfig(0, 0.732, 2.071, 3.141, 2.804, 3.141), q.get(7));
+    }
+
+    @Test
+    void testJ0() {
+        // jacobian for a case I can figure out
+        SixDofKinematicsPoE k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
+        // TCP is here:
+        SixDofPose p = k.forward(q);
+        verify(new Pose3d(1.65, 0, 0.25, Rotation3d.kZero), p.p7());
+        Matrix<N6, N6> J = k.J(q);
+        verify(MatBuilder.fill(Nat.N6(), Nat.N6(),
+                0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0, //
+                0, 0, 0, 0, 0, 0), J);
+    }
+
+    void verify(Matrix<N6, N6> a, Matrix<N6, N6> b) {
+        for (int i = 0; i < 6; ++i) {
+            for (int j = 0; j < 6; ++j) {
+                assertEquals(a.get(i, j), b.get(i, j),
+                        String.format("(%d, %d) a %f b %f", i, j, a.get(i, j), b.get(i, j)));
+            }
+        }
     }
 
     void verify(Twist3d expected, Twist3d actual) {

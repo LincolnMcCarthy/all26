@@ -12,7 +12,9 @@ import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPosition;
 import org.team100.lib.geometry.rr.RRVelocity;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N2;
 
 public class RRKinematicsTest {
     private static final double DELTA = 0.001;
@@ -94,7 +96,6 @@ public class RRKinematicsTest {
         assertEquals(-2.094, qq.get(0).q2(), DELTA, "inv q2");
         assertEquals(0.524, qq.get(1).q1(), DELTA, "inv q1");
         assertEquals(2.094, qq.get(1).q2(), DELTA, "inv q2");
-
     }
 
     @Test
@@ -212,6 +213,13 @@ public class RRKinematicsTest {
                 new RRVelocity(0, 1),
                 new RRAcceleration(0, 0));
         verify(-1, 0, xddot);
+    }
+
+    @Test
+    void testJ0() {
+        RRKinematics k = new RRKinematics(1, 1);
+        RRConfig q = new RRConfig(0, 0);
+        Matrix<N2, N2> J = k.J(q);
     }
 
     void verify(double x, double y, VelocityR2 v) {

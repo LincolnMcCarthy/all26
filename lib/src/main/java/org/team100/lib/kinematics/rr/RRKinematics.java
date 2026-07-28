@@ -177,7 +177,7 @@ public class RRKinematics {
     /**
      * End-effector Jacobian.
      */
-    private Matrix<N2, N2> J(RRConfig q) {
+     Matrix<N2, N2> J(RRConfig q) {
         double s1 = Math.sin(q.q1());
         double c1 = Math.cos(q.q1());
         double s12 = Math.sin(q.q1() + q.q2());
