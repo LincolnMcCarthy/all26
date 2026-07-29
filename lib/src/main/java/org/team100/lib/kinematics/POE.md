@@ -305,6 +305,28 @@ sin & cos & y(1-cos) - x sin \\
 \end{bmatrix}
 ```
 
+Note also (Dellaert) that the exponential expressed as a
+conjugate uses the instantaneous
+axis, which is, of course, the joint:
+```math
+e^{[S]q} =
+\begin{bmatrix}
+1 & 0 & x \\
+0 & 1 & y \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+cos & -sin & 0 \\
+sin & cos & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & -x \\
+0 & 1 & -y \\
+0 & 0 & 1
+\end{bmatrix}
+```
+
 Evaluating at $q_1=q_2=0$. note the second exponential
 translational part is zero because the angle is zero
 
