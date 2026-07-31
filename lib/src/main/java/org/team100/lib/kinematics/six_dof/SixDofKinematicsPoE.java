@@ -133,16 +133,14 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
      * 
      * See
      * https://publish.illinois.edu/ece470-intro-robotics/files/2024/02/ECE470Lec9-2-1.pdf
-     * 
      */
     public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
-
-        return null;
         // TODO: finish this
+        return null;
     }
 
+    /** Construct the Jacobian. */
     Matrix<N6, N6> J(SixDofConfig q) {
-        // construct J
         Pose3d eS1q1 = GeometryUtil.exp(S1, q.q1());
         Pose3d eS2q2 = GeometryUtil.exp(S2, q.q2());
         Pose3d eS3q3 = GeometryUtil.exp(S3, q.q3());

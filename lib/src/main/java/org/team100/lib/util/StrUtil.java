@@ -21,6 +21,11 @@ public class StrUtil {
                 p.getX(), p.getY(), p.getRotation().getRadians());
     }
 
+    public static String poseStr(Pose2d p) {
+        return String.format("%.8e, %.8e, %.8e",
+                p.getX(), p.getY(), p.getRotation().getRadians());
+    }
+
     /** Lots of decimal places. */
     public static String poseStr(Pose3d p) {
         return String.format("%.8e, %.8e, %.8e, %.8e, %.8e, %.8e",

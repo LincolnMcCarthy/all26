@@ -9,6 +9,7 @@ import java.util.OptionalDouble;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.geometry.lynx_arm.LynxArmPose;
+import org.team100.lib.testing.TestUtil;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.MathUtil;
@@ -379,19 +380,9 @@ public class AnalyticLynxArmKinematicsTest {
     }
 
     void verify(AnalyticLynxArmKinematics k, LynxArmPose p, LynxArmConfig q) {
-        verifyFwd(p, k.forward(q));
+        TestUtil.verify(p, k.forward(q));
         LynxArmConfig q0 = new LynxArmConfig(0, 0, 0, 0, 0);
         verifyInv(q, k.inverse(q0, p.p6()));
-    }
-
-    void verifyFwd(LynxArmPose expected, LynxArmPose actual) {
-        assertEquals(expected.p1(), actual.p1(), "fwd p1");
-        assertEquals(expected.p2(), actual.p2(), "fwd p2");
-        assertEquals(expected.p3(), actual.p3(), "fwd p3");
-        assertEquals(expected.p4(), actual.p4(), "fwd p4");
-        assertEquals(expected.p5(), actual.p5(), "fwd p5");
-        assertEquals(expected.p6(), actual.p6(), "fwd p6");
-
     }
 
     void verifyInv(LynxArmConfig expected, LynxArmConfig actual) {

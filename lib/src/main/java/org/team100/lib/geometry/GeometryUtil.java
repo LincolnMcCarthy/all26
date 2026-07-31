@@ -122,9 +122,17 @@ public class GeometryUtil {
         return new Twist3d(t.dx * s, t.dy * s, t.dz * s, t.rx * s, t.ry * s, t.rz * s);
     }
 
+    public static Pose2d exp(Twist2d t, double q) {
+        return Pose2d.kZero.exp(scale(t, q));
+    }
+
     /** twist exponential scaled by q */
     public static Pose3d exp(Twist3d t, double q) {
         return Pose3d.kZero.exp(scale(t, q));
+    }
+
+    public static Pose2d compose(Pose2d p0, Pose2d p1) {
+        return p0.transformBy(new Transform2d(Pose2d.kZero, p1));
     }
 
     /**

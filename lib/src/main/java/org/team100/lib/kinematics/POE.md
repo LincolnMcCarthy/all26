@@ -537,13 +537,15 @@ J^v(q) =
 
 This is the space jacobian, i.e. the velocity of the
 tool frame, not the tool point, so there is one more
-adjoint to apply, involving the tool pose, $t$:
+adjoint to apply, involving the tool pose, $t$.  Note
+this *does not* include the tool rotation, because we
+want the rotation in the global frame.
 
 ```math
 J(q) =
 \begin{bmatrix}
-cos(t_\theta) & sin(t_\theta) & -t_y \\
-sin(t_\theta) & cos(t_\theta) & t_x \\
+1 & 0 & -t_y \\
+0 & 1 & t_x \\
 0 & 0 & 1
 \end{bmatrix}
 \begin{bmatrix}

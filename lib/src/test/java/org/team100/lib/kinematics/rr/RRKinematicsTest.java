@@ -11,6 +11,7 @@ import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPosition;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.testing.TestUtil;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -123,17 +124,17 @@ public class RRKinematicsTest {
     void testForwardV() {
         RRKinematics k = new RRKinematics(1, 1);
         VelocityR2 xdot = k.forward(new RRConfig(0, 0), new RRVelocity(0, 0));
-        verify(0, 0, xdot);
+        TestUtil.verify(new VelocityR2(0, 0), xdot);
         xdot = k.forward(new RRConfig(0, 0), new RRVelocity(1, 0));
-        verify(0, 2, xdot);
+        TestUtil.verify(new VelocityR2(0, 2), xdot);
         xdot = k.forward(new RRConfig(0, 0), new RRVelocity(0, 1));
-        verify(0, 1, xdot);
+        TestUtil.verify(new VelocityR2(0, 1), xdot);
         xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 0));
-        verify(0, 0, xdot);
+        TestUtil.verify(new VelocityR2(0, 0), xdot);
         xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(1, 0));
-        verify(-1, 1, xdot);
+        TestUtil.verify(new VelocityR2(-1, 1), xdot);
         xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 1));
-        verify(0, 1, xdot);
+        TestUtil.verify(new VelocityR2(0, 1), xdot);
     }
 
     @Test
@@ -143,31 +144,31 @@ public class RRKinematicsTest {
         RRVelocity qdot = k.inverse(
                 new Translation2d(2, 0),
                 new VelocityR2(0, 0)).get(0);
-        verify(0, 0, qdot);
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
         qdot = k.inverse(
                 new Translation2d(2, 0),
                 new VelocityR2(1, 0)).get(0);
-        verify(0, 0, qdot);
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
         qdot = k.inverse(
                 new Translation2d(2, 0),
                 new VelocityR2(0, 1)).get(0);
-        verify(0, 1, qdot);
+        TestUtil.verify(new RRVelocity(0, 1), qdot);
         qdot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(0, 0)).get(0);
-        verify(0, 0, qdot);
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
         qdot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(1, 0)).get(0);
-        verify(-1, 0, qdot);
+        TestUtil.verify(new RRVelocity(-1, 0), qdot);
         qdot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(0, 1)).get(0);
-        verify(0, 1, qdot);
+        TestUtil.verify(new RRVelocity(0, 1), qdot);
         qdot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(-1, 1)).get(0);
-        verify(1, 0, qdot);
+        TestUtil.verify(new RRVelocity(1, 0), qdot);
     }
 
     @Test
@@ -178,19 +179,19 @@ public class RRKinematicsTest {
                 new Translation2d(1, 1),
                 new VelocityR2(0, 0),
                 new AccelerationR2(0, 0)).get(0);
-        verify(0, 0, qddot);
+        TestUtil.verify(new RRAcceleration(0, 0), qddot);
         // steady +x does not require accel.
         qddot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(1, 0),
                 new AccelerationR2(0, 0)).get(0);
-        verify(0, 0, qddot);
+        TestUtil.verify(new RRAcceleration(0, 0), qddot);
         // steady +y requires shoulder accel
         qddot = k.inverse(
                 new Translation2d(1, 1),
                 new VelocityR2(0, 1),
                 new AccelerationR2(0, 0)).get(0);
-        verify(-1, 0, qddot);
+        TestUtil.verify(new RRAcceleration(-1, 0), qddot);
     }
 
     @Test
@@ -200,19 +201,19 @@ public class RRKinematicsTest {
                 new RRConfig(0, 0),
                 new RRVelocity(0, 0),
                 new RRAcceleration(0, 0));
-        verify(0, 0, xddot);
+        TestUtil.verify(new AccelerationR2(0, 0), xddot);
         // move shoulder: centripetal towards shoulder
         xddot = k.forward(
                 new RRConfig(Math.PI / 2, -Math.PI / 2),
                 new RRVelocity(1, 0),
                 new RRAcceleration(0, 0));
-        verify(-1, -1, xddot);
+        TestUtil.verify(new AccelerationR2(-1, -1), xddot);
         // move elbow: centripetal towards elbow
         xddot = k.forward(
                 new RRConfig(Math.PI / 2, -Math.PI / 2),
                 new RRVelocity(0, 1),
                 new RRAcceleration(0, 0));
-        verify(-1, 0, xddot);
+        TestUtil.verify(new AccelerationR2(-1, 0), xddot);
     }
 
     @Test
@@ -222,23 +223,4 @@ public class RRKinematicsTest {
         Matrix<N2, N2> J = k.J(q);
     }
 
-    void verify(double x, double y, VelocityR2 v) {
-        assertEquals(x, v.x(), 1e-3);
-        assertEquals(y, v.y(), 1e-3);
-    }
-
-    void verify(double x, double y, AccelerationR2 v) {
-        assertEquals(x, v.x(), 1e-3);
-        assertEquals(y, v.y(), 1e-3);
-    }
-
-    void verify(double q1dot, double q2dot, RRVelocity v) {
-        assertEquals(q1dot, v.q1dot(), 1e-3);
-        assertEquals(q2dot, v.q2dot(), 1e03);
-    }
-
-    void verify(double q1dot, double q2dot, RRAcceleration a) {
-        assertEquals(q1dot, a.q1ddot(), 1e-3);
-        assertEquals(q2dot, a.q2ddot(), 1e03);
-    }
 }
