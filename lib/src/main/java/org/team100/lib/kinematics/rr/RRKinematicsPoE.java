@@ -1,11 +1,11 @@
 package org.team100.lib.kinematics.rr;
 
 import org.team100.lib.geometry.GeometryUtil;
-import org.team100.lib.geometry.r2.AccelerationR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.AdjointSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 
@@ -16,6 +16,7 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 
@@ -62,7 +63,25 @@ public class RRKinematicsPoE {
         return VelocitySE2.fromVector(J.times(qdot.toVector()));
     }
 
-    /** Construct the Jacobian. */
+    /**
+     * Forward acceleration kinematics.
+     * 
+     * \ddot{x} = \dot{J} \dot{q} + J \ddot{q}
+     */
+    public AccelerationSE2 forward(
+            RRConfig q, RRVelocity qdot, RRAcceleration qddot) {
+        Matrix<N3, N2> J = J(q);
+        Matrix<N3, N2> Jdot = Jdot(q, qdot);
+        return AccelerationSE2.fromVector(
+                Jdot.times(qdot.toVector())
+                        .plus(J.times(qddot.toVector())));
+    }
+
+    ///////////////////////////////////////////////////
+
+    /**
+     * End-effector Jacobian.
+     */
     Matrix<N3, N2> J(RRConfig q) {
         Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
         Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
@@ -86,9 +105,39 @@ public class RRKinematicsPoE {
         return t.times(Jv);
     }
 
-    public AccelerationR2 forward(
-            RRConfig q, RRVelocity qdot, RRAcceleration qddot) {
-        // TODO: finish this
-        return null;
+    /**
+     * Time-derivative of the end-effector Jacobian.
+     */
+    Matrix<N3, N2> Jdot(RRConfig q, RRVelocity qdot) {
+        Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
+        Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        Pose2d p1 = eS1q1;
+        Pose2d p2 = GeometryUtil.compose(p1, eS2q2);
+        Pose2d tcp = GeometryUtil.compose(p2, M3);
+        Pose2d v1 = M1.times(q.q1());
+        Pose2d v2 = GeometryUtil.compose(p1, M2).times(q.q2());
+        Pose2d v3 = GeometryUtil.compose(p2, M3);
+        Vector<N3> J1 = GeometryUtil.toVec(S1);
+        Vector<N3> J2 = new Vector<>(AdjointSE2.ad(p1).times(GeometryUtil.toVec(S2)));
+        Matrix<N3, N1> jdot1 = AdjointSE2.ad(v1).times(J1);
+        Matrix<N3, N1> jdot2 = AdjointSE2.ad(v2).times(J2);
+        Matrix<N3, N2> jdotv = new Matrix<>(Nat.N3(), Nat.N2());
+        jdotv.assignBlock(0, 0, jdot1);
+        jdotv.assignBlock(0, 1, jdot2);
+        Matrix<N3, N3> t = MatBuilder.fill(Nat.N3(), Nat.N3(), //
+                1, 0, -tcp.getY(), //
+                0, 1, tcp.getX(), //
+                0, 0, 1);
+        return t.times(jdotv);
+    }
+
+    /**
+     * Jacobian pseudo-inverse.
+     * 
+     * TODO: will this work for "tall" J?
+     */
+    private Matrix<N2, N3> Jinv(RRConfig q) {
+        Matrix<N3, N2> J = J(q);
+        return new Matrix<>(J.getStorage().pseudoInverse());
     }
 }

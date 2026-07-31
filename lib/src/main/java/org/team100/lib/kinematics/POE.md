@@ -77,6 +77,17 @@ T(q) = e^{[\mathcal{S}_1]q_1} ... e^{[\mathcal{S}_{n-1}]q_{n-1}}e^{[\mathcal{S}_
 
 ## Forward velocity kinematics
 
+The forward velocity expression is
+
+```math
+\dot{\mathbf{x}} = \mathbf{J} \dot{\mathbf{q}}
+```
+
+For $\dot{\mathbf{x}}$, the time-derivative of
+tool point pose,  $\mathbf{J}$, the geometric Jacobian,
+and $\dot{\mathbf{q}}$, the time-derivative of
+joint configuration.
+
 The PoE velocity kinematics are very confusing, because
 the word "Jacobian" is used to mean more than one thing.
 
@@ -105,6 +116,31 @@ yields a twist in the global frame of the last joint
 i.e. of the flange.  In this frame, the tool is a fixed
 offset, so the transformation is another adjoint map.
 What is that adjoint map?
+
+## Forward acceleration kinematics
+
+The expression for acceleration is just the derivative
+of the velocity expression, using the chain rule, i.e.
+
+```math
+\ddot{\mathbf{x}} = \dot{\mathbf{J}} \dot{\mathbf{q}}
++ \mathbf{J} \ddot{\mathbf{q}}
+```
+
+So how do we find the time-derivative of the Jacobian,
+$\dot{\mathbf{J}}$?
+
+The derivation is discussed in
+[Muller 2020](https://arxiv.org/html/2506.10686v1),
+which points out
+
+```math
+\dot{J_i} = ad_{J} J_i
+```
+
+where $ad_{J}$ is the adjoint of the Jacobian
+column?
+
 
 ## Example: 1R in SE(2)
 
@@ -622,3 +658,6 @@ and $q_2$ velocity pushes the tool in -x only.
 * [confusion post](https://robotics.stackexchange.com/questions/19744/the-jacobian-resulted-from-screw-method-is-different-from-analytical-one-exampl)
 * [confusion post](https://robotics.stackexchange.com/questions/16829/relationship-between-the-velocity-twist-jacobian-and-the-spatial-velocity-jacobi) References page 247 of Corke, with a reply from Corke himself.
 * [Dellaert](https://piazza.com/class_profile/get_resource/hpa4u5hmxk599/hsdw3z0329m3st) on serial link geometry
+* [Recipe to cook Jacobian](https://www.shahinrabbani.ca/jacobian/a-recipe-to-cook-jacobian)
+* [Muller 2020](https://arxiv.org/html/2506.10686v1) closed-form higher-order kinematics and inverse dynamics.
+* [Ledoux 2024](https://mtsu.pressbooks.pub/app/uploads/sites/121/2024/08/Jacobian-Theory.pdf)

@@ -80,7 +80,8 @@ public class RRKinematics {
         Matrix<N2, N2> J = J(q);
         Matrix<N2, N2> Jdot = Jdot(q, qdot);
         return AccelerationR2.fromVector(
-                Jdot.times(qdot.toVector()).plus(J.times(qddot.toVector())));
+                Jdot.times(qdot.toVector())
+                        .plus(J.times(qddot.toVector())));
     }
 
     /**
@@ -133,6 +134,9 @@ public class RRKinematics {
      * Inverse velocity kinematics.
      * 
      * \dot{q} = J^{-1} \dot{x}
+     * 
+     * TODO: the choice of solution is generally known
+     * prior to calling this, so don't use a list.
      */
     public List<RRVelocity> inverse(Translation2d x, VelocityR2 xdot) {
         List<RRConfig> q = inverse(x);
@@ -152,6 +156,9 @@ public class RRKinematics {
      * \ddot{q} = J^{-1}(\ddot{x} - \dot{J} J^{-1} \dot{x})
      * 
      * See doc/README.md equation 9
+     * 
+     * TODO: the choice of solution is generally known
+     * prior to calling this, so don't use a list.
      */
     public List<RRAcceleration> inverse(Translation2d x, VelocityR2 xdot, AccelerationR2 xddot) {
         List<RRConfig> s = inverse(x);
@@ -177,7 +184,7 @@ public class RRKinematics {
     /**
      * End-effector Jacobian.
      */
-     Matrix<N2, N2> J(RRConfig q) {
+    Matrix<N2, N2> J(RRConfig q) {
         double s1 = Math.sin(q.q1());
         double c1 = Math.cos(q.q1());
         double s12 = Math.sin(q.q1() + q.q2());
@@ -190,7 +197,7 @@ public class RRKinematics {
     /**
      * Time-derivative of the end-effector Jacobian.
      */
-    private Matrix<N2, N2> Jdot(RRConfig q, RRVelocity qdot) {
+    Matrix<N2, N2> Jdot(RRConfig q, RRVelocity qdot) {
         double s1 = Math.sin(q.q1());
         double c1 = Math.cos(q.q1());
         double s12 = Math.sin(q.q1() + q.q2());

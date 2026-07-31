@@ -14,11 +14,13 @@ import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Num;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -96,9 +98,11 @@ public class TestUtil {
         assertEquals(expected.rz, actual.rz, 1e-3);
     }
 
-    public static void verify(Matrix<N6, N6> a, Matrix<N6, N6> b) {
-        for (int i = 0; i < 6; ++i) {
-            for (int j = 0; j < 6; ++j) {
+    public static <R extends Num, C extends Num> void verify(Matrix<R, C> a, Matrix<R, C> b) {
+        assertEquals(a.getNumRows(), b.getNumRows());
+        assertEquals(a.getNumCols(), b.getNumCols());
+        for (int i = 0; i < a.getNumRows(); ++i) {
+            for (int j = 0; j < a.getNumCols(); ++j) {
                 assertEquals(a.get(i, j), b.get(i, j),
                         String.format("(%d, %d) a %f b %f", i, j, a.get(i, j), b.get(i, j)));
             }
@@ -160,6 +164,12 @@ public class TestUtil {
     public static void verify(VelocityR2 expected, VelocityR2 actual) {
         assertEquals(expected.x(), actual.x(), 1e-3);
         assertEquals(expected.y(), actual.y(), 1e-3);
+    }
+
+    public static void verify(VelocitySE2 expected, VelocitySE2 actual) {
+        assertEquals(expected.x(), actual.x(), 1e-3);
+        assertEquals(expected.y(), actual.y(), 1e-3);
+        assertEquals(expected.theta(), actual.theta(), 1e-3);
     }
 
     public static void verify(AccelerationR2 expected, AccelerationR2 actual) {
