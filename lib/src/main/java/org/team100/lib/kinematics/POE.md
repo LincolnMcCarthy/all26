@@ -126,6 +126,9 @@ M = \begin{bmatrix}
 0 & 0 & 1
 \end{bmatrix}
 ```
+
+__Position__
+
 The forward position kinematics is the product of exponentials:
 ```math
 \mathbf{x} = e^{[S_1]q_1} M
@@ -186,7 +189,7 @@ the rotational part:
 ```
 which is the tool pose rotated $pi/2$.
 
-__The Jacobian__
+__Velocity__
 
 Each column of the space Jacobian is the screw axis of each joint,
 transformed by the adjoints of the preceding joints.
@@ -216,7 +219,7 @@ R & -p^\perp \\
 \end{bmatrix}
 \mathbf{J}^v(q) = 
 \begin{bmatrix}
-cos & sin & -p_y \\
+cos & -sin & -p_y \\
 sin & cos & p_x \\
 0 & 0 & 1
 \end{bmatrix}
@@ -267,17 +270,24 @@ the rotational part of the tool adjoint has no effect.
 A slightly more complex example: one joint at the origin, one
 at (1,0), tool point at (2,0).
 
-Joint axis at the origin:
+Joint axis at the origin is the same as above.
 
 ```math
 S_1 = \begin{bmatrix}0\\0\\1\end{bmatrix}
 ```
 
-Joint axis at (1, 0):
+In general, in $SE(2)$, a revolute joint twist looks like
+this in the origin frame:
+
+```math
+S_i=
+\begin{bmatrix} y \\ -x \\ \theta \end{bmatrix}
+```
+
+So for a joint axis at (1, 0):
 ```math
 S_2 =
 \begin{bmatrix} 0 \\ -1 \\ 1 \end{bmatrix}
-
 ```
 
 The tool pose at $q_1=q_2=0$:
@@ -288,6 +298,8 @@ M = \begin{bmatrix}
 0 & 0 & 1
 \end{bmatrix}
 ```
+
+__Position__
 
 The forward position kinematics is the product of exponentials:
 
@@ -327,8 +339,55 @@ sin & cos & 0 \\
 \end{bmatrix}
 ```
 
-Evaluating at $q_1=q_2=0$. note the second exponential
-translational part is zero because the angle is zero
+For the second joint at (1,0):
+
+```math
+e^{[S]q} =
+\begin{bmatrix}
+1 & 0 & 1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+cos & -sin & 0 \\
+sin & cos & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+```
+
+Evaluating the second joint at $q_1=q_2=0$ yields identity:
+
+```math
+e^{[S]q} =
+\begin{bmatrix}
+1 & 0 & 1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+```
+
+so the tool point, $\mathbf{x}$ is unchanged:
 
 ```math
 \mathbf{x}
@@ -356,10 +415,51 @@ translational part is zero because the angle is zero
 \end{bmatrix}
 ```
 
-This is the same result as before.
 
-Evaluating at $q_1=0$, $q_2=\pi/2$, the translational
-part plays a role:
+
+Evaluating at $q_1=0$, $q_2=\pi/2$, the first joint is 
+still a pure rotation.  The second joint is:
+
+```math
+e^{[S]q} =
+\begin{bmatrix}
+1 & 0 & 1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & -1 & 0 \\
+1 & 0 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+```
+```math
+e^{[S]q} =
+\begin{bmatrix}
+0 & -1 & 1 \\
+1 & 0 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & -1 & 1 \\
+1 & 0 & -1 \\
+0 & 0 & 1
+\end{bmatrix}
+
+```
+
+so the tool pose. $\mathbf{x}$, is
 
 ```math
 \mathbf{x}
@@ -370,7 +470,7 @@ part plays a role:
 0 & 0 & 1
 \end{bmatrix}
 \begin{bmatrix}
-0 & -1 & -1 \\
+0 & -1 & 1 \\
 1 & 0 & -1 \\
 0 & 0 & 1
 \end{bmatrix}
@@ -381,13 +481,135 @@ part plays a role:
 \end{bmatrix}
 =
 \begin{bmatrix}
-0 & -1 & -1 \\
+0 & -1 & 1 \\
 1 & 0 & 1 \\
 0 & 0 & 1
 \end{bmatrix}
 ```
 
-__TODO: this seems wrong.__
+which represents the pose $(1, 1, \pi/2)$, which is correct.
+
+__Velocity__
+
+The columns of the space Jacobian are the joint screw axes transformed
+by the adjoint map of the previous joints in the chain:
+
+```math
+J^v(q) =
+\begin{bmatrix}
+\xi_1 && Ad(e^{\xi_1q_1})\xi_2
+\end{bmatrix}
+```
+
+The adjoint of the first joint is just a rotation:
+
+```math
+Ad(e^{\xi_1q_1)}
+\begin{bmatrix}
+cos(q_1) & -sin(q_1) & 0 \\
+sin(q_1) & cos(q_1) & 0 \\
+0 & 0 & 1
+\end{bmatrix}
+```
+
+Recall the twist of the second joint:
+
+```math
+S_2 =
+\begin{bmatrix} 0 \\ -1 \\ 1 \end{bmatrix}
+```
+
+
+So
+```math
+J_2 =
+\begin{bmatrix} sin(q_1) \\ -cos(q_1) \\ 1 \end{bmatrix}
+```
+
+```math
+J^v(q) =
+\begin{bmatrix}
+0 & sin(q_1) \\
+0 & -cos(q_1) \\
+1 & 1
+\end{bmatrix}
+```
+
+This is the space jacobian, i.e. the velocity of the
+tool frame, not the tool point, so there is one more
+adjoint to apply, involving the tool pose, $t$:
+
+```math
+J(q) =
+\begin{bmatrix}
+cos(t_\theta) & sin(t_\theta) & -t_y \\
+sin(t_\theta) & cos(t_\theta) & t_x \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & sin(q_1) \\
+0 & -cos(q_1) \\
+1 & 1
+\end{bmatrix}
+```
+
+Evaluating at $q_1 = q_2 = 0$, we first find the
+tool pose (using the position logic above), to find:
+
+```math
+J(q) =
+\begin{bmatrix}
+1 & 0 & 0 \\
+0 & 1 & 2 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & 0 \\
+0 & -1 \\
+1 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & 0 \\
+2 & 1 \\
+1 & 1
+\end{bmatrix}
+```
+This seems correct.
+
+Evaluating at $q_1=0$ and $q_2=\pi/2$,
+first find adjoint for the tool point.
+
+Note we ignore the tool rotation here since
+we're looking for the twist in the global frame.
+
+Note that the space jacobian
+is unchanged since the first joint is the same.
+
+```math
+J(q) =
+\begin{bmatrix}
+1 & 0 & -1 \\
+0 & 1 & 1 \\
+0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+0 & 0 \\
+0 & -1 \\
+1 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+-1 & -1 \\
+1 & 0 \\
+1 & 1
+\end{bmatrix}
+```
+
+So $q_1$ velocity pushes the tool diagonally in -x and +y,
+and $q_2$ velocity pushes the tool in -x only.
+
+
 
 
 ## References
