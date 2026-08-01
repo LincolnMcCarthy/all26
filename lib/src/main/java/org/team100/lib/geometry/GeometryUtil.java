@@ -122,27 +122,34 @@ public class GeometryUtil {
         return new Twist3d(t.dx * s, t.dy * s, t.dz * s, t.rx * s, t.ry * s, t.rz * s);
     }
 
+    /** Exponential at zero of the twist, scaled by q. */
     public static Pose2d exp(Twist2d t, double q) {
         return Pose2d.kZero.exp(scale(t, q));
     }
 
-    /** twist exponential scaled by q */
+    /** Exponential at zero of the twist, scaled by q. */
     public static Pose3d exp(Twist3d t, double q) {
         return Pose3d.kZero.exp(scale(t, q));
     }
 
+    /**
+     * p1 relative to p0
+     * 
+     * In affine matrix form this is p0 * p1.
+     */
     public static Pose2d compose(Pose2d p0, Pose2d p1) {
-        return p0.transformBy(new Transform2d(Pose2d.kZero, p1));
+        // return p0.transformBy(new Transform2d(Pose2d.kZero, p1));
+        return new Pose2d(p0.toMatrix().times(p1.toMatrix()));
     }
 
     /**
-     * the pose, in the p0 frame, of p1, relative to p0
+     * p1 relative to p0
      * 
-     * @param p0
-     * @param p1 relative to p0
+     * In affine matrix form this is p0 * p1.
      */
     public static Pose3d compose(Pose3d p0, Pose3d p1) {
-        return p0.transformBy(new Transform3d(Pose3d.kZero, p1));
+        // return p0.transformBy(new Transform3d(Pose3d.kZero, p1));
+        return new Pose3d(p0.toMatrix().times(p1.toMatrix()));
     }
 
     public static VelocitySE2 scale(VelocitySE2 v, double scale) {
@@ -364,6 +371,10 @@ public class GeometryUtil {
 
     public static Vector<N3> toVec(Pose2d p) {
         return VecBuilder.fill(p.getX(), p.getY(), p.getRotation().getRadians());
+    }
+
+    public static Vector<N3> toVec(Translation3d x) {
+        return VecBuilder.fill(x.getX(), x.getY(), x.getZ());
     }
 
     public static Vector<N3> toVec(Twist2d twist) {

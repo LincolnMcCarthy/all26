@@ -7,7 +7,9 @@ import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.AdjointSE2;
+import org.team100.lib.geometry.se2.LieSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
@@ -15,56 +17,85 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 
 /**
  * Using the PoE method, with SE2 poses, not just
  * R2 translations.
+ * 
+ * See Mueller, https://arxiv.org/pdf/2506.10686v1
  */
 public class RRKinematicsPoE {
+    private static final boolean DEBUG = true;
     /** Proximal link length, meters. */
     private final double l1;
     /** Distal link length, meters. */
     private final double l2;
+
+    // Muller calls these A_i
     private final Pose2d M1;
     private final Pose2d M2;
     private final Pose2d M3;
+
+    // Muller calls these Y_i
     private final Twist2d S1;
     private final Twist2d S2;
 
     public RRKinematicsPoE(double l1, double l2) {
         this.l1 = l1;
         this.l2 = l2;
-        S1 = new Twist2d(0, 0, 1);
-        S2 = new Twist2d(0, -1, 1);
+        S1 = S(new Translation2d(0, 0));
+        if (DEBUG)
+            System.out.printf("S1 %s\n", StrUtil.twistStr(S1));
+        S2 = S(new Translation2d(l1, 0));
+        if (DEBUG)
+            System.out.printf("S2 %s\n", StrUtil.twistStr(S2));
         M1 = new Pose2d(0, 0, Rotation2d.kZero);
         M2 = new Pose2d(l1, 0, Rotation2d.kZero);
         M3 = new Pose2d(l1 + l2, 0, Rotation2d.kZero);
     }
 
+    /**
+     * Forward positional kinematics.
+     * 
+     * Includes all joints, in order to check workspace bounds.
+     * 
+     * See eq 4 in Muller https://arxiv.org/pdf/2506.10686v1
+     * See eq 4.14 in Lynch https://hades.mech.northwestern.edu/images/7/7f/MR.pdf
+     */
     public RRPose forward(RRConfig q) {
+        // exponential terms
         Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
         Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
 
-        Pose2d p1 = eS1q1;
-        Pose2d p2 = GeometryUtil.compose(p1, eS2q2);
+        // exponential terms, recursively composed
+        Pose2d e1 = eS1q1;
+        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
 
-        return new RRPose(
-                M1,
-                GeometryUtil.compose(p1, M2),
-                GeometryUtil.compose(p2, M3));
+        // composed with tool-points for each joint, and the TCP
+        Pose2d p1 = M1;
+        Pose2d p2 = GeometryUtil.compose(e1, M2);
+        Pose2d p3 = GeometryUtil.compose(e2, M3);
+        return new RRPose(p1, p2, p3);
     }
 
+    /**
+     * Forward velocity kinematics for the end-effector.
+     * 
+     * \dot{x} = J \dot{q}
+     * 
+     * See eq 8 in Muller https://arxiv.org/pdf/2506.10686v1
+     */
     public VelocitySE2 forward(RRConfig q, RRVelocity qdot) {
         Matrix<N3, N2> J = J(q);
         return VelocitySE2.fromVector(J.times(qdot.toVector()));
     }
 
     /**
-     * Forward acceleration kinematics.
+     * Forward acceleration kinematics for the end-effector.
      * 
      * \ddot{x} = \dot{J} \dot{q} + J \ddot{q}
      */
@@ -80,23 +111,35 @@ public class RRKinematicsPoE {
     ///////////////////////////////////////////////////
 
     /**
+     * revolute joint screw "S" (Lynch) or "Y" (Muller)
+     * 
+     * S_i=(e_i, y_i x e_i)
+     * 
+     * axis, e, is always +z in SE2
+     * 
+     * @param y position of axis
+     */
+    static Twist2d S(Translation2d y) {
+        return new Twist2d(y.getY(), -y.getX(), 1);
+    }
+
+    /**
      * End-effector Jacobian.
+     * 
+     * See eq 8 in Mueller https://arxiv.org/pdf/2506.10686v1
      */
     Matrix<N3, N2> J(RRConfig q) {
+        // exponential terms, remember Muller calls Si Yi
         Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
         Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
-        Pose2d p1 = eS1q1;
-        Pose2d p2 = GeometryUtil.compose(p1, eS2q2);
-        Pose2d tcp = GeometryUtil.compose(p2, M3);
+        // exponential terms, recursively composed
+        Pose2d e1 = eS1q1;
+        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
+        Pose2d tcp = GeometryUtil.compose(e2, M3);
 
-        // first column is just the q1 axis
-        Vector<N3> J1 = GeometryUtil.toVec(S1);
-        // second column is the q2 axis transformed by the q1 adjoint
-        Vector<N3> J2 = new Vector<>(AdjointSE2.ad(p1).times(GeometryUtil.toVec(S2)));
         // Space Jacobian
-        Matrix<N3, N2> Jv = new Matrix<>(Nat.N3(), Nat.N2());
-        Jv.assignBlock(0, 0, J1);
-        Jv.assignBlock(0, 1, J2);
+        Matrix<N3, N2> Jv = Jv(q);
+
         // Tool translation
         Matrix<N3, N3> t = MatBuilder.fill(Nat.N3(), Nat.N3(), //
                 1, 0, -tcp.getY(), //
@@ -105,30 +148,108 @@ public class RRKinematicsPoE {
         return t.times(Jv);
     }
 
-    /**
-     * Time-derivative of the end-effector Jacobian.
-     */
-    Matrix<N3, N2> Jdot(RRConfig q, RRVelocity qdot) {
+    /** Spatial Jacobian. */
+    Matrix<N3, N2> Jv(RRConfig q) {
+        // exponential terms, remember Muller calls Si Yi
         Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
         Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
-        Pose2d p1 = eS1q1;
-        Pose2d p2 = GeometryUtil.compose(p1, eS2q2);
-        Pose2d tcp = GeometryUtil.compose(p2, M3);
-        Pose2d v1 = M1.times(q.q1());
-        Pose2d v2 = GeometryUtil.compose(p1, M2).times(q.q2());
-        Pose2d v3 = GeometryUtil.compose(p2, M3);
-        Vector<N3> J1 = GeometryUtil.toVec(S1);
-        Vector<N3> J2 = new Vector<>(AdjointSE2.ad(p1).times(GeometryUtil.toVec(S2)));
-        Matrix<N3, N1> jdot1 = AdjointSE2.ad(v1).times(J1);
-        Matrix<N3, N1> jdot2 = AdjointSE2.ad(v2).times(J2);
+        // exponential terms, recursively composed
+        Pose2d e1 = eS1q1;
+        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
+        Pose2d tcp = GeometryUtil.compose(e2, M3);
+
+        // first column is just the q1 axis; Mueller calls the columns Si
+        Vector<N3> JS1 = GeometryUtil.toVec(S1);
+        if (DEBUG)
+            System.out.printf("JS1 %s\n", StrUtil.vecStr(JS1));
+
+        // second column is the q2 axis transformed by the q1 adjoint
+        // see eq 7 in Muller https://arxiv.org/pdf/2506.10686v1
+        Vector<N3> JS2 = new Vector<>(AdjointSE2.ad(e1).times(GeometryUtil.toVec(S2)));
+        if (DEBUG)
+            System.out.printf("JS2 %s\n", StrUtil.vecStr(JS2));
+
+        // Space Jacobian
+        Matrix<N3, N2> Jv = new Matrix<>(Nat.N3(), Nat.N2());
+        Jv.setColumn(0, JS1);
+        Jv.setColumn(1, JS2);
+        return Jv;
+    }
+
+    /** Time-derivative of space jacobian */
+    Matrix<N3, N2> Jdotv(RRConfig q, RRVelocity qdot) {
+        // exponential terms
+        Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
+        Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        // exponential terms, recursively composed
+        Pose2d e1 = eS1q1;
+        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
+        Pose2d tcp = GeometryUtil.compose(e2, M3);
+
+        // first column is just the q1 axis; Mueller calls the columns Si
+        Vector<N3> JS1 = GeometryUtil.toVec(S1);
+        if (DEBUG)
+            System.out.printf("JS1 %s\n", StrUtil.vecStr(JS1));
+        // second column is the q2 axis transformed by the q1 adjoint
+        // see eq 7 in Muller https://arxiv.org/pdf/2506.10686v1
+        Vector<N3> JS2 = new Vector<>(AdjointSE2.ad(e1).times(GeometryUtil.toVec(S2)));
+        if (DEBUG)
+            System.out.printf("JS2 %s\n", StrUtil.vecStr(JS2));
+
+        // q1 never moves
+        Vector<N3> JdotS1 = GeometryUtil.toVec(new Twist2d());
+        if (DEBUG)
+            System.out.printf("JdotS1 %s\n", StrUtil.vecStr(JdotS1));
+        Vector<N3> JdotS2 = LieSE2.bracket(JS1, JS2).times(qdot.q1dot());
+        if (DEBUG)
+            System.out.printf("JdotS2 %s\n", StrUtil.vecStr(JdotS2));
+
         Matrix<N3, N2> jdotv = new Matrix<>(Nat.N3(), Nat.N2());
-        jdotv.assignBlock(0, 0, jdot1);
-        jdotv.assignBlock(0, 1, jdot2);
+        jdotv.assignBlock(0, 0, JdotS1);
+        jdotv.assignBlock(0, 1, JdotS2);
+        return jdotv;
+    }
+
+    /**
+     * Time-derivative of the end-effector Jacobian.
+     * 
+     * See Muller, https://arxiv.org/pdf/2506.10686v1
+     */
+    Matrix<N3, N2> Jdot(RRConfig q, RRVelocity qdot) {
+        // exponential terms
+        Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
+        Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        // exponential terms, recursively composed
+        Pose2d e1 = eS1q1;
+        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
+        Pose2d tcp = GeometryUtil.compose(e2, M3);
         Matrix<N3, N3> t = MatBuilder.fill(Nat.N3(), Nat.N3(), //
                 1, 0, -tcp.getY(), //
                 0, 1, tcp.getX(), //
                 0, 0, 1);
-        return t.times(jdotv);
+
+        // Space Jacobian
+        Matrix<N3, N2> Jv = Jv(q);
+        Matrix<N3, N2> J = t.times(Jv);
+        Matrix<N3, N2> Jdotv = Jdotv(q, qdot);
+
+        // to convert Jdotv into Jdot, observe that
+        // J = T Jv
+        // where T is the translation used above.
+        // to find Jdot, use the product rule
+        // Jdot = Tdot Jv + T Jdotv
+
+        VelocitySE2 tcpdot = VelocitySE2.fromVector(J.times(qdot.toVector()));
+
+        Matrix<N3, N3> tdot = MatBuilder.fill(Nat.N3(), Nat.N3(), //
+                0, 0, -tcpdot.y(), //
+                0, 0, tcpdot.x(), //
+                0, 0, 0);
+
+        Matrix<N3, N2> jdot = tdot.times(Jv).plus(t.times(Jdotv));
+        if (DEBUG)
+            System.out.printf("jdot %s\n", StrUtil.matStr(jdot));
+        return jdot;
     }
 
     /**

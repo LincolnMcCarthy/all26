@@ -6,6 +6,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 
@@ -19,7 +20,7 @@ public class AdjointSE2 {
      * 
      * Our twist vector representation is translation-first,
      * so the zero block above is in the lower-left, not the
-     * upper-right, as it would be for the GTSAM rotation-first
+     * upper-right, as it would be for a more-common rotation-first
      * twist vector.
      * 
      * Applying this matrix to a twist in the pose frame

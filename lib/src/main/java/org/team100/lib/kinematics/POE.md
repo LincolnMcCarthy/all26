@@ -654,10 +654,13 @@ and $q_2$ velocity pushes the tool in -x only.
 
 * [Corke, Robotics Vision and Control 2011](https://weblibrary.mila.edu.my/upload/ebook/engineering/2011_Book_RoboticsVisionAndControl.pdf) (this is the 2011 edition which does not include the interesting part about the tool point jacobian)
 * [Corke 2017](https://www.yumpu.com/en/document/read/63365638/2017-book-roboticsvisionandcontrol/267) the 2017 version
-* [Lynch, Park 2019](https://hades.mech.northwestern.edu/images/2/25/MR-v2.pdf)
+* [Lynch, Park 2019 Modern Robotics](https://hades.mech.northwestern.edu/images/2/25/MR-v2.pdf) also [here](https://hades.mech.northwestern.edu/images/7/7f/MR.pdf), older?
 * [confusion post](https://robotics.stackexchange.com/questions/19744/the-jacobian-resulted-from-screw-method-is-different-from-analytical-one-exampl)
 * [confusion post](https://robotics.stackexchange.com/questions/16829/relationship-between-the-velocity-twist-jacobian-and-the-spatial-velocity-jacobi) References page 247 of Corke, with a reply from Corke himself.
 * [Dellaert](https://piazza.com/class_profile/get_resource/hpa4u5hmxk599/hsdw3z0329m3st) on serial link geometry
 * [Recipe to cook Jacobian](https://www.shahinrabbani.ca/jacobian/a-recipe-to-cook-jacobian)
 * [Muller 2020](https://arxiv.org/html/2506.10686v1) closed-form higher-order kinematics and inverse dynamics.
 * [Ledoux 2024](https://mtsu.pressbooks.pub/app/uploads/sites/121/2024/08/Jacobian-Theory.pdf)
+* [Huang 2026](https://arxiv.org/abs/2603.14809) about parameterization
+* [Mueller 2023](https://arxiv.org/pdf/2306.17793) Screw and Lie theory
+* [Mueller 2020 or maybe 2025](https://arxiv.org/pdf/2506.10686v1) O(n) algo re: twists

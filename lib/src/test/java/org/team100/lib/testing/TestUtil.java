@@ -14,6 +14,7 @@ import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
@@ -24,6 +25,7 @@ import edu.wpi.first.math.Num;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.geometry.Twist3d;
@@ -65,6 +67,12 @@ public class TestUtil {
         assertEquals(expected.getRotation().getZ(), actual.getRotation().getZ(), 1e-3, "rz");
     }
 
+    public static void verify(Transform2d expected, Transform2d actual) {
+        assertEquals(expected.getX(), actual.getX(), 1e-3, "x");
+        assertEquals(expected.getY(), actual.getY(), 1e-3, "y");
+        assertEquals(expected.getRotation().getRadians(), actual.getRotation().getRadians(), 1e-3, "rot");
+    }
+
     public static void verify(Transform3d expected, Transform3d actual) {
         assertEquals(expected.getX(), actual.getX(), 1e-3, " x");
         assertEquals(expected.getY(), actual.getY(), 1e-3, " y");
@@ -80,6 +88,12 @@ public class TestUtil {
         assertEquals(t.dtheta, v.get(2, 0), 1e-3, "r");
     }
 
+    public static void verify(Twist2d expected, Twist2d actual) {
+        assertEquals(expected.dx, actual.dx, 1e-3, "x");
+        assertEquals(expected.dy, actual.dy, 1e-3, "y");
+        assertEquals(expected.dtheta, actual.dtheta, 1e-3, "r");
+    }
+
     public static void verify(Twist3d t, Matrix<N6, N1> v) {
         assertEquals(t.dx, v.get(0, 0), 1e-3, "x");
         assertEquals(t.dy, v.get(1, 0), 1e-3, "y");
@@ -90,12 +104,12 @@ public class TestUtil {
     }
 
     public static void verify(Twist3d expected, Twist3d actual) {
-        assertEquals(expected.dx, actual.dx, 1e-3);
-        assertEquals(expected.dy, actual.dy, 1e-3);
-        assertEquals(expected.dz, actual.dz, 1e-3);
-        assertEquals(expected.rx, actual.rx, 1e-3);
-        assertEquals(expected.ry, actual.ry, 1e-3);
-        assertEquals(expected.rz, actual.rz, 1e-3);
+        assertEquals(expected.dx, actual.dx, 1e-3, "dx");
+        assertEquals(expected.dy, actual.dy, 1e-3, "dy");
+        assertEquals(expected.dz, actual.dz, 1e-3, "dz");
+        assertEquals(expected.rx, actual.rx, 1e-3, "rx");
+        assertEquals(expected.ry, actual.ry, 1e-3, "ry");
+        assertEquals(expected.rz, actual.rz, 1e-3, "rz");
     }
 
     public static <R extends Num, C extends Num> void verify(Matrix<R, C> a, Matrix<R, C> b) {
@@ -103,7 +117,7 @@ public class TestUtil {
         assertEquals(a.getNumCols(), b.getNumCols());
         for (int i = 0; i < a.getNumRows(); ++i) {
             for (int j = 0; j < a.getNumCols(); ++j) {
-                assertEquals(a.get(i, j), b.get(i, j),
+                assertEquals(a.get(i, j), b.get(i, j), 1e-6,
                         String.format("(%d, %d) a %f b %f", i, j, a.get(i, j), b.get(i, j)));
             }
         }
@@ -119,12 +133,12 @@ public class TestUtil {
     }
 
     public static void verify(LynxArmPose expected, LynxArmPose actual) {
-        assertEquals(expected.p1(), actual.p1(), "fwd p1");
-        assertEquals(expected.p2(), actual.p2(), "fwd p2");
-        assertEquals(expected.p3(), actual.p3(), "fwd p3");
-        assertEquals(expected.p4(), actual.p4(), "fwd p4");
-        assertEquals(expected.p5(), actual.p5(), "fwd p5");
-        assertEquals(expected.p6(), actual.p6(), "fwd p6");
+        assertEquals(expected.p1(), actual.p1(), "p1");
+        assertEquals(expected.p2(), actual.p2(), "p2");
+        assertEquals(expected.p3(), actual.p3(), "p3");
+        assertEquals(expected.p4(), actual.p4(), "p4");
+        assertEquals(expected.p5(), actual.p5(), "p5");
+        assertEquals(expected.p6(), actual.p6(), "p6");
     }
 
     public static void verify(SphericalWristConfig expected, SphericalWristConfig actual) {
@@ -154,47 +168,53 @@ public class TestUtil {
     }
 
     public static void verify(LynxArmConfig q, double a, double b, double c, double d, double e) {
-        assertEquals(a, q.swing().getAsDouble(), 1e-3);
-        assertEquals(b, q.boom(), 1e-3);
-        assertEquals(c, q.stick(), 1e-3);
-        assertEquals(d, q.wrist(), 1e-3);
-        assertEquals(e, q.twist().getAsDouble(), 1e-3);
+        assertEquals(a, q.swing().getAsDouble(), 1e-3, "swing");
+        assertEquals(b, q.boom(), 1e-3, "boom");
+        assertEquals(c, q.stick(), 1e-3, "stick");
+        assertEquals(d, q.wrist(), 1e-3, "wrist");
+        assertEquals(e, q.twist().getAsDouble(), 1e-3, "twist");
     }
 
     public static void verify(VelocityR2 expected, VelocityR2 actual) {
-        assertEquals(expected.x(), actual.x(), 1e-3);
-        assertEquals(expected.y(), actual.y(), 1e-3);
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
     }
 
     public static void verify(VelocitySE2 expected, VelocitySE2 actual) {
-        assertEquals(expected.x(), actual.x(), 1e-3);
-        assertEquals(expected.y(), actual.y(), 1e-3);
-        assertEquals(expected.theta(), actual.theta(), 1e-3);
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
+        assertEquals(expected.theta(), actual.theta(), 1e-3, "theta");
     }
 
     public static void verify(AccelerationR2 expected, AccelerationR2 actual) {
-        assertEquals(expected.x(), actual.x(), 1e-3);
-        assertEquals(expected.y(), actual.y(), 1e-3);
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
+    }
+
+    public static void verify(AccelerationSE2 expected, AccelerationSE2 actual) {
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
+        assertEquals(expected.theta(), actual.theta(), 1e-3, "theta");
     }
 
     public static void verify(RRVelocity expected, RRVelocity actual) {
-        assertEquals(expected.q1dot(), actual.q1dot(), 1e-3);
-        assertEquals(expected.q2dot(), actual.q2dot(), 1e03);
+        assertEquals(expected.q1dot(), actual.q1dot(), 1e-3, "x");
+        assertEquals(expected.q2dot(), actual.q2dot(), 1e-3, "y");
     }
 
     public static void verify(RRAcceleration expected, RRAcceleration actual) {
-        assertEquals(expected.q1ddot(), actual.q1ddot(), 1e-3);
-        assertEquals(expected.q2ddot(), actual.q2ddot(), 1e03);
+        assertEquals(expected.q1ddot(), actual.q1ddot(), 1e-3, "q1");
+        assertEquals(expected.q2ddot(), actual.q2ddot(), 1e-3, "q2");
     }
 
     public static void verify(PRVelocity expected, PRVelocity v) {
-        assertEquals(expected.q1dot(), v.q1dot(), 1e-3);
-        assertEquals(expected.q2dot(), v.q2dot(), 1e03);
+        assertEquals(expected.q1dot(), v.q1dot(), 1e-3, "q1");
+        assertEquals(expected.q2dot(), v.q2dot(), 1e-3, "q2");
     }
 
     public static void verify(PRAcceleration expected, PRAcceleration a) {
-        assertEquals(expected.q1ddot(), a.q1ddot(), 1e-3);
-        assertEquals(expected.q2ddot(), a.q2ddot(), 1e03);
+        assertEquals(expected.q1ddot(), a.q1ddot(), 1e-3, "q1");
+        assertEquals(expected.q2ddot(), a.q2ddot(), 1e-3, "q2");
     }
 
     public static void verify(RRPose expected, RRPose actual) {

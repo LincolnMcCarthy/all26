@@ -24,6 +24,8 @@ import edu.wpi.first.math.numbers.N2;
  * Note these kinematics always choose the "elbow up" configuration,
  * i.e. the distal joint prefers negative values.
  * 
+ * TODO: change to SE2 from R2
+ * 
  * Refer to the diagram:
  * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
  */

@@ -13,7 +13,9 @@ import org.team100.lib.geometry.rr.RRPosition;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.testing.TestUtil;
 
+import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 
@@ -219,8 +221,49 @@ public class RRKinematicsTest {
     @Test
     void testJ0() {
         RRKinematics k = new RRKinematics(1, 1);
+        // extended
         RRConfig q = new RRConfig(0, 0);
         Matrix<N2, N2> J = k.J(q);
+        TestUtil.verify(MatBuilder.fill(Nat.N2(), Nat.N2(), //
+                0, 0, //
+                2, 1), J);
+    }
+
+    @Test
+    void test11() {
+        RRKinematics k = new RRKinematics(1, 1);
+        // arm is extended, q1 is turning, q2 is not
+        // centripetal acceleration towards origin
+        Matrix<N2, N2> Jdot = k.Jdot(
+                new RRConfig(0, 0),
+                new RRVelocity(1, 0));
+        TestUtil.verify(MatBuilder.fill(Nat.N2(), Nat.N2(), //
+                -2, -1, //
+                0, 0), Jdot);
+    }
+
+    @Test
+    void test12() {
+        RRKinematics k = new RRKinematics(1, 1);
+        // arm is bent, not moving: no acceleration
+        Matrix<N2, N2> Jdot = k.Jdot(
+                new RRConfig(0, Math.PI / 2),
+                new RRVelocity(0, 0));
+        TestUtil.verify(MatBuilder.fill(Nat.N2(), Nat.N2(), //
+                0, 0, //
+                0, 0), Jdot);
+    }
+
+    @Test
+    void test13() {
+        RRKinematics k = new RRKinematics(1, 1);
+        // arm is bent, moving => coriolis force
+        Matrix<N2, N2> Jdot = k.Jdot(
+                new RRConfig(0, Math.PI / 2),
+                new RRVelocity(1, 0));
+        TestUtil.verify(MatBuilder.fill(Nat.N2(), Nat.N2(), //
+                -1, 0, //
+                -1, -1), Jdot);
     }
 
 }

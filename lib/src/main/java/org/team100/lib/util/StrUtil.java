@@ -41,12 +41,12 @@ public class StrUtil {
     }
 
     public static String twistStr(Twist2d t) {
-        return String.format("Twist2d: [%.8e %.8e %.8e]",
+        return String.format("[ %8.3f %8.3f %8.3f ]",
                 t.dx, t.dy, t.dtheta);
     }
 
     public static String twistStr(Twist3d t) {
-        return String.format("Twist3d: [%.8e %.8e %.8e %.8e %.8e %.8e]",
+        return String.format("[ %.8f %.8f %.8f %.8f %.8f %.8f ]",
                 t.dx, t.dy, t.dz, t.rx, t.ry, t.rz);
     }
 
@@ -74,9 +74,9 @@ public class StrUtil {
         StringBuilder b = new StringBuilder();
         b.append("[ ");
         for (int i = 0; i < m.getNumRows(); ++i) {
-            b.append(String.format(" %10.6f", m.get(i)));
+            b.append(String.format("%8.3f ", m.get(i)));
         }
-        b.append(" ]");
+        b.append("]");
         return b.toString();
     }
 

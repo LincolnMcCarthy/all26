@@ -77,18 +77,18 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         M6 = new Pose3d(boom + stick, 0, base, Rotation3d.kZero);
         // tool point, is pointing at +x, at full extension
         M7 = new Pose3d(boom + stick + tool, 0, base, Rotation3d.kZero);
-        // joint 1 (base) is at the origin, around z
-        S1 = S(VecBuilder.fill(0, 0, 1), VecBuilder.fill(0, 0, 0));
-        // joint 2 (shoulder) is at z=base, around -y
-        S2 = S(VecBuilder.fill(0, -1, 0), VecBuilder.fill(0, 0, base));
-        // joint 3 (elbow) is at x=boom, z=base, around -y
-        S3 = S(VecBuilder.fill(0, -1, 0), VecBuilder.fill(boom, 0, base));
-        // joint 4 (wrist roll) is at x=boom+stick, z=base, around +x
-        S4 = S(VecBuilder.fill(1, 0, 0), VecBuilder.fill(boom + stick, 0, base));
-        // joint 5 (wrist pitch) is at x=boom+stick, z=base, around -y
-        S5 = S(VecBuilder.fill(0, -1, 0), VecBuilder.fill(boom + stick, 0, base));
-        // joint 6 (tool roll) is at x=boom+stick, z=base, around +x
-        S6 = S(VecBuilder.fill(1, 0, 0), VecBuilder.fill(boom + stick, 0, base));
+        // joint 1 (base) around z
+        S1 = S(VecBuilder.fill(0, 0, 1), new Translation3d(0, 0, 0));
+        // joint 2 (shoulder) around -y
+        S2 = S(VecBuilder.fill(0, -1, 0), new Translation3d(0, 0, base));
+        // joint 3 (elbow) around -y
+        S3 = S(VecBuilder.fill(0, -1, 0), new Translation3d(boom, 0, base));
+        // joint 4 (wrist roll) around +x
+        S4 = S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
+        // joint 5 (wrist pitch) around -y
+        S5 = S(VecBuilder.fill(0, -1, 0), new Translation3d(boom + stick, 0, base));
+        // joint 6 (tool roll) around +x
+        S6 = S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
         this.base = base;
         this.tool = tool;
 
@@ -233,12 +233,18 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
     /**
      * Screw axis
      * 
+     * Lynch/Park say this is -w x q
+     * see p142 https://hades.mech.northwestern.edu/images/7/7f/MR.pdf
+     * 
+     * Mueller says this is q x w (which is the same as above)
+     * see p2 https://arxiv.org/pdf/2506.10686v1
+     * 
      * @param So S_omega, the axis of rotation in the global frame
      * @param a  any point on the axis
      * @return The screw axis of the joint, in the global frame.
      */
-    static Twist3d S(Vector<N3> So, Vector<N3> a) {
-        Vector<N3> Sv = Vector.cross(a, So);
+    static Twist3d S(Vector<N3> So, Translation3d a) {
+        Vector<N3> Sv = Vector.cross(GeometryUtil.toVec(a), So);
         return new Twist3d(Sv.get(0), Sv.get(1), Sv.get(2), So.get(0), So.get(1), So.get(2));
     }
 
