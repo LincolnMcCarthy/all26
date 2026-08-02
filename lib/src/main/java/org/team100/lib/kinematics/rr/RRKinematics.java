@@ -1,6 +1,5 @@
 package org.team100.lib.kinematics.rr;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.geometry.r2.AccelerationR2;
@@ -137,19 +136,14 @@ public class RRKinematics {
      * 
      * \dot{q} = J^{-1} \dot{x}
      * 
-     * TODO: the choice of solution is generally known
-     * prior to calling this, so don't use a list.
+     * Depends on the choice of configuration, q.
      */
-    public List<RRVelocity> inverse(Translation2d x, VelocityR2 xdot) {
-        List<RRConfig> q = inverse(x);
-
-        List<RRVelocity> result = new ArrayList<>();
-        for (RRConfig rrq : q) {
-            Matrix<N2, N2> Jinv = Jinv(rrq);
-            RRVelocity v = RRVelocity.fromVector(Jinv.times(xdot.toVector()));
-            result.add(v);
-        }
-        return result;
+    public RRVelocity inverse(RRConfig q, VelocityR2 xdot) {
+        Matrix<N2, N2> Jinv = Jinv(q);
+        RRVelocity v = RRVelocity.fromVector(Jinv.times(xdot.toVector()));
+        if (DEBUG)
+            System.out.printf("v %s\n", v);
+        return v;
     }
 
     /**
@@ -159,19 +153,9 @@ public class RRKinematics {
      * 
      * See doc/README.md equation 9
      * 
-     * TODO: the choice of solution is generally known
-     * prior to calling this, so don't use a list.
+     * Depends on the choice of configuration, q.
      */
-    public List<RRAcceleration> inverse(Translation2d x, VelocityR2 xdot, AccelerationR2 xddot) {
-        List<RRConfig> s = inverse(x);
-        List<RRAcceleration> result = new ArrayList<>();
-        for (RRConfig q : s) {
-            result.add(getJdot(xdot, xddot, q));
-        }
-        return result;
-    }
-
-    private RRAcceleration getJdot(VelocityR2 xdot, AccelerationR2 xddot, RRConfig q) {
+    public RRAcceleration inverse(RRConfig q, VelocityR2 xdot, AccelerationR2 xddot) {
         Matrix<N2, N2> Jinv = Jinv(q);
         RRVelocity qdot = RRVelocity.fromVector(Jinv.times(xdot.toVector()));
         Matrix<N2, N2> Jdot = Jdot(q, qdot);
@@ -212,15 +196,16 @@ public class RRKinematics {
     }
 
     /**
-     * Inverse Jacobian, or zero if singular.
+     * Inverse Jacobian.
+     * 
+     * When singular, some motion is still possible, so this doesn't return zero,
+     * just the pseudoinverse. Note this might not be what you want?
      */
     private Matrix<N2, N2> Jinv(RRConfig q) {
         Matrix<N2, N2> J = J(q);
         if (Math.abs(J.det()) < 1e-3) {
-            // not invertible
-            System.out.printf("WARNING: zero jacobian for config %s\n", q.toString());
-            return new Matrix<>(Nat.N2(), Nat.N2());
+            System.out.printf("WARNING: singularity at config %s\n", q.toString());
         }
-        return J.inv();
+        return new Matrix<>(J.getStorage().pseudoInverse());
     }
 }

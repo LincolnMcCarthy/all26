@@ -259,6 +259,9 @@ public class RRKinematicsPoE {
      */
     private Matrix<N2, N3> Jinv(RRConfig q) {
         Matrix<N3, N2> J = J(q);
+        if (Math.abs(J.det()) < 1e-3) {
+            System.out.printf("WARNING: singularity at config %s\n", q.toString());
+        }
         return new Matrix<>(J.getStorage().pseudoInverse());
     }
 }
