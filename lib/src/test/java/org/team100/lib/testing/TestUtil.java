@@ -18,6 +18,7 @@ import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se3.AccelerationSE3;
 import org.team100.lib.geometry.se3.VelocitySE3;
+import org.team100.lib.geometry.six_dof.SixDofAcceleration;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
@@ -144,6 +145,15 @@ public class TestUtil {
         assertEquals(expected.q6dot(), actual.q6dot(), 1e-3, "q6");
     }
 
+    public static void verify(SixDofAcceleration expected, SixDofAcceleration actual) {
+        assertEquals(expected.q1ddot(), actual.q1ddot(), 1e-3, "q1");
+        assertEquals(expected.q2ddot(), actual.q2ddot(), 1e-3, "q2");
+        assertEquals(expected.q3ddot(), actual.q3ddot(), 1e-3, "q3");
+        assertEquals(expected.q4ddot(), actual.q4ddot(), 1e-3, "q4");
+        assertEquals(expected.q5ddot(), actual.q5ddot(), 1e-3, "q5");
+        assertEquals(expected.q6ddot(), actual.q6ddot(), 1e-3, "q6");
+    }
+
     public static void verify(LynxArmPose expected, LynxArmPose actual) {
         assertEquals(expected.p1(), actual.p1(), "p1");
         assertEquals(expected.p2(), actual.p2(), "p2");
@@ -218,7 +228,7 @@ public class TestUtil {
         assertEquals(expected.theta(), actual.theta(), 1e-3, "theta");
     }
 
-        public static void verify(AccelerationSE3 expected, AccelerationSE3 actual) {
+    public static void verify(AccelerationSE3 expected, AccelerationSE3 actual) {
         assertEquals(expected.x(), actual.x(), 1e-3, "x");
         assertEquals(expected.y(), actual.y(), 1e-3, "y");
         assertEquals(expected.z(), actual.z(), 1e-3, "z");

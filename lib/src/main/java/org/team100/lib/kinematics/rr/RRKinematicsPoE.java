@@ -34,7 +34,7 @@ import edu.wpi.first.math.numbers.N3;
  * See Mueller, https://arxiv.org/pdf/2506.10686v1
  */
 public class RRKinematicsPoE {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     /** Proximal link length, meters. */
     private final double l1;
     /** Distal link length, meters. */

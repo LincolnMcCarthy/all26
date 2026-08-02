@@ -40,7 +40,7 @@ import edu.wpi.first.math.numbers.N3;
  * of (0, 0, 0).
  */
 public class SixDofKinematicsAnalytic implements SixDofKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     /** Height of the shoulder */
     private final double base;
     /** Boom length between shoulder and elbow */

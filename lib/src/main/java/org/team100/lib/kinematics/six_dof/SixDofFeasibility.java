@@ -9,7 +9,7 @@ import org.team100.lib.util.StrUtil;
 
 /** Selects feasible configurations. */
 public class SixDofFeasibility {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private final SixDofKinematics m_k;
 
     private final SixDofConfig l = new SixDofConfig(

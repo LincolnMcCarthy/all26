@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.rr.RRConfig;
-import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se3.AccelerationSE3;
 import org.team100.lib.geometry.se3.AdjointSE3;
 import org.team100.lib.geometry.se3.LieSE3;
@@ -31,7 +30,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist3d;
-import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 
@@ -41,7 +39,7 @@ import edu.wpi.first.math.numbers.N6;
  * The tool axis is +x at zero config.
  */
 public class SixDofKinematicsPoE implements SixDofKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     // Joint positions, in global frame, at zero config
     private final Pose3d M1;

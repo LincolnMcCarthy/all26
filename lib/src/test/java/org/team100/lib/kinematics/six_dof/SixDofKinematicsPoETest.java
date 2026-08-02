@@ -218,8 +218,7 @@ public class SixDofKinematicsPoETest {
         TestUtil.verify(new SixDofConfig(0, 0.732, 2.071, 3.141, 2.804, 3.141), q.get(7));
     }
 
-    // TODO: finish this
-    // @Test
+    @Test
     void testJ0() {
         // jacobian for a case I can figure out
         SixDofKinematicsPoE k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
@@ -229,57 +228,126 @@ public class SixDofKinematicsPoETest {
         TestUtil.verify(new Pose3d(1.65, 0, 0.25, Rotation3d.kZero), p.p7());
         Matrix<N6, N6> J = k.J(q);
         TestUtil.verify(MatBuilder.fill(Nat.N6(), Nat.N6(),
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0), J);
+                0.00, 0.00, 0.00, 0.0, 0.00, 0.0, // zero because singular
+                1.65, 0.00, 0.00, 0.0, 0.00, 0.0, // y hears base
+                0.00, 1.65, 0.90, 0.0, 0.15, 0.0, // z hears shoulder, elbow, pitch
+                0.00, 0.00, 0.00, 1.0, 0.00, 1.0, // roll from roll
+                0.00, -1.0, -1.0, 0.0, -1.0, 0.0, // all rot parallel (inverted)
+                1.00, 0.00, 0.00, 0.0, 0.00, 0.0), // zero because singular
+                J);
     }
 
-    // TODO: check this
     @Test
     void testForwardV0() {
         SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
-        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
-        SixDofVelocity qdot = new SixDofVelocity(0, 1, -1, 0, -1, 0);
+        // extended
+        SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
+        // actuate just the shoulder
+        SixDofVelocity qdot = new SixDofVelocity(0, 1, 0, 0, 0, 0);
         VelocitySE3 xdot = k.forward(q, qdot);
-        TestUtil.verify(new VelocitySE3(-0.345, 0, 0.509, 0, 1, 0), xdot);
+        // velocity +z, also pitch down so wrist orientation remains the same
+        TestUtil.verify(new VelocitySE3(0, 0, 1.65, 0, -1, 0), xdot);
     }
 
-    // TODO: check this
+    @Test
+    void testForwardV0a() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // extended
+        SixDofConfig q = new SixDofConfig(0, 0, 0, 0, 0, 0);
+        // actuate just the shoulder
+        SixDofVelocity qdot = new SixDofVelocity(1, 0, 0, 0, 0, 0);
+        VelocitySE3 xdot = k.forward(q, qdot);
+        // velocity +z, also pitch down so wrist orientation remains the same
+        TestUtil.verify(new VelocitySE3(0, 1.65, 0, 0, 0, 1), xdot);
+    }
+
+    @Test
+    void testForwardV1() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // shoulder up, elbow out
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, 0, 0);
+        // actuate just the elbow
+        SixDofVelocity qdot = new SixDofVelocity(0, 0, 1, 0, 0, 0);
+        VelocitySE3 xdot = k.forward(q, qdot);
+        // velocity +z, also pitch down so wrist orientation remains the same
+        TestUtil.verify(new VelocitySE3(0, 0, 0.9, 0, -1, 0), xdot);
+    }
+
+    @Test
+    void testForwardV2() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // extended, with wrist up
+        SixDofConfig q = new SixDofConfig(0, 0, 0, 0, Math.PI / 2, 0);
+        // actuate just the shoulder
+        SixDofVelocity qdot = new SixDofVelocity(0, 1, 0, 0, 0, 0);
+        VelocitySE3 xdot = k.forward(q, qdot);
+        // velocity -x (because offset up) and +z, also pitch down so wrist orientation
+        // remains the same
+        TestUtil.verify(new VelocitySE3(-0.15, 0, 1.5, 0, -1, 0), xdot);
+    }
+
     @Test
     void testInverseV0() {
         SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
-        // not singular
-        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        // shoulder up, elbow out, wrist down
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, Math.PI / 2, 0);
         // move up
         VelocitySE3 xdot = new VelocitySE3(0, 0, 1, 0, 0, 0);
         SixDofVelocity qdot = k.inverse(q, xdot);
+        // elbow up, wrist down
         TestUtil.verify(new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0), qdot);
     }
 
-    // TODO: check this
+    @Test
+    void testForwardV3() {
+        // the case above
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, Math.PI / 2, 0);
+        SixDofVelocity qdot = new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0);
+        VelocitySE3 xdot = k.forward(q, qdot);
+        TestUtil.verify(new VelocitySE3(0, 0, 1, 0, 0, 0), xdot);
+    }
+
     @Test
     void testForwardA0() {
         SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
-        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
-        SixDofVelocity qdot = new SixDofVelocity(0, 1, -1, 0, -1, 0);
+        // shoulder up, elbow out, wrist down
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, Math.PI / 2, 0);
+        // moving up
+        SixDofVelocity qdot = new SixDofVelocity(0, 0, 1, 0, 0, 0);
+        // without accelerating
         SixDofAcceleration qddot = new SixDofAcceleration(0, 0, 0, 0, 0, 0);
         AccelerationSE3 xdot = k.forward(q, qdot, qddot);
-        TestUtil.verify(new AccelerationSE3(0.509, 0, 0.345, 0, 0, 0), xdot);
+        TestUtil.verify(new AccelerationSE3(-0.75, 0, -0.15, 0, 0, 0), xdot);
     }
 
-    // TODO: check this
     @Test
     void testInverseA0() {
         SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
-        // not singular
-        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        // shoulder up, elbow out, wrist down
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, Math.PI / 2, 0);
         // move up
         VelocitySE3 xdot = new VelocitySE3(0, 0, 1, 0, 0, 0);
         SixDofVelocity qdot = k.inverse(q, xdot);
         TestUtil.verify(new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0), qdot);
+        AccelerationSE3 xddot = new AccelerationSE3(0, 0, 0, 0, 0, 0);
+        SixDofAcceleration qddot = k.inverse(q, xdot, xddot);
+        // this is wrong
+        TestUtil.verify(new SixDofAcceleration(0, 0, 0, 0, 0, 0), qddot);
+    }
+
+    @Test
+    void testForwardA1() {
+        // the case above
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // shoulder up, elbow out, wrist down
+        SixDofConfig q = new SixDofConfig(0, Math.PI / 2, -Math.PI / 2, 0, Math.PI / 2, 0);
+        // moving up
+        SixDofVelocity qdot = new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0);
+        // without accelerating
+        SixDofAcceleration qddot = new SixDofAcceleration(0, 0, 0, 0, 0, 0);
+        AccelerationSE3 xdot = k.forward(q, qdot, qddot);
+        TestUtil.verify(new AccelerationSE3(0, 0, 0, 0, 0, 0), xdot);
     }
 
 }

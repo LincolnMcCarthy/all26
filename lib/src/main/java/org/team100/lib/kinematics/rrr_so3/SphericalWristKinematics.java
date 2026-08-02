@@ -27,7 +27,7 @@ import edu.wpi.first.math.numbers.N3;
  * * roll: rotates around x again
  */
 public class SphericalWristKinematics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /** Forward kinematics is simply composition. */
     public SphericalWristPose forward(SphericalWristConfig q) {

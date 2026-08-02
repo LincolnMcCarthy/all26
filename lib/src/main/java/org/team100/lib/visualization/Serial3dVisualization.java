@@ -69,16 +69,16 @@ public class Serial3dVisualization {
         m_arm = arm;
 
         // size matches the intrinsic matrix
-        m_view = new Mechanism2d(100, 100);
+        m_view = new Mechanism2d(200, 200);
 
         // camera is pointing at the origin in the center: (50, 50)
-        m_root = m_view.getRoot("root", 50, 50);
+        m_root = m_view.getRoot("root", 100, 100);
 
         // base angle is zero (pointing right)
         m_base = new MechanismLigament2d("link", 0, 0, 0, new Color8Bit(Color.kBlack));
         m_root.append(m_base);
 
-        m_cameraRange = 0.866;
+        m_cameraRange = 1;
         // pitch up to the camera, i.e. it is above the table.
         m_pitch = -0.615;
         // start behind the arm and to the right
