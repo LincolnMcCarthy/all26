@@ -1,6 +1,8 @@
 package org.team100.lib.kinematics.rr;
 
 import org.junit.jupiter.api.Test;
+import org.team100.lib.geometry.r2.AccelerationR2;
+import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPose;
@@ -114,20 +116,45 @@ public class RRKinematicsPoETest {
     }
 
     @Test
-    void testForwardV() {
+    void testForwardV0() {
         RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
         // velocity examples from the other test
         VelocitySE2 xdot = k.forward(new RRConfig(0, 0), new RRVelocity(0, 0));
         TestUtil.verify(new VelocitySE2(0, 0, 0), xdot);
-        xdot = k.forward(new RRConfig(0, 0), new RRVelocity(1, 0));
+    }
+
+    @Test
+    void testForwardV1() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        VelocitySE2 xdot = k.forward(new RRConfig(0, 0), new RRVelocity(1, 0));
         TestUtil.verify(new VelocitySE2(0, 2, 1), xdot);
-        xdot = k.forward(new RRConfig(0, 0), new RRVelocity(0, 1));
+    }
+
+    @Test
+    void testForwardV2() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        VelocitySE2 xdot = k.forward(new RRConfig(0, 0), new RRVelocity(0, 1));
         TestUtil.verify(new VelocitySE2(0, 1, 1), xdot);
-        xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 0));
+    }
+
+    @Test
+    void testForwardV3() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        VelocitySE2 xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 0));
         TestUtil.verify(new VelocitySE2(0, 0, 0), xdot);
-        xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(1, 0));
+    }
+
+    @Test
+    void testForwardV4() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        VelocitySE2 xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(1, 0));
         TestUtil.verify(new VelocitySE2(-1, 1, 1), xdot);
-        xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 1));
+    }
+
+    @Test
+    void testForwardV5() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        VelocitySE2 xdot = k.forward(new RRConfig(Math.PI / 2, -Math.PI / 2), new RRVelocity(0, 1));
         TestUtil.verify(new VelocitySE2(0, 1, 1), xdot);
     }
 
@@ -156,7 +183,7 @@ public class RRKinematicsPoETest {
     }
 
     @Test
-    void testForwardA() {
+    void testForwardA0() {
         RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
         // acceleration examples from the other test
         AccelerationSE2 xddot = k.forward(
@@ -164,14 +191,24 @@ public class RRKinematicsPoETest {
                 new RRVelocity(0, 0),
                 new RRAcceleration(0, 0));
         TestUtil.verify(new AccelerationSE2(0, 0, 0), xddot);
+    }
+
+    @Test
+    void testForwardA1() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
         // move shoulder: centripetal towards shoulder
-        xddot = k.forward(
+        AccelerationSE2 xddot = k.forward(
                 new RRConfig(Math.PI / 2, -Math.PI / 2),
                 new RRVelocity(1, 0),
                 new RRAcceleration(0, 0));
         TestUtil.verify(new AccelerationSE2(-1, -1, 0), xddot);
+    }
+
+    @Test
+    void testForwardA2() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
         // move elbow: centripetal towards elbow
-        xddot = k.forward(
+        AccelerationSE2 xddot = k.forward(
                 new RRConfig(Math.PI / 2, -Math.PI / 2),
                 new RRVelocity(0, 1),
                 new RRAcceleration(0, 0));
@@ -260,5 +297,128 @@ public class RRKinematicsPoETest {
                 -1, 0, //
                 -1, -1, //
                 0, 0), Jdot);
+    }
+
+    @Test
+    void testInverseV0() {
+        // singular, motionless.
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, 0),
+                new VelocityR2(0, 0));
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
+    }
+
+    @Test
+    void testInverseV1() {
+        // singular, can't move in x
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, 0),
+                new VelocityR2(1, 0));
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
+    }
+
+    @Test
+    void testInverseV2() {
+        // singular, can still move in y
+        // note since we specify no rotation, q1 and q2 are opposite.
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, 0),
+                new VelocityR2(0, 1));
+        TestUtil.verify(new RRVelocity(0.4, 0.2), qdot);
+    }
+
+    @Test
+    void testInverseV3() {
+        // bent, motionless
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, Math.PI / 2),
+                new VelocityR2(0, 0));
+        TestUtil.verify(new RRVelocity(0, 0), qdot);
+    }
+
+    @Test
+    void testInverseV4() {
+        // bent, moving out
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, Math.PI / 2),
+                new VelocityR2(1, 0));
+        TestUtil.verify(new RRVelocity(0, -1), qdot);
+    }
+
+    @Test
+    void testInverseV5() {
+        // bent, moving up
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, Math.PI / 2),
+                new VelocityR2(0, 1));
+        TestUtil.verify(new RRVelocity(1, -1), qdot);
+    }
+
+    @Test
+    void testInverseV6() {
+        // bent, moving diagonally
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        RRVelocity qdot = k.inverse(
+                new RRConfig(0, Math.PI / 2),
+                new VelocityR2(-1, 1));
+        TestUtil.verify(new RRVelocity(1, 0), qdot);
+    }
+
+    @Test
+    void testInverseA0() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        // bent, motionless.
+        RRAcceleration qddot = k.inverse(
+                new RRConfig(0, Math.PI / 2),
+                new VelocityR2(0, 0),
+                new AccelerationR2(0, 0));
+        TestUtil.verify(new RRAcceleration(0, 0), qddot);
+    }
+
+    @Test
+    void testInverseA1() {
+        // bent, elbow moving out
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+
+        RRConfig expectedQ = new RRConfig(0, Math.PI / 2);
+        RRVelocity expectedQdot = new RRVelocity(0, -1);
+        RRAcceleration expectedQddot = new RRAcceleration(1, -1);
+
+        VelocityR2 expectedXdot = new VelocityR2(1, 0);
+        AccelerationR2 expectedXddot = new AccelerationR2(0, 0);
+
+        RRVelocity qdot = k.inverse(expectedQ, expectedXdot);
+        TestUtil.verify(expectedQdot, qdot);
+        RRAcceleration qddot = k.inverse(expectedQ, expectedXdot, expectedXddot);
+        TestUtil.verify(expectedQddot, qddot);
+        AccelerationSE2 xddot = k.forward(expectedQ, expectedQdot, expectedQddot);
+        TestUtil.verify(new AccelerationSE2(0, 0, 0), xddot);
+    }
+
+    @Test
+    void testInverseA2() {
+        // bent, steady +y
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+
+        RRConfig expectedQ = new RRConfig(0, Math.PI / 2);
+        RRVelocity expectedQdot = new RRVelocity(1, -1);
+        RRAcceleration expectedQddot = new RRAcceleration(0, -1);
+
+        VelocityR2 expectedXdot = new VelocityR2(0, 1);
+        AccelerationR2 expectedXddot = new AccelerationR2(0, 0);
+
+        RRVelocity qdot = k.inverse(expectedQ, expectedXdot);
+        TestUtil.verify(expectedQdot, qdot);
+        RRAcceleration qddot = k.inverse(expectedQ, expectedXdot, expectedXddot);
+        TestUtil.verify(expectedQddot, qddot);
+        AccelerationSE2 xddot = k.forward(expectedQ, expectedQdot, expectedQddot);
+        // theta accel
+        TestUtil.verify(new AccelerationSE2(0, 0, -1), xddot);
     }
 }
