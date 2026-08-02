@@ -18,7 +18,8 @@ import edu.wpi.first.math.numbers.N3;
 public class LieSE2 {
 
     /**
-     * Map an R3 vector, tangent to SE(2), to the Lie algebra, se(2).
+     * Map an R3 vector, tangent to SE(2), to the Lie algebra, se(2),
+     * which is a 3x3 matrix:
      * 
      * | 0 -θ x |
      * | θ 0 y |

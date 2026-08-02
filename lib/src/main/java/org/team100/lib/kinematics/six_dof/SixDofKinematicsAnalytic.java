@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.geometry.rr.RRConfig;
-import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se3.AccelerationSE3;
+import org.team100.lib.geometry.se3.VelocitySE3;
+import org.team100.lib.geometry.six_dof.SixDofAcceleration;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.geometry.six_dof.SixDofVelocity;
@@ -96,7 +98,7 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
      * Forward velocity kinematics
      * \dot{x} = J(q) \dot{q}
      */
-    public VelocitySE2 forward(SixDofConfig q, SixDofVelocity qdot) {
+    public VelocitySE3 forward(SixDofConfig q, SixDofVelocity qdot) {
         return null;
         // TODO: finish this
     }
@@ -156,6 +158,24 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
             }
         }
         return result;
+    }
+
+    @Override
+    public AccelerationSE3 forward(SixDofConfig q, SixDofVelocity qdot, SixDofAcceleration qddot) {
+        // TODO: finish this
+        return null;
+    }
+
+    @Override
+    public SixDofVelocity inverse(SixDofConfig q, VelocitySE3 xdot) {
+        // TODO: finish this
+        return null;
+    }
+
+    @Override
+    public SixDofAcceleration inverse(SixDofConfig q, VelocitySE3 xdot, AccelerationSE3 xddot) {
+        // TODO: finish this
+        return null;
     }
 
     //////////////////////////////////////////////////////////////////
@@ -299,5 +319,4 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
     private Vector<N3> v(double x, double y, double z) {
         return VecBuilder.fill(x, y, z);
     }
-
 }

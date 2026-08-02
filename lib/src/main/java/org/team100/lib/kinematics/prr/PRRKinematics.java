@@ -124,6 +124,8 @@ public class PRRKinematics {
 
     /**
      * Inverse position kinematics: joint config from cartesian pose.
+     * 
+     * TODO: return a list here.
      */
     public PRRConfig inverse(Pose2d pose) {
         /** Translation from wrist axis to tool point. */

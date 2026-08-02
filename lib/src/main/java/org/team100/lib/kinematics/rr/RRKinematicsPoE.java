@@ -124,6 +124,8 @@ public class RRKinematicsPoE {
      * 
      * Returns 0 (infeasible), 1 (singularity), or 2 (usual case) solutions.
      * 
+     * TODO: supply q1 default in case of the singularity at the origin.
+     * 
      * Refer to the diagram, or README.md
      * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
      */
