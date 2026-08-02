@@ -144,6 +144,18 @@ public class RRKinematicsPoETest {
     }
 
     @Test
+    void testa1() {
+        RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
+        // as above, bent the other way
+        AccelerationSE2 xddot = k.forward(
+                new RRConfig(0, -Math.PI / 2),
+                new RRVelocity(1, 0),
+                new RRAcceleration(0, 0));
+        // centripetal pulling in
+        TestUtil.verify(new AccelerationSE2(-1, 1, 0), xddot);
+    }
+
+    @Test
     void testForwardA() {
         RRKinematicsPoE k = new RRKinematicsPoE(1, 1);
         // acceleration examples from the other test

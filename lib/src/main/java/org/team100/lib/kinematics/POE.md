@@ -103,13 +103,34 @@ velocity to the **tool reference frame** velocity.
 The former definition obviously includes the tool
 itself, the latter obviously does not.
 
+Populate the columns of the space Jacobian one at a time,
+i.e. 
+
+```math
+J^v = [J_1^v \ \cdots \ J_n^v]
+```
+
+The columns are given by the adjoints of the axis twists:
+
+```math
+J_1^v = S_1
+```
+```math
+J_2^v = Ad_{e^{[S_1]q_1}}(S_2)
+```
+```math
+J_2^v = Ad_{e^{[S_1]q_1} \cdots e^{[S_1]q_1}}(S_i)
+```
+
 Given the space Jacobian, Corke says to apply
 
 ```math
-{}^0 \mathbf J = \begin{pmatrix} \mathbf I_{3 \times 3} & -\left[{}^0\mathbf t_E\right]_\times \\ \mathbf 0_{3 \times 3} & \mathbf I_{3 \times 3} \end{pmatrix} {}^0\mathbf J^v
+{}^0 \mathbf J = E(t) {}^0\mathbf J^v
 ```
-
-... but doesn't say anything else about it.
+where $E$ reflects the offset of the tool point:
+```math
+E = \begin{bmatrix} \mathbf I_{3 \times 3} & -\left[{}^0\mathbf t_E\right]_\times \\ \mathbf 0_{3 \times 3} & \mathbf I_{3 \times 3} \end{bmatrix} 
+```
 
 The space Jacobian, applied to joint velocities,
 yields a twist in the global frame of the last joint
@@ -132,14 +153,37 @@ $\dot{\mathbf{J}}$?
 
 The derivation is discussed in
 [Muller 2020](https://arxiv.org/html/2506.10686v1),
-which points out
+which points out:
 
 ```math
-\dot{J_i} = ad_{J} J_i
+\dot{J_1} = 0
+```
+(because the root joint is fixed), and:
+```math
+\dot{J_i} = [V_s, J_{si}] = \dot{q_{i-1}} [ J_{si-1}, J_{si}]
 ```
 
-where $ad_{J}$ is the adjoint of the Jacobian
-column?
+where $[V_s, J_s]$ is the Lie bracket of neighboring Jacobian
+columns.
+
+To convert the time-derivative of the space jacobian
+into the time-derivative of the end-effector Jacobian, use
+the formula above:
+
+```math
+\mathbf{J} = \mathbf{E}(t) \mathbf{J}^v
+```
+
+Differentiate, using the product rule:
+
+```math
+\dot{\mathbf{J}} = \mathbf{E}(t) \dot{\mathbf {J}}^v
++
+\dot{\mathbf{E}}(t) \mathbf {J}^v
+```
+
+The latter term, $\dot{\mathbf{E}}$, reflects the motion of the
+end effector.  (It was Gemini that pointed out this part.)
 
 
 ## Example: 1R in SE(2)
