@@ -16,7 +16,10 @@ import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se3.AccelerationSE3;
+import org.team100.lib.geometry.se3.VelocitySE3;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
+import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
 import org.team100.lib.util.StrUtil;
 
@@ -132,6 +135,15 @@ public class TestUtil {
         assertEquals(expected.q6(), actual.q6(), 1e-3, "q6");
     }
 
+    public static void verify(SixDofVelocity expected, SixDofVelocity actual) {
+        assertEquals(expected.q1dot(), actual.q1dot(), 1e-3, "q1");
+        assertEquals(expected.q2dot(), actual.q2dot(), 1e-3, "q2");
+        assertEquals(expected.q3dot(), actual.q3dot(), 1e-3, "q3");
+        assertEquals(expected.q4dot(), actual.q4dot(), 1e-3, "q4");
+        assertEquals(expected.q5dot(), actual.q5dot(), 1e-3, "q5");
+        assertEquals(expected.q6dot(), actual.q6dot(), 1e-3, "q6");
+    }
+
     public static void verify(LynxArmPose expected, LynxArmPose actual) {
         assertEquals(expected.p1(), actual.p1(), "p1");
         assertEquals(expected.p2(), actual.p2(), "p2");
@@ -186,6 +198,15 @@ public class TestUtil {
         assertEquals(expected.theta(), actual.theta(), 1e-3, "theta");
     }
 
+    public static void verify(VelocitySE3 expected, VelocitySE3 actual) {
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
+        assertEquals(expected.z(), actual.z(), 1e-3, "z");
+        assertEquals(expected.rx(), actual.rx(), 1e-3, "rx");
+        assertEquals(expected.ry(), actual.ry(), 1e-3, "ry");
+        assertEquals(expected.rz(), actual.rz(), 1e-3, "rz");
+    }
+
     public static void verify(AccelerationR2 expected, AccelerationR2 actual) {
         assertEquals(expected.x(), actual.x(), 1e-3, "x");
         assertEquals(expected.y(), actual.y(), 1e-3, "y");
@@ -195,6 +216,15 @@ public class TestUtil {
         assertEquals(expected.x(), actual.x(), 1e-3, "x");
         assertEquals(expected.y(), actual.y(), 1e-3, "y");
         assertEquals(expected.theta(), actual.theta(), 1e-3, "theta");
+    }
+
+        public static void verify(AccelerationSE3 expected, AccelerationSE3 actual) {
+        assertEquals(expected.x(), actual.x(), 1e-3, "x");
+        assertEquals(expected.y(), actual.y(), 1e-3, "y");
+        assertEquals(expected.z(), actual.z(), 1e-3, "z");
+        assertEquals(expected.rx(), actual.rx(), 1e-3, "rx");
+        assertEquals(expected.ry(), actual.ry(), 1e-3, "ry");
+        assertEquals(expected.rz(), actual.rz(), 1e-3, "rz");
     }
 
     public static void verify(RRVelocity expected, RRVelocity actual) {

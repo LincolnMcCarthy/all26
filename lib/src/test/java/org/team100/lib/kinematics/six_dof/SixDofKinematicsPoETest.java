@@ -6,8 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.team100.lib.geometry.se3.AccelerationSE3;
+import org.team100.lib.geometry.se3.VelocitySE3;
+import org.team100.lib.geometry.six_dof.SixDofAcceleration;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
+import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.testing.TestUtil;
 
 import edu.wpi.first.math.MatBuilder;
@@ -231,6 +235,51 @@ public class SixDofKinematicsPoETest {
                 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0, //
                 0, 0, 0, 0, 0, 0), J);
+    }
+
+    // TODO: check this
+    @Test
+    void testForwardV0() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        SixDofVelocity qdot = new SixDofVelocity(0, 1, -1, 0, -1, 0);
+        VelocitySE3 xdot = k.forward(q, qdot);
+        TestUtil.verify(new VelocitySE3(-0.345, 0, 0.509, 0, 1, 0), xdot);
+    }
+
+    // TODO: check this
+    @Test
+    void testInverseV0() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // not singular
+        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        // move up
+        VelocitySE3 xdot = new VelocitySE3(0, 0, 1, 0, 0, 0);
+        SixDofVelocity qdot = k.inverse(q, xdot);
+        TestUtil.verify(new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0), qdot);
+    }
+
+    // TODO: check this
+    @Test
+    void testForwardA0() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        SixDofVelocity qdot = new SixDofVelocity(0, 1, -1, 0, -1, 0);
+        SixDofAcceleration qddot = new SixDofAcceleration(0, 0, 0, 0, 0, 0);
+        AccelerationSE3 xdot = k.forward(q, qdot, qddot);
+        TestUtil.verify(new AccelerationSE3(0.509, 0, 0.345, 0, 0, 0), xdot);
+    }
+
+    // TODO: check this
+    @Test
+    void testInverseA0() {
+        SixDofKinematics k = new SixDofKinematicsPoE(0.25, 0.75, 0.75, 0.15);
+        // not singular
+        SixDofConfig q = new SixDofConfig(0, 0.5, -0.5, 0, 0.1, 0);
+        // move up
+        VelocitySE3 xdot = new VelocitySE3(0, 0, 1, 0, 0, 0);
+        SixDofVelocity qdot = k.inverse(q, xdot);
+        TestUtil.verify(new SixDofVelocity(0, 0, 1.333, 0, -1.333, 0), qdot);
     }
 
 }

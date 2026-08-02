@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.rr.RRConfig;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se3.AccelerationSE3;
 import org.team100.lib.geometry.se3.AdjointSE3;
 import org.team100.lib.geometry.se3.LieSE3;
@@ -30,6 +31,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist3d;
+import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 
@@ -139,8 +141,8 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
      * https://publish.illinois.edu/ece470-intro-robotics/files/2024/02/ECE470Lec9-2-1.pdf
      */
     public VelocitySE3 forward(SixDofConfig q, SixDofVelocity qdot) {
-        // TODO: finish this
-        return null;
+        Matrix<N6, N6> J = J(q);
+        return VelocitySE3.fromVector(J.times(qdot.toVector()));
     }
 
     /**
