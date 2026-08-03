@@ -37,10 +37,7 @@ public class MoveWithProfile extends MoveAndHold {
     // for now this is always 1.
     private ModelR1 m_profileGoal;
 
-    /**
-     * @param arm
-     * @param goal tool points at +x
-     */
+
     public MoveWithProfile(RRRArm arm, Pose2d goal) {
         m_arm = arm;
         m_goal = goal;

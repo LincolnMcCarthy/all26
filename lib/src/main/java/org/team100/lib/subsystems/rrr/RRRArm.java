@@ -9,7 +9,11 @@ import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.state.ControlSE2;
+import org.team100.lib.state.ModelSE2;
 import org.team100.lib.subsystems.rrr.commands.MoveWithProfile;
+import org.team100.lib.subsystems.rrr.commands.MoveWithTrajectorySE2;
+import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -19,7 +23,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 /**
  * Planar RRR arm, for training.
  */
-public class RRRArm extends SubsystemBase {
+public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
+    private final LoggerFactory m_log;
     final RRRKinematicsPoE m_kinematics;
     final RRRFeasibility m_feasibility;
     private final BareMotor m_q1;
@@ -27,12 +32,12 @@ public class RRRArm extends SubsystemBase {
     private final BareMotor m_q3;
 
     public RRRArm(LoggerFactory parent) {
-        LoggerFactory log = parent.type(this);
+        m_log = parent.type(this);
         m_kinematics = new RRRKinematicsPoE(0.3, 0.3, 0.1);
         m_feasibility = new RRRFeasibility(m_kinematics);
-        m_q1 = new SimulatedBareMotor(log, 600);
-        m_q2 = new SimulatedBareMotor(log, 600);
-        m_q3 = new SimulatedBareMotor(log, 600);
+        m_q1 = new SimulatedBareMotor(m_log, 600);
+        m_q2 = new SimulatedBareMotor(m_log, 600);
+        m_q3 = new SimulatedBareMotor(m_log, 600);
     }
 
     @Override
@@ -94,6 +99,16 @@ public class RRRArm extends SubsystemBase {
         return best;
     }
 
+    public Pose2d pose() {
+        return m_kinematics.forward(getConfig()).p4();
+    }
+
+    public void stop() {
+        m_q1.stop();
+        m_q2.stop();
+        m_q3.stop();
+    }
+
     // COMMANDS
 
     public Command warp0() {
@@ -104,7 +119,23 @@ public class RRRArm extends SubsystemBase {
         return run(() -> setConfig(new RRRConfig(1, -1, -1)));
     }
 
-    public MoveAndHold move(Pose2d goal) {
+    public MoveAndHold moveProfiled(Pose2d goal) {
         return new MoveWithProfile(this, goal);
+    }
+
+    public MoveAndHold moveTrajSE2(Pose2d goal, double speed) {
+        return new MoveWithTrajectorySE2(m_log, this, goal, speed);
+    }
+
+    @Override
+    public ModelSE2 getState() {
+        // TODO: add velocity
+        return new ModelSE2(pose());
+    }
+
+    @Override
+    public void set(ControlSE2 setpoint) {
+        // TODO: add velocity and acceleration.
+        setConfig(config(setpoint.pose()));
     }
 }
