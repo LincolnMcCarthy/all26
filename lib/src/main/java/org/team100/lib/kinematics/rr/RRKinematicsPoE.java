@@ -13,9 +13,9 @@ import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.AdjointSE2;
 import org.team100.lib.geometry.se2.LieSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.kinematics.Poe;
 import org.team100.lib.util.StrUtil;
 
-import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -52,10 +52,10 @@ public class RRKinematicsPoE {
     public RRKinematicsPoE(double l1, double l2) {
         this.l1 = l1;
         this.l2 = l2;
-        S1 = S(new Translation2d(0, 0));
+        S1 = Poe.S(new Translation2d(0, 0));
         if (DEBUG)
             System.out.printf("S1 %s\n", StrUtil.twistStr(S1));
-        S2 = S(new Translation2d(l1, 0));
+        S2 = Poe.S(new Translation2d(l1, 0));
         if (DEBUG)
             System.out.printf("S2 %s\n", StrUtil.twistStr(S2));
         M1 = new Pose2d(0, 0, Rotation2d.kZero);
@@ -202,19 +202,6 @@ public class RRKinematicsPoE {
     ///////////////////////////////////////////////////
 
     /**
-     * revolute joint screw "S" (Lynch) or "Y" (Muller)
-     * 
-     * S_i=(e_i, y_i x e_i)
-     * 
-     * axis, e, is always +z in SE2
-     * 
-     * @param y position of axis
-     */
-    static Twist2d S(Translation2d y) {
-        return new Twist2d(y.getY(), -y.getX(), 1);
-    }
-
-    /**
      * End-effector Jacobian.
      * 
      * See eq 8 in Mueller https://arxiv.org/pdf/2506.10686v1
@@ -232,10 +219,8 @@ public class RRKinematicsPoE {
         Matrix<N3, N2> Jv = Jv(q);
 
         // Tool translation
-        Matrix<N3, N3> t = MatBuilder.fill(Nat.N3(), Nat.N3(), //
-                1, 0, -tcp.getY(), //
-                0, 1, tcp.getX(), //
-                0, 0, 1);
+        Matrix<N3, N3> t = Poe.t(tcp);
+
         return t.times(Jv);
     }
 
@@ -243,11 +228,11 @@ public class RRKinematicsPoE {
     Matrix<N3, N2> Jv(RRConfig q) {
         // exponential terms, remember Muller calls Si Yi
         Pose2d eS1q1 = GeometryUtil.exp(S1, q.q1());
-        Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
+        // Pose2d eS2q2 = GeometryUtil.exp(S2, q.q2());
         // exponential terms, recursively composed
         Pose2d e1 = eS1q1;
-        Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
-        Pose2d tcp = GeometryUtil.compose(e2, M3);
+        // Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
+        // Pose2d tcp = GeometryUtil.compose(e2, M3);
 
         // first column is just the q1 axis; Mueller calls the columns Si
         Vector<N3> JS1 = GeometryUtil.toVec(S1);
@@ -314,10 +299,7 @@ public class RRKinematicsPoE {
         Pose2d e1 = eS1q1;
         Pose2d e2 = GeometryUtil.compose(e1, eS2q2);
         Pose2d tcp = GeometryUtil.compose(e2, M3);
-        Matrix<N3, N3> t = MatBuilder.fill(Nat.N3(), Nat.N3(), //
-                1, 0, -tcp.getY(), //
-                0, 1, tcp.getX(), //
-                0, 0, 1);
+        Matrix<N3, N3> t = Poe.t(tcp);
 
         // Space Jacobian
         Matrix<N3, N2> Jv = Jv(q);
@@ -332,10 +314,7 @@ public class RRKinematicsPoE {
 
         VelocitySE2 tcpdot = VelocitySE2.fromVector(J.times(qdot.toVector()));
 
-        Matrix<N3, N3> tdot = MatBuilder.fill(Nat.N3(), Nat.N3(), //
-                0, 0, -tcpdot.y(), //
-                0, 0, tcpdot.x(), //
-                0, 0, 0);
+        Matrix<N3, N3> tdot = Poe.tdot(tcpdot);
 
         Matrix<N3, N2> jdot = tdot.times(Jv).plus(t.times(Jdotv));
         if (DEBUG)

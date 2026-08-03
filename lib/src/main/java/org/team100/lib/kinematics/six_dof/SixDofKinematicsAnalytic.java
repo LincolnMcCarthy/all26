@@ -228,7 +228,8 @@ public class SixDofKinematicsAnalytic implements SixDofKinematics {
         // RR sub-problem.
         Translation2d end = new Translation2d(x, y);
         // Find the RR configs
-        return rrk.inverse(end);
+        // TODO: default
+        return rrk.inverse(end, null);
     }
 
     /**

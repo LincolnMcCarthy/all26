@@ -1,6 +1,7 @@
 package org.team100.lib.kinematics.rr;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -20,106 +21,131 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N2;
 
 public class RRKinematicsTest {
-    private static final double DELTA = 0.001;
+
+    @Test
+    void testInfeasible0() {
+        // long l1, short l2 => can't reach near origin
+        RRKinematics k = new RRKinematics(1, 0.5);
+        List<RRConfig> qq = k.inverse(new Translation2d(0.1, 0.1), null);
+        assertEquals(0, qq.size());
+    }
+
+    @Test
+    void testSingular0() {
+        // equal links, target at origin => infinite solutions.
+        RRKinematics k = new RRKinematics(1, 1);
+        assertThrows(IllegalArgumentException.class, () -> k.inverse(new Translation2d(0, 0), null));
+    }
+
+    @Test
+    void testSingular1() {
+        // equal links, target at origin => use default
+        RRKinematics k = new RRKinematics(1, 1);
+        List<RRConfig> qq = k.inverse(new Translation2d(0, 0), 1.0);
+        assertEquals(1, qq.size());
+        TestUtil.verify(new RRConfig(1, 3.141), qq.get(0));
+    }
 
     @Test
     void testf1() {
-        // stretched along x
         RRKinematics k = new RRKinematics(1, 1);
-        RRPosition p = new RRPosition(
-                new Translation2d(1, 0), new Translation2d(2, 0));
         RRConfig q = new RRConfig(0, 0);
 
         RRPosition actual1 = k.forward(q);
-        assertEquals(p.p1(), actual1.p1(), "fwd p1");
-        assertEquals(p.p2(), actual1.p2(), "fwd p2");
-        List<RRConfig> qq = k.inverse(p.p2());
+        TestUtil.verify(new Translation2d(1, 0), actual1.p1());
+        TestUtil.verify(new Translation2d(2, 0), actual1.p2());
+    }
+
+    @Test
+    void testi1() {
+        RRKinematics k = new RRKinematics(1, 1);
+
+        List<RRConfig> qq = k.inverse(new Translation2d(2, 0), null);
         assertEquals(1, qq.size());
-        assertEquals(0, qq.get(0).q1(), DELTA, "inv q1");
-        assertEquals(0, qq.get(0).q2(), DELTA, "inv q2");
+        TestUtil.verify(new RRConfig(0, 0), qq.get(0));
     }
 
     @Test
     void testf2() {
-        // up and then out
         RRKinematics k = new RRKinematics(1, 1);
-        RRPosition p = new RRPosition(
-                new Translation2d(0, 1), new Translation2d(1, 1));
         RRConfig q = new RRConfig(Math.PI / 2, -1 * Math.PI / 2);
 
         RRPosition actual1 = k.forward(q);
-        assertEquals(p.p1(), actual1.p1(), "fwd p1");
-        assertEquals(p.p2(), actual1.p2(), "fwd p2");
-        List<RRConfig> qq = k.inverse(p.p2());
+        TestUtil.verify(new Translation2d(0, 1), actual1.p1());
+        TestUtil.verify(new Translation2d(1, 1), actual1.p2());
+    }
+
+    @Test
+    void testi2() {
+        RRKinematics k = new RRKinematics(1, 1);
+
+        List<RRConfig> qq = k.inverse(new Translation2d(1, 1), null);
         assertEquals(2, qq.size());
 
-        assertEquals(Math.PI / 2, qq.get(0).q1(), DELTA, "inv q1");
-        assertEquals(-Math.PI / 2, qq.get(0).q2(), DELTA, "inv q2");
-        assertEquals(0, qq.get(1).q1(), DELTA, "inv q1");
-        assertEquals(Math.PI / 2, qq.get(1).q2(), DELTA, "inv q2");
-
+        TestUtil.verify(new RRConfig(Math.PI / 2, -Math.PI / 2), qq.get(0));
+        TestUtil.verify(new RRConfig(0, Math.PI / 2), qq.get(1));
     }
 
     @Test
     void testf3() {
-        // equilateral triangle, first link up
         RRKinematics k = new RRKinematics(1, 1);
-        RRPosition p = new RRPosition(
-                new Translation2d(0, 1), new Translation2d(Math.sqrt(3) / 2, 0.5));
         RRConfig q = new RRConfig(Math.PI / 2, -2 * Math.PI / 3);
 
         RRPosition actual1 = k.forward(q);
-        assertEquals(p.p1(), actual1.p1(), "fwd p1");
-        assertEquals(p.p2(), actual1.p2(), "fwd p2");
-        List<RRConfig> qq = k.inverse(p.p2());
+        TestUtil.verify(new Translation2d(0, 1), actual1.p1());
+        TestUtil.verify(new Translation2d(Math.sqrt(3) / 2, 0.5), actual1.p2());
+    }
+
+    @Test
+    void testi3() {
+        RRKinematics k = new RRKinematics(1, 1);
+        List<RRConfig> qq = k.inverse(new Translation2d(Math.sqrt(3) / 2, 0.5), null);
         assertEquals(2, qq.size());
 
-        assertEquals(Math.PI / 2, qq.get(0).q1(), DELTA, "inv q1");
-        assertEquals(-2.094, qq.get(0).q2(), DELTA, "inv q2");
-        assertEquals(-0.523, qq.get(1).q1(), DELTA, "inv q1");
-        assertEquals(2.094, qq.get(1).q2(), DELTA, "inv q2");
-
+        TestUtil.verify(new RRConfig(Math.PI / 2, -2.094), qq.get(0));
+        TestUtil.verify(new RRConfig(-0.523, 2.094), qq.get(1));
     }
 
     @Test
     void test4() {
-        // vertical equilateral triangle
         RRKinematics k = new RRKinematics(1, 1);
-        RRPosition p = new RRPosition(
-                new Translation2d(-Math.sqrt(3) / 2, 0.5), new Translation2d(0, 1));
         RRConfig q = new RRConfig(5 * Math.PI / 6, -2 * Math.PI / 3);
 
         RRPosition actual1 = k.forward(q);
-        assertEquals(p.p1(), actual1.p1(), "fwd p1");
-        assertEquals(p.p2(), actual1.p2(), "fwd p2");
-        List<RRConfig> qq = k.inverse(p.p2());
+        TestUtil.verify(new Translation2d(-Math.sqrt(3) / 2, 0.5), actual1.p1());
+        TestUtil.verify(new Translation2d(0, 1), actual1.p2());
+    }
+
+    @Test
+    void testi4() {
+        RRKinematics k = new RRKinematics(1, 1);
+
+        List<RRConfig> qq = k.inverse(new Translation2d(0, 1), null);
         assertEquals(2, qq.size());
 
-        assertEquals(2.618, qq.get(0).q1(), DELTA, "inv q1");
-        assertEquals(-2.094, qq.get(0).q2(), DELTA, "inv q2");
-        assertEquals(0.524, qq.get(1).q1(), DELTA, "inv q1");
-        assertEquals(2.094, qq.get(1).q2(), DELTA, "inv q2");
+        TestUtil.verify(new RRConfig(2.618, -2.094), qq.get(0));
+        TestUtil.verify(new RRConfig(0.524, 2.094), qq.get(1));
     }
 
     @Test
     void test5() {
-        // behind
         RRKinematics k = new RRKinematics(1, 1);
-        RRPosition p = new RRPosition(
-                new Translation2d(-1, 0), new Translation2d(-1, 1));
         RRConfig q = new RRConfig(Math.PI, -Math.PI / 2);
 
         RRPosition actual1 = k.forward(q);
-        assertEquals(p.p1(), actual1.p1(), "fwd p1");
-        assertEquals(p.p2(), actual1.p2(), "fwd p2");
-        List<RRConfig> qq = k.inverse(p.p2());
+        TestUtil.verify(new Translation2d(-1, 0), actual1.p1());
+        TestUtil.verify(new Translation2d(-1, 1), actual1.p2());
+    }
+
+    @Test
+    void testi5() {
+        RRKinematics k = new RRKinematics(1, 1);
+
+        List<RRConfig> qq = k.inverse(new Translation2d(-1, 1), null);
         assertEquals(2, qq.size());
 
-        assertEquals(3.141, qq.get(0).q1(), DELTA, "inv q1");
-        assertEquals(-1.571, qq.get(0).q2(), DELTA, "inv q2");
-        assertEquals(1.571, qq.get(1).q1(), DELTA, "inv q1");
-        assertEquals(1.571, qq.get(1).q2(), DELTA, "inv q2");
-
+        TestUtil.verify(new RRConfig(3.141, -1.571), qq.get(0));
+        TestUtil.verify(new RRConfig(1.571, 1.571), qq.get(1));
     }
 
     @Test
@@ -378,5 +404,4 @@ public class RRKinematicsTest {
                 -1, 0, //
                 -1, -1), Jdot);
     }
-
 }

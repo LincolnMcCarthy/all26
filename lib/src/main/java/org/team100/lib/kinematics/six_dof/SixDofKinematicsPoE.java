@@ -14,11 +14,11 @@ import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.geometry.six_dof.SixDofVelocity;
 import org.team100.lib.geometry.six_dof.SphericalWristConfig;
+import org.team100.lib.kinematics.Poe;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.kinematics.rrr_so3.SphericalWristKinematics;
 import org.team100.lib.util.StrUtil;
 
-import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -30,7 +30,6 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist3d;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 
 /**
@@ -82,17 +81,17 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         // tool point, is pointing at +x, at full extension
         M7 = new Pose3d(boom + stick + tool, 0, base, Rotation3d.kZero);
         // joint 1 (base) around z
-        S1 = S(VecBuilder.fill(0, 0, 1), new Translation3d(0, 0, 0));
+        S1 = Poe.S(VecBuilder.fill(0, 0, 1), new Translation3d(0, 0, 0));
         // joint 2 (shoulder) around -y
-        S2 = S(VecBuilder.fill(0, -1, 0), new Translation3d(0, 0, base));
+        S2 = Poe.S(VecBuilder.fill(0, -1, 0), new Translation3d(0, 0, base));
         // joint 3 (elbow) around -y
-        S3 = S(VecBuilder.fill(0, -1, 0), new Translation3d(boom, 0, base));
+        S3 = Poe.S(VecBuilder.fill(0, -1, 0), new Translation3d(boom, 0, base));
         // joint 4 (wrist roll) around +x
-        S4 = S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
+        S4 = Poe.S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
         // joint 5 (wrist pitch) around -y
-        S5 = S(VecBuilder.fill(0, -1, 0), new Translation3d(boom + stick, 0, base));
+        S5 = Poe.S(VecBuilder.fill(0, -1, 0), new Translation3d(boom + stick, 0, base));
         // joint 6 (tool roll) around +x
-        S6 = S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
+        S6 = Poe.S(VecBuilder.fill(1, 0, 0), new Translation3d(boom + stick, 0, base));
         this.base = base;
         this.tool = tool;
 
@@ -138,9 +137,18 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
      * See
      * https://publish.illinois.edu/ece470-intro-robotics/files/2024/02/ECE470Lec9-2-1.pdf
      */
+    @Override
     public VelocitySE3 forward(SixDofConfig q, SixDofVelocity qdot) {
         Matrix<N6, N6> J = J(q);
         return VelocitySE3.fromVector(J.times(qdot.toVector()));
+    }
+
+    @Override
+    public AccelerationSE3 forward(SixDofConfig q, SixDofVelocity qdot, SixDofAcceleration qddot) {
+        Matrix<N6, N6> J = J(q);
+        Matrix<N6, N6> Jdot = Jdot(q, qdot);
+        return AccelerationSE3.fromVector(
+                Jdot.times(qdot.toVector()).plus(J.times(qddot.toVector())));
     }
 
     /**
@@ -153,7 +161,7 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
      * 
      * @param p         Tool point pose.
      * @param q1Default In case of base singularity.
-     * @param q4Default In case of wrst singularity.
+     * @param q4Default In case of wrist singularity.
      */
     @Override
     public List<SixDofConfig> inverse(Pose3d p, Double q1Default, Double q4Default) {
@@ -201,14 +209,6 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
     }
 
     @Override
-    public AccelerationSE3 forward(SixDofConfig q, SixDofVelocity qdot, SixDofAcceleration qddot) {
-        Matrix<N6, N6> J = J(q);
-        Matrix<N6, N6> Jdot = Jdot(q, qdot);
-        return AccelerationSE3.fromVector(
-                Jdot.times(qdot.toVector()).plus(J.times(qddot.toVector())));
-    }
-
-    @Override
     public SixDofVelocity inverse(SixDofConfig q, VelocitySE3 xdot) {
         Matrix<N6, N6> Jinv = Jinv(q);
         return SixDofVelocity.fromVector(Jinv.times(xdot.toVector()));
@@ -250,17 +250,14 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         // Space Jacobian
         Matrix<N6, N6> Jv = Jv(q);
 
-        Matrix<N6, N6> t = MatBuilder.fill(Nat.N6(), Nat.N6(), //
-                1, 0, 0, 0, tcp.getZ(), -tcp.getY(), //
-                0, 1, 0, -tcp.getZ(), 0, tcp.getX(), //
-                0, 0, 1, tcp.getY(), -tcp.getX(), 0, //
-                0, 0, 0, 1, 0, 0, //
-                0, 0, 0, 0, 1, 0, //
-                0, 0, 0, 0, 0, 1);
+        Matrix<N6, N6> t = Poe.t(tcp);
 
         return t.times(Jv);
     }
 
+    /**
+     * Space Jacobian.
+     */
     Matrix<N6, N6> Jv(SixDofConfig q) {
         // exponential terms
         Pose3d eS1q1 = GeometryUtil.exp(S1, q.q1());
@@ -340,12 +337,12 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         Vector<N6> JdotS6 = LieSE3.bracket(JS5, JS6).times(qdot.q1dot());
 
         Matrix<N6, N6> jdotv = new Matrix<>(Nat.N6(), Nat.N6());
-        jdotv.assignBlock(0, 0, JdotS1);
-        jdotv.assignBlock(0, 1, JdotS2);
-        jdotv.assignBlock(0, 2, JdotS3);
-        jdotv.assignBlock(0, 3, JdotS4);
-        jdotv.assignBlock(0, 4, JdotS5);
-        jdotv.assignBlock(0, 5, JdotS6);
+        jdotv.setColumn(0, JdotS1);
+        jdotv.setColumn(1, JdotS2);
+        jdotv.setColumn(2, JdotS3);
+        jdotv.setColumn(3, JdotS4);
+        jdotv.setColumn(4, JdotS5);
+        jdotv.setColumn(5, JdotS6);
         return jdotv;
     }
 
@@ -369,57 +366,21 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         Pose3d e5 = GeometryUtil.compose(e4, eS5q5);
         Pose3d e6 = GeometryUtil.compose(e5, eS6q6);
         Pose3d tcp = GeometryUtil.compose(e6, M7);
-        Matrix<N6, N6> t = MatBuilder.fill(Nat.N6(), Nat.N6(), //
-                1, 0, 0, 0, tcp.getZ(), -tcp.getY(), //
-                0, 1, 0, -tcp.getZ(), 0, tcp.getX(), //
-                0, 0, 1, tcp.getY(), -tcp.getX(), 0, //
-                0, 0, 0, 1, 0, 0, //
-                0, 0, 0, 0, 1, 0, //
-                0, 0, 0, 0, 0, 1);
+        Matrix<N6, N6> t = Poe.t(tcp);
 
         // Space Jacobian
         Matrix<N6, N6> Jv = Jv(q);
         Matrix<N6, N6> J = t.times(Jv);
         Matrix<N6, N6> Jdotv = Jdotv(q, qdot);
 
-        // to convert Jdotv into Jdot, observe that
-        // J = T Jv
-        // where T is the translation used above.
-        // to find Jdot, use the product rule
-        // Jdot = Tdot Jv + T Jdotv
-
         VelocitySE3 tcpdot = VelocitySE3.fromVector(J.times(qdot.toVector()));
 
-        Matrix<N6, N6> tdot = MatBuilder.fill(Nat.N6(), Nat.N6(), //
-                0, 0, 0, 0, tcpdot.z(), -tcpdot.y(), //
-                0, 0, 0, -tcpdot.z(), 0, tcpdot.x(), //
-                0, 0, 0, tcpdot.y(), -tcpdot.x(), 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0, //
-                0, 0, 0, 0, 0, 0);
+        Matrix<N6, N6> tdot = Poe.tdot(tcpdot);
 
         Matrix<N6, N6> jdot = tdot.times(Jv).plus(t.times(Jdotv));
         if (DEBUG)
             System.out.printf("jdot %s\n", StrUtil.matStr(jdot));
         return jdot;
-    }
-
-    /**
-     * Screw axis
-     * 
-     * Lynch/Park say this is -w x q
-     * see p142 https://hades.mech.northwestern.edu/images/7/7f/MR.pdf
-     * 
-     * Mueller says this is q x w (which is the same as above)
-     * see p2 https://arxiv.org/pdf/2506.10686v1
-     * 
-     * @param So S_omega, the axis of rotation in the global frame
-     * @param a  any point on the axis
-     * @return The screw axis of the joint, in the global frame.
-     */
-    static Twist3d S(Vector<N3> So, Translation3d a) {
-        Vector<N3> Sv = Vector.cross(GeometryUtil.toVec(a), So);
-        return new Twist3d(Sv.get(0), Sv.get(1), Sv.get(2), So.get(0), So.get(1), So.get(2));
     }
 
     /**
@@ -470,7 +431,8 @@ public class SixDofKinematicsPoE implements SixDofKinematics {
         // RR sub-problem.
         Translation2d end = new Translation2d(x, y);
         // Find the RR configs
-        return rrk.inverse(end);
+        // TODO: default
+        return rrk.inverse(end, null);
     }
 
     /**

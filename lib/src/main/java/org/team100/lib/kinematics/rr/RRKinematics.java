@@ -20,10 +20,7 @@ import edu.wpi.first.math.numbers.N2;
 /**
  * Planar serial RR arm kinematics: two revolute joints and two links.
  * 
- * Note these kinematics always choose the "elbow up" configuration,
- * i.e. the distal joint prefers negative values.
- * 
- * TODO: change to SE2 from R2
+ * Implementation is analytic using the law of cosines.
  * 
  * Refer to the diagram:
  * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
@@ -94,13 +91,29 @@ public class RRKinematics {
      * 
      * Refer to the diagram, or README.md
      * https://docs.google.com/document/d/1B6vGPtBtnDSOpfzwHBflI8-nn98W9QvmrX78bon8Ajw
+     * 
+     * For the default, use the previous value, or null if you have no idea (and in
+     * that case, catch the exception that may occur).  If l1 and l2 are not the same,
+     * the singularity is impossible, so you can safely pass null.
+     * 
+     * @param x         tool point position
+     * @param q1Default in case of singularity
      */
-    public List<RRConfig> inverse(Translation2d x) {
+    public List<RRConfig> inverse(Translation2d x, Double q1Default) {
         if (DEBUG)
             System.out.printf("t %s\n", StrUtil.transStr(x));
         // Use law of cosines.
         double r = x.getNorm();
-        // TODO: handle zero r
+        if (r < 1e-3) {
+            // This can only occur if l1 and l2 are (nearly) the same,
+            // so use the default, and 180 degrees for the elbow.
+            // Note: this configuration is not very useful, maybe don't bother?
+            if (DEBUG)
+                System.out.println("RR singularity");
+            if (q1Default == null)
+                throw new IllegalArgumentException("RR singularity with no default");
+            return List.of(new RRConfig(q1Default, Math.PI));
+        }
         double gamma = Math.atan2(x.getY(), x.getX());
         double c1 = (r * r + l1 * l1 - l2 * l2) / (2 * r * l1);
         double beta = Math.acos(c1);

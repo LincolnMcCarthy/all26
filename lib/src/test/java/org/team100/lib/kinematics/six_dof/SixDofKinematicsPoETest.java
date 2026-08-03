@@ -12,6 +12,7 @@ import org.team100.lib.geometry.six_dof.SixDofAcceleration;
 import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.geometry.six_dof.SixDofPose;
 import org.team100.lib.geometry.six_dof.SixDofVelocity;
+import org.team100.lib.kinematics.Poe;
 import org.team100.lib.testing.TestUtil;
 
 import edu.wpi.first.math.MatBuilder;
@@ -37,7 +38,7 @@ public class SixDofKinematicsPoETest {
         Vector<N3> So = VecBuilder.fill(0, 0, 1);
         // at the origin
         Translation3d a = new Translation3d(0, 0, 0);
-        Twist3d S = SixDofKinematicsPoE.S(So, a);
+        Twist3d S = Poe.S(So, a);
         TestUtil.verify(new Twist3d(0, 0, 0, 0, 0, 1), S);
     }
 
@@ -47,7 +48,7 @@ public class SixDofKinematicsPoETest {
         Vector<N3> So = VecBuilder.fill(0, 0, 1);
         // offset by (say) x=1
         Translation3d a = new Translation3d(1, 0, 0);
-        Twist3d S = SixDofKinematicsPoE.S(So, a);
+        Twist3d S = Poe.S(So, a);
         TestUtil.verify(new Twist3d(0, -1, 0, 0, 0, 1), S);
     }
 
@@ -57,7 +58,7 @@ public class SixDofKinematicsPoETest {
         Vector<N3> So = VecBuilder.fill(0, 0, 1);
         // offset by (say) x=2
         Translation3d a = new Translation3d(2, 0, 0);
-        Twist3d S = SixDofKinematicsPoE.S(So, a);
+        Twist3d S = Poe.S(So, a);
         TestUtil.verify(new Twist3d(0, -2, 0, 0, 0, 1), S);
     }
 

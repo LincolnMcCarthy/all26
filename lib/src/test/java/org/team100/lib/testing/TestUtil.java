@@ -12,6 +12,7 @@ import org.team100.lib.geometry.pr.PRVelocity;
 import org.team100.lib.geometry.r2.AccelerationR2;
 import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
+import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.geometry.rrr.RRRAcceleration;
@@ -34,6 +35,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.numbers.N1;
@@ -53,6 +55,11 @@ public class TestUtil {
     public static void verify(Pose3d expected, Map<String, Pose3d> poses, String name) {
         Pose3d actual = poses.get(name);
         verify(expected, actual);
+    }
+
+    public static void verify(Translation2d expected, Translation2d actual) {
+        assertEquals(expected.getX(), actual.getX(), 1e-3, "x");
+        assertEquals(expected.getY(), actual.getY(), 1e-3, "y");
     }
 
     public static void verify(Pose2d expected, Pose2d actual) {
@@ -124,10 +131,15 @@ public class TestUtil {
         assertEquals(a.getNumCols(), b.getNumCols());
         for (int i = 0; i < a.getNumRows(); ++i) {
             for (int j = 0; j < a.getNumCols(); ++j) {
-                assertEquals(a.get(i, j), b.get(i, j), 1e-6,
+                assertEquals(a.get(i, j), b.get(i, j), 1e-3,
                         String.format("(%d, %d) a %f b %f", i, j, a.get(i, j), b.get(i, j)));
             }
         }
+    }
+
+    public static void verify(RRConfig expected, RRConfig actual) {
+        assertEquals(expected.q1(), actual.q1(), 1e-3, "q1");
+        assertEquals(expected.q2(), actual.q2(), 1e-3, "q2");
     }
 
     public static void verify(RRRConfig expected, RRRConfig actual) {

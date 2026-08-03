@@ -135,7 +135,8 @@ public class AnalyticLynxArmKinematics implements LynxArmKinematics {
         Translation2d twoDofEnd = new Translation2d(
                 hypot,
                 twoDofY);
-        List<RRConfig> twoDofConfig = twodof.inverse(twoDofEnd);
+        // TODO: default
+        List<RRConfig> twoDofConfig = twodof.inverse(twoDofEnd, null);
         // for now, throw like it used to
         // TODO: handle zero solutions gracefully
         if (twoDofConfig.isEmpty())

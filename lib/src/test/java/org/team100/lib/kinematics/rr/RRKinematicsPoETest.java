@@ -9,6 +9,7 @@ import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.kinematics.Poe;
 import org.team100.lib.testing.TestUtil;
 
 import edu.wpi.first.math.MatBuilder;
@@ -26,8 +27,8 @@ public class RRKinematicsPoETest {
 
     @Test
     void test00() {
-        TestUtil.verify(new Twist2d(0, 0, 1), RRKinematicsPoE.S(new Translation2d(0, 0)));
-        TestUtil.verify(new Twist2d(0, -1, 1), RRKinematicsPoE.S(new Translation2d(1, 0)));
+        TestUtil.verify(new Twist2d(0, 0, 1), Poe.S(new Translation2d(0, 0)));
+        TestUtil.verify(new Twist2d(0, -1, 1), Poe.S(new Translation2d(1, 0)));
     }
 
     @Test

@@ -83,9 +83,9 @@ public class SphericalWristKinematics {
             System.out.printf("R11 %f\n", r11);
         if (MathUtil.isNear(1, r11, 1e-3)) {
             if (DEBUG)
-                System.out.println("wrist singularity");
+                System.out.println("Wrist singularity");
             if (q4Default == null)
-                throw new IllegalArgumentException("singularity with no default");
+                throw new IllegalArgumentException("Wrist singularity with no default");
             double q4 = q4Default;
             double q5 = 0;
             double roll = Math.atan2(r32, r22);
