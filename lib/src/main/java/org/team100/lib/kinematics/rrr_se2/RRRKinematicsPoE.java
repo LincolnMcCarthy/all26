@@ -15,6 +15,7 @@ import org.team100.lib.geometry.se2.LieSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.kinematics.Poe;
 import org.team100.lib.kinematics.rr.RRKinematics;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -33,9 +34,10 @@ import edu.wpi.first.math.numbers.N3;
  * Zero position is extended along x.
  */
 public class RRRKinematicsPoE {
-    private final double l1;
-    private final double l2;
-    private final double l3;
+    private static final boolean DEBUG = false;
+    public final double l1;
+    public final double l2;
+    public final double l3;
 
     // Joint positions, in global frame, at zero config
     private final Pose2d M1;
@@ -114,7 +116,12 @@ public class RRRKinematicsPoE {
         Translation2d b = new Translation2d(l3, 0).rotateBy(R);
         // Wrist origin = start at tool point, walk backwards along tool.
         Translation2d w = t.minus(b);
+        if (DEBUG)
+            System.out.printf("t %s w %s\n", StrUtil.transStr(t), StrUtil.transStr(w));
         List<RRConfig> rrs = rrk.inverse(w, q1Default);
+        if (rrs.isEmpty()) {
+            System.out.printf("no RR solution for wrist %s\n", StrUtil.transStr(w));
+        }
         List<RRRConfig> result = new ArrayList<>();
         for (RRConfig rr : rrs) {
             // Wrist origin rotation

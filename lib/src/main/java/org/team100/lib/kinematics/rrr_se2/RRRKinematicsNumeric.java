@@ -87,9 +87,9 @@ public class RRRKinematicsNumeric {
 
     public Pose3d forward(Vector<N3> q) {
         Map<String, Double> qMap = Map.of(
-                "shoulder", q.get(1),
-                "elbow", q.get(2),
-                "wrist", q.get(3));
+                "shoulder", q.get(0),
+                "elbow", q.get(1),
+                "wrist", q.get(2));
         Map<String, Pose3d> poses = m_arm.forward(qMap);
         for (Map.Entry<String, Pose3d> e : poses.entrySet()) {
             System.out.printf("%s %s\n", e.getKey(), e.getValue());

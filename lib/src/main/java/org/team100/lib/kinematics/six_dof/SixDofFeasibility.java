@@ -32,7 +32,7 @@ public class SixDofFeasibility {
                     System.out.println("skipping out-of-joint-range " + q.toString());
                 continue;
             }
-            if (!pRange(q)) {
+            if (!xRange(q)) {
                 if (DEBUG)
                     System.out.println("skipping out-of-workspace " + q.toString());
                 continue;
@@ -42,7 +42,9 @@ public class SixDofFeasibility {
         return result;
     }
 
-    /** True if the joints configurations are in their allowed ranges. */
+    /**
+     * True if the joints configurations are in their allowed ranges.
+     */
     boolean qRange(SixDofConfig q) {
         if (q.q1() < l.q1() || q.q1() > u.q1()) {
             if (DEBUG)
@@ -78,10 +80,13 @@ public class SixDofFeasibility {
     }
 
     /**
-     * True if the joint cartesian positions are ok,
-     * which for now means "above the floor".
+     * True if the joint workspace positions are ok,
+     * 
+     * For now this means "above the floor".
+     * 
+     * TODO: make a real work envelope.
      */
-    boolean pRange(SixDofConfig q) {
+    boolean xRange(SixDofConfig q) {
         SixDofPose p = m_k.forward(q);
         // p1 z is fixed
         if (p.p2().getZ() < 0) {

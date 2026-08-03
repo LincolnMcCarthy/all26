@@ -89,6 +89,10 @@ public class SixDofArm extends SubsystemBase {
         m_q6.setUnwrappedPosition(q.q6(), 0, 0);
     }
 
+    /**
+     * Choose config "closest" to q0, using the (non-Euclidean) config distance
+     * metric.
+     */
     SixDofConfig getBest(List<SixDofConfig> qAll, SixDofConfig q0) {
         double closest = Double.POSITIVE_INFINITY;
         SixDofConfig best = qAll.get(0);
