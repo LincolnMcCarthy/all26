@@ -3,7 +3,6 @@ package org.team100.lib.kinematics.rrr_se2;
 import java.util.List;
 import java.util.Map;
 
-import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.kinematics.urdf.URDFJoint;
 import org.team100.lib.kinematics.urdf.URDFJoint.JointType;
 import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
@@ -28,7 +27,7 @@ import edu.wpi.first.math.numbers.N3;
  * The rotational zero is along +x.
  * Joint rotation is around Y, and thus rotations "up" are negative.
  */
-public class NumericRRRKinematics {
+public class RRRKinematicsNumeric {
 
     private final URDFRobot<N3> m_arm;
 
@@ -37,7 +36,7 @@ public class NumericRRRKinematics {
      * @param l2 lower arm length
      * @param l3 "hand" length
      */
-    public NumericRRRKinematics(double l1, double l2, double l3) {
+    public RRRKinematicsNumeric(double l1, double l2, double l3) {
         URDFLink base = new URDFLink("base");
         URDFLink upper_arm_link = new URDFLink("upper_arm_link");
         URDFLink lower_arm_link = new URDFLink("lower_arm_link");
@@ -86,11 +85,11 @@ public class NumericRRRKinematics {
                 VecBuilder.fill(1, 1, 1));
     }
 
-    public Pose3d forward(RRRConfig q) {
+    public Pose3d forward(Vector<N3> q) {
         Map<String, Double> qMap = Map.of(
-                "shoulder", q.q1(),
-                "elbow", q.q2(),
-                "wrist", q.q3());
+                "shoulder", q.get(1),
+                "elbow", q.get(2),
+                "wrist", q.get(3));
         Map<String, Pose3d> poses = m_arm.forward(qMap);
         for (Map.Entry<String, Pose3d> e : poses.entrySet()) {
             System.out.printf("%s %s\n", e.getKey(), e.getValue());
@@ -98,11 +97,16 @@ public class NumericRRRKinematics {
         return poses.get("center_point");
     }
 
-    public RRRConfig inverse(Pose3d x) {
+    /**
+     * 
+     * @param x
+     * @return (shoulder, elbow, wrist)
+     */
+    public Vector<N3> inverse(Pose3d x) {
         // will this work without the initial value?
         Vector<N3> q0 = VecBuilder.fill(0, 0, 0);
         Map<String, Double> qMap = m_arm.inverse(q0, "center_point", x);
-        return new RRRConfig(
+        return VecBuilder.fill(
                 qMap.get("shoulder"),
                 qMap.get("elbow"),
                 qMap.get("wrist"));

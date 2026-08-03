@@ -14,6 +14,9 @@ import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRPose;
 import org.team100.lib.geometry.rr.RRVelocity;
+import org.team100.lib.geometry.rrr.RRRAcceleration;
+import org.team100.lib.geometry.rrr.RRRConfig;
+import org.team100.lib.geometry.rrr.RRRVelocity;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se3.AccelerationSE3;
@@ -127,6 +130,12 @@ public class TestUtil {
         }
     }
 
+    public static void verify(RRRConfig expected, RRRConfig actual) {
+        assertEquals(expected.q1(), actual.q1(), 1e-3, "q1");
+        assertEquals(expected.q2(), actual.q2(), 1e-3, "q2");
+        assertEquals(expected.q3(), actual.q3(), 1e-3, "q3");
+    }
+
     public static void verify(SixDofConfig expected, SixDofConfig actual) {
         assertEquals(expected.q1(), actual.q1(), 1e-3, "q1");
         assertEquals(expected.q2(), actual.q2(), 1e-3, "q2");
@@ -136,6 +145,12 @@ public class TestUtil {
         assertEquals(expected.q6(), actual.q6(), 1e-3, "q6");
     }
 
+    public static void verify(RRRVelocity expected, RRRVelocity actual) {
+        assertEquals(expected.q1dot(), actual.q1dot(), 1e-3, "q1");
+        assertEquals(expected.q2dot(), actual.q2dot(), 1e-3, "q2");
+        assertEquals(expected.q3dot(), actual.q3dot(), 1e-3, "q3");
+    }
+
     public static void verify(SixDofVelocity expected, SixDofVelocity actual) {
         assertEquals(expected.q1dot(), actual.q1dot(), 1e-3, "q1");
         assertEquals(expected.q2dot(), actual.q2dot(), 1e-3, "q2");
@@ -143,6 +158,12 @@ public class TestUtil {
         assertEquals(expected.q4dot(), actual.q4dot(), 1e-3, "q4");
         assertEquals(expected.q5dot(), actual.q5dot(), 1e-3, "q5");
         assertEquals(expected.q6dot(), actual.q6dot(), 1e-3, "q6");
+    }
+
+    public static void verify(RRRAcceleration expected, RRRAcceleration actual) {
+        assertEquals(expected.q1ddot(), actual.q1ddot(), 1e-3, "q1");
+        assertEquals(expected.q2ddot(), actual.q2ddot(), 1e-3, "q2");
+        assertEquals(expected.q3ddot(), actual.q3ddot(), 1e-3, "q3");
     }
 
     public static void verify(SixDofAcceleration expected, SixDofAcceleration actual) {
