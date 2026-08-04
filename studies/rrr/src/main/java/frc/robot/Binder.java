@@ -3,6 +3,7 @@ package frc.robot;
 import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.commands.MoveAndHold;
+import org.team100.lib.geometry.se2.VelocitySE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,14 +29,32 @@ public class Binder {
         // "Y" is button 4, "v" in sim
 
         // profiles in joint space make kinda circular paths in workspace
-        MoveAndHold move1 = m_machinery.m_arm.moveProfiled(
-                new Pose2d(0.4, 0.25, new Rotation2d(0)));
-        MoveAndHold move2 = m_machinery.m_arm.moveProfiled(
-                new Pose2d(0.6, 0.25, new Rotation2d(0)));
-        MoveAndHold move3 = m_machinery.m_arm.moveProfiled(
-                new Pose2d(0.6, -0.25, new Rotation2d(0)));
-        MoveAndHold move4 = m_machinery.m_arm.moveProfiled(
-                new Pose2d(0.4, -0.25, new Rotation2d(0)));
+        // MoveAndHold move1 = m_machinery.m_arm.moveProfiled(
+        // new Pose2d(0.4, 0.25, new Rotation2d(0)));
+        // MoveAndHold move2 = m_machinery.m_arm.moveProfiled(
+        // new Pose2d(0.6, 0.25, new Rotation2d(0)));
+        // MoveAndHold move3 = m_machinery.m_arm.moveProfiled(
+        // new Pose2d(0.6, -0.25, new Rotation2d(0)));
+        // MoveAndHold move4 = m_machinery.m_arm.moveProfiled(
+        // new Pose2d(0.4, -0.25, new Rotation2d(0)));
+        // whileTrue(m_controller::getAButton, // "z"
+        // move1.until(move1::isDone)
+        // .andThen(move2.until(move2::isDone))
+        // .andThen(move3.until(move3::isDone))
+        // .andThen(move4.until(move4::isDone)));
+
+        MoveAndHold move1 = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.4, 0.25, new Rotation2d(0)),
+                new VelocitySE2(0, 1, 0));
+        MoveAndHold move2 = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.6, 0.25, new Rotation2d(0)),
+                new VelocitySE2(1, 0, 0));
+        MoveAndHold move3 = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.6, -0.25, new Rotation2d(0)),
+                new VelocitySE2(0, -1, 0));
+        MoveAndHold move4 = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.4, -0.25, new Rotation2d(0)),
+                new VelocitySE2(-1, 0, 0));
         whileTrue(m_controller::getAButton, // "z"
                 move1.until(move1::isDone)
                         .andThen(move2.until(move2::isDone))

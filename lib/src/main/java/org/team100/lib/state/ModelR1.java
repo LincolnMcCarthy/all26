@@ -19,6 +19,10 @@ import edu.wpi.first.math.interpolation.Interpolatable;
  */
 public record ModelR1(double x, double v) implements Interpolatable<ModelR1> {
 
+    public ModelR1(double x) {
+        this(x, 0);
+    }
+
     public ModelR1() {
         this(0, 0);
     }

@@ -3,8 +3,8 @@ package org.team100.lib.visualization;
 import java.util.List;
 
 import org.team100.lib.geometry.se2.WaypointSE2;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Entry;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;

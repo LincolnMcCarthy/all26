@@ -10,13 +10,13 @@ import org.team100.lib.controller.se2.ControllerFactorySE2;
 import org.team100.lib.controller.se2.FullStateControllerSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.profile.se2.HolonomicProfileFactory;
 import org.team100.lib.profile.se2.ProfileSE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
 
 import edu.wpi.first.wpilibj2.command.Command;
 

@@ -1,6 +1,9 @@
 package org.team100.lib.geometry.rrr;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.numbers.N3;
 
 /**
  * 3R config
@@ -35,5 +38,12 @@ public record RRRConfig(double q1, double q2, double q3) {
                 MathUtil.interpolate(a.q1(), b.q1(), s),
                 MathUtil.interpolate(a.q2(), b.q2(), s),
                 MathUtil.interpolate(a.q3(), b.q3(), s));
+    }
+
+    public Vector<N3> toVector() {
+        return VecBuilder.fill(
+                q1,
+                q2,
+                q3);
     }
 }

@@ -4,14 +4,20 @@ import java.util.List;
 
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.rrr.RRRConfig;
+import org.team100.lib.geometry.rrr.RRRVelocity;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.kinematics.rrr_se2.RRRFeasibility;
 import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
+import org.team100.lib.state.ModelR1;
 import org.team100.lib.state.ModelSE2;
+import org.team100.lib.subsystems.rn.PositionSubsystemRn;
 import org.team100.lib.subsystems.rrr.commands.MoveWithProfile;
+import org.team100.lib.subsystems.rrr.commands.MoveWithSpline;
 import org.team100.lib.subsystems.rrr.commands.MoveWithTrajectorySE2;
 import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
 import org.team100.lib.util.StrUtil;
@@ -23,7 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 /**
  * Planar RRR arm, for training.
  */
-public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
+public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, PositionSubsystemRn {
     private final LoggerFactory m_log;
     final RRRKinematicsPoE m_kinematics;
     final RRRFeasibility m_feasibility;
@@ -35,9 +41,9 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
         m_log = parent.type(this);
         m_kinematics = new RRRKinematicsPoE(0.3, 0.3, 0.1);
         m_feasibility = new RRRFeasibility(m_kinematics);
-        m_q1 = new SimulatedBareMotor(m_log, 600);
-        m_q2 = new SimulatedBareMotor(m_log, 600);
-        m_q3 = new SimulatedBareMotor(m_log, 600);
+        m_q1 = new SimulatedBareMotor(m_log.name("q1"), 600);
+        m_q2 = new SimulatedBareMotor(m_log.name("q2"), 600);
+        m_q3 = new SimulatedBareMotor(m_log.name("q3"), 600);
     }
 
     @Override
@@ -55,7 +61,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
     }
 
     /**
-     * Choose a feasible config.
+     * Choose the feasible config closest to the current config.
      * 
      * @param p tool center point pose
      */
@@ -72,6 +78,10 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
             return null;
         }
         return getBest(qFeasible, q0);
+    }
+
+    public RRRVelocity qdot(RRRConfig q, VelocitySE2 xdot) {
+        return m_kinematics.inverse(q, xdot);
     }
 
     /** Current configuration. */
@@ -127,6 +137,10 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
         return new MoveWithTrajectorySE2(m_log, this, goal, speed);
     }
 
+    public MoveAndHold moveSplined(Pose2d goal, VelocitySE2 goalv) {
+        return new MoveWithSpline(m_log, this, goal, goalv);
+    }
+
     @Override
     public ModelSE2 getState() {
         // TODO: add velocity
@@ -134,8 +148,26 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2 {
     }
 
     @Override
+    public List<ModelR1> getStateRn() {
+        RRRConfig q = getConfig();
+        return List.of(
+                new ModelR1(q.q1()),
+                new ModelR1(q.q2()),
+                new ModelR1(q.q3()));
+    }
+
+    @Override
     public void set(ControlSE2 setpoint) {
         // TODO: add velocity and acceleration.
         setConfig(config(setpoint.pose()));
+    }
+
+    @Override
+    public void setRn(List<ControlR1> setpoint) {
+        RRRConfig q = new RRRConfig(
+                setpoint.get(0).x(),
+                setpoint.get(1).x(),
+                setpoint.get(2).x());
+        setConfig(q);
     }
 }

@@ -12,14 +12,14 @@ import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Point;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
 import org.team100.lib.state.ModelR1;
 import org.team100.lib.state.ModelSE2;
 import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.testing.Timeless;
-import org.team100.lib.trajectory.TrajectorySE2Point;
-import org.team100.lib.trajectory.path.PathSE2Point;
+import org.team100.lib.trajectory.se2.TrajectorySE2Point;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
