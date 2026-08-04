@@ -41,9 +41,6 @@ public record RRRConfig(double q1, double q2, double q3) {
     }
 
     public Vector<N3> toVector() {
-        return VecBuilder.fill(
-                q1,
-                q2,
-                q3);
+        return VecBuilder.fill(q1, q2, q3);
     }
 }

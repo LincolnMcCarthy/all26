@@ -1,6 +1,9 @@
 package org.team100.lib.geometry.six_dof;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.numbers.N6;
 
 /**
  * @param q1 base/swing
@@ -45,6 +48,10 @@ public record SixDofConfig(double q1, double q2, double q3, double q4, double q5
                 MathUtil.interpolate(a.q4(), b.q4(), s),
                 MathUtil.interpolate(a.q5(), b.q5(), s),
                 MathUtil.interpolate(a.q6(), b.q6(), s));
+    }
+
+    public Vector<N6> toVector() {
+        return VecBuilder.fill(q1, q2, q3, q4, q5, q6);
     }
 
     @Override
