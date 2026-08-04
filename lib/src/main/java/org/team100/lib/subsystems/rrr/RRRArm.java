@@ -5,7 +5,6 @@ import java.util.List;
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.geometry.rrr.RRRVelocity;
-import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.kinematics.rrr_se2.RRRFeasibility;
 import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
@@ -112,7 +111,11 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
     }
 
     public Pose2d pose() {
-        return m_kinematics.forward(getConfig()).p4();
+        return pose(getConfig());
+    }
+
+    public Pose2d pose(RRRConfig q) {
+        return m_kinematics.forward(q).p4();
     }
 
     public void stop() {
@@ -139,8 +142,8 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         return new MoveWithTrajectorySE2(m_log, this, goal, speed);
     }
 
-    public MoveAndHold moveSplined(DirectionSE2 startv, Pose2d goal, DirectionSE2 goalv) {
-        return new MoveWithSpline(m_log, this, startv, goal, goalv);
+    public MoveAndHold moveSplined(VelocitySE2 x0dot, Pose2d x1, VelocitySE2 x1dot) {
+        return new MoveWithSpline(m_log, this, x0dot, x1, x1dot);
     }
 
     @Override

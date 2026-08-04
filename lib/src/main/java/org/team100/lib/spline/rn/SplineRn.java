@@ -21,17 +21,17 @@ public class SplineRn<N extends Num> {
     public SplineRn(Nat<N> dim, WaypointRn<N> p0, WaypointRn<N> p1) {
         m_dim = dim;
         m_splines = new SplineR1[dim.getNum()];
-        // start and end second derivatives are always zero
+        // start and end second derivatives are always zero,
+        // i.e. zero jerk at the ends.
+        // Note, maybe zero jerk isn't that important?
+        // TODO: use dx as ddx instead, since it's quicker?
         double ddx0 = 0;
         double ddx1 = 0;
-        double d = p0.position().minus(p1.position()).norm();
         for (int i = 0; i < dim.getNum(); ++i) {
             double x0 = p0.position().get(i);
             double x1 = p1.position().get(i);
-            double scale0 = p0.scale() * d;
-            double scale1 = p1.scale() * d;
-            double dx0 = p0.direction().get(i) * scale0;
-            double dx1 = p1.direction().get(i) * scale1;
+            double dx0 = p0.velocity().get(i);
+            double dx1 = p1.velocity().get(i);
             SplineR1 spline = SplineR1.get(x0, x1, dx0, dx1, ddx0, ddx1);
             if (DEBUG)
                 System.out.printf("%d %s\n", i, spline);

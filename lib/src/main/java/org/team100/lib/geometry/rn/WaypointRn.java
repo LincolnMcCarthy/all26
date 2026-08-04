@@ -6,17 +6,15 @@ import edu.wpi.first.math.Num;
 import edu.wpi.first.math.Vector;
 
 /**
- * @param position  vector in Rn
- * @param direction unit vector in Rn (normalized here)
- * @param scale     influence of the direction
+ * Note: velocity is used for the spline endpoint, it's not exactly
+ * velocity in any formal sense.
  */
 public record WaypointRn<N extends Num>(
-        Vector<N> position, Vector<N> direction, double scale) {
+        Vector<N> position, Vector<N> velocity) {
 
-    public WaypointRn(Vector<N> position, Vector<N> direction, double scale) {
+    public WaypointRn(Vector<N> position, Vector<N> velocity) {
         this.position = position;
-        this.direction = direction.unit();
-        this.scale = scale;
+        this.velocity = velocity;
     }
 
     public int dim() {
@@ -26,7 +24,7 @@ public record WaypointRn<N extends Num>(
     @Override
     public String toString() {
         return String.format("WaypointRn [%s %s]",
-                StrUtil.vecStr(position), StrUtil.vecStr(direction));
+                StrUtil.vecStr(position), StrUtil.vecStr(velocity));
     }
 
 }
