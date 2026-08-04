@@ -31,6 +31,7 @@ import edu.wpi.first.math.numbers.N3;
  * anything in particular (e.g. be straight).
  */
 public class MoveWithSpline extends MoveAndHold {
+    private static final boolean DEBUG = false;
     private final LoggerFactory m_log;
     private final RRRArm m_arm;
     private final Pose2d m_goal;
@@ -69,11 +70,16 @@ public class MoveWithSpline extends MoveAndHold {
         // really know what to use here, for arbitrary starting location.
         // TODO: this really only works if you specify it.
         WaypointRn<N3> p0 = new WaypointRn<>(q0.toVector(), q0dot.toVector());
-        // WaypointRn<N3> p0 = new WaypointRn<>(q0.toVector(), VecBuilder.fill(0, 0, 0));
+        // WaypointRn<N3> p0 = new WaypointRn<>(q0.toVector(), VecBuilder.fill(0, 0,
+        // 0));
 
         RRRConfig q1 = m_arm.config(m_goal);
         RRRVelocity q1dot = m_arm.qdot(q1, m_goalv);
         WaypointRn<N3> p1 = new WaypointRn<>(q1.toVector(), q1dot.toVector());
+
+        if (DEBUG) {
+            System.out.printf("p0 %s p1 %s\n", p0, p1);
+        }
 
         SplineRn<N3> spline = new SplineRn<>(Nat.N3(), p0, p1);
         SplineReferenceRn<N3> reference = new SplineReferenceRn<>(
@@ -95,9 +101,10 @@ public class MoveWithSpline extends MoveAndHold {
 
     @Override
     public boolean isDone() {
-        return false;
+        return m_referenceController != null && m_referenceController.isDone();
     }
 
+    // TODO: implement toGo
     @Override
     public double toGo() {
         return 0;

@@ -1,5 +1,7 @@
 package org.team100.lib.geometry.rn;
 
+import org.team100.lib.util.StrUtil;
+
 import edu.wpi.first.math.Num;
 import edu.wpi.first.math.Vector;
 
@@ -17,4 +19,11 @@ public record WaypointRn<N extends Num>(Vector<N> position, Vector<N> direction)
     public int dim() {
         return position.getNumRows();
     }
+
+    @Override
+    public String toString() {
+        return String.format("WaypointRn [%s %s]",
+                StrUtil.vecStr(position), StrUtil.vecStr(direction));
+    }
+
 }

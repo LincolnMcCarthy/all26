@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class Binder {
+    private static final boolean BLARG = false;
 
     private final Machinery m_machinery;
 
@@ -29,37 +30,38 @@ public class Binder {
         // "Y" is button 4, "v" in sim
 
         // profiles in joint space make kinda circular paths in workspace
-        // MoveAndHold move1 = m_machinery.m_arm.moveProfiled(
-        // new Pose2d(0.4, 0.25, new Rotation2d(0)));
-        // MoveAndHold move2 = m_machinery.m_arm.moveProfiled(
-        // new Pose2d(0.6, 0.25, new Rotation2d(0)));
-        // MoveAndHold move3 = m_machinery.m_arm.moveProfiled(
-        // new Pose2d(0.6, -0.25, new Rotation2d(0)));
-        // MoveAndHold move4 = m_machinery.m_arm.moveProfiled(
-        // new Pose2d(0.4, -0.25, new Rotation2d(0)));
-        // whileTrue(m_controller::getAButton, // "z"
-        // move1.until(move1::isDone)
-        // .andThen(move2.until(move2::isDone))
-        // .andThen(move3.until(move3::isDone))
-        // .andThen(move4.until(move4::isDone)));
-
-        MoveAndHold move1 = m_machinery.m_arm.moveSplined(
-                new Pose2d(0.4, 0.25, new Rotation2d(0)),
-                new VelocitySE2(0, 1, 0));
-        MoveAndHold move2 = m_machinery.m_arm.moveSplined(
-                new Pose2d(0.6, 0.25, new Rotation2d(0)),
-                new VelocitySE2(1, 0, 0));
-        MoveAndHold move3 = m_machinery.m_arm.moveSplined(
-                new Pose2d(0.6, -0.25, new Rotation2d(0)),
-                new VelocitySE2(0, -1, 0));
-        MoveAndHold move4 = m_machinery.m_arm.moveSplined(
-                new Pose2d(0.4, -0.25, new Rotation2d(0)),
-                new VelocitySE2(-1, 0, 0));
-        whileTrue(m_controller::getAButton, // "z"
+        MoveAndHold move1 = m_machinery.m_arm.moveProfiled(
+                new Pose2d(0.4, 0.25, new Rotation2d(0)));
+        MoveAndHold move2 = m_machinery.m_arm.moveProfiled(
+                new Pose2d(0.6, 0.25, new Rotation2d(0)));
+        MoveAndHold move3 = m_machinery.m_arm.moveProfiled(
+                new Pose2d(0.6, -0.25, new Rotation2d(0)));
+        MoveAndHold move4 = m_machinery.m_arm.moveProfiled(
+                new Pose2d(0.4, -0.25, new Rotation2d(0)));
+        whileTrue(m_controller::getAButton,
                 move1.until(move1::isDone)
                         .andThen(move2.until(move2::isDone))
                         .andThen(move3.until(move3::isDone))
                         .andThen(move4.until(move4::isDone)));
+
+        // spline ends are kinda straighter
+        MoveAndHold move1s = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.4, 0.25, new Rotation2d(0)),
+                new VelocitySE2(0, 1, 0));
+        MoveAndHold move2s = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.6, 0.25, new Rotation2d(0)),
+                new VelocitySE2(1, 0, 0));
+        MoveAndHold move3s = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.6, -0.25, new Rotation2d(0)),
+                new VelocitySE2(0, -1, 0));
+        MoveAndHold move4s = m_machinery.m_arm.moveSplined(
+                new Pose2d(0.4, -0.25, new Rotation2d(0)),
+                new VelocitySE2(-1, 0, 0));
+        whileTrue(m_controller::getBButton,
+                move1s.until(move1s::isDone)
+                        .andThen(move2s.until(move2s::isDone))
+                        .andThen(move3s.until(move3s::isDone))
+                        .andThen(move4s.until(move4s::isDone)));
 
         // trajectories in workspace make straight lines in workspace
         MoveAndHold move1t = m_machinery.m_arm.moveTrajSE2(
@@ -70,7 +72,7 @@ public class Binder {
                 new Pose2d(0.6, -0.25, new Rotation2d(0)), 1);
         MoveAndHold move4t = m_machinery.m_arm.moveTrajSE2(
                 new Pose2d(0.4, -0.25, new Rotation2d(0)), 1);
-        whileTrue(m_controller::getBButton, // "x"
+        whileTrue(m_controller::getXButton,
                 move1t.until(move1t::isDone)
                         .andThen(move2t.until(move2t::isDone))
                         .andThen(move3t.until(move3t::isDone))
@@ -95,7 +97,7 @@ public class Binder {
                 new Pose2d(0.4, 0, new Rotation2d(-Math.PI / 2)));
         MoveAndHold s8 = m_machinery.m_arm.moveProfiled(
                 new Pose2d(0.4, 0, new Rotation2d(-Math.PI / 4)));
-        whileTrue(m_controller::getXButton, // "c"
+        whileTrue(m_controller::getYButton, // "c"
                 s1.until(s1::isDone)
                         .andThen(s2.until(s2::isDone))
                         .andThen(s3.until(s3::isDone))
@@ -105,38 +107,40 @@ public class Binder {
                         .andThen(s7.until(s7::isDone))
                         .andThen(s8.until(s8::isDone)));
 
-        // this uses slightly-offset points so that the spline-maker
-        // doesn't freak out.
-        // This illustrates that the trajectory planner is unaware of the
-        // arm configuration, and drives it into its limits. The simulation
-        // just "warps" to the other side of the limit; the real mechanism
-        // would not.
-        double v = 0.01; // velocity is x/y only
-        MoveAndHold st1 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.39, 0, new Rotation2d(0)), v);
-        MoveAndHold st2 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.39, -0.01, new Rotation2d(Math.PI / 4)), v);
-        MoveAndHold st3 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.4, -0.01, new Rotation2d(Math.PI / 2)), v);
-        MoveAndHold st4 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.41, -0.01, new Rotation2d(3 * Math.PI / 4)), v);
-        MoveAndHold st5 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.41, 0, new Rotation2d(Math.PI)), v);
-        MoveAndHold st6 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.41, 0.01, new Rotation2d(-3 * Math.PI / 4)), v);
-        MoveAndHold st7 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.4, 0.01, new Rotation2d(-Math.PI / 2)), v);
-        MoveAndHold st8 = m_machinery.m_arm.moveTrajSE2(
-                new Pose2d(0.39, 0.01, new Rotation2d(-Math.PI / 4)), v);
-        whileTrue(m_controller::getYButton, // "v"
-                st1.until(st1::isDone)
-                        .andThen(st2.until(st2::isDone))
-                        .andThen(st3.until(st3::isDone))
-                        .andThen(st4.until(st4::isDone))
-                        .andThen(st5.until(st5::isDone))
-                        .andThen(st6.until(st6::isDone))
-                        .andThen(st7.until(st7::isDone))
-                        .andThen(st8.until(st8::isDone)));
+        if (BLARG) {
+            // this uses slightly-offset points so that the spline-maker
+            // doesn't freak out.
+            // This illustrates that the trajectory planner is unaware of the
+            // arm configuration, and drives it into its limits. The simulation
+            // just "warps" to the other side of the limit; the real mechanism
+            // would not.
+            double v = 0.01; // velocity is x/y only
+            MoveAndHold st1 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.39, 0, new Rotation2d(0)), v);
+            MoveAndHold st2 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.39, -0.01, new Rotation2d(Math.PI / 4)), v);
+            MoveAndHold st3 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.4, -0.01, new Rotation2d(Math.PI / 2)), v);
+            MoveAndHold st4 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.41, -0.01, new Rotation2d(3 * Math.PI / 4)), v);
+            MoveAndHold st5 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.41, 0, new Rotation2d(Math.PI)), v);
+            MoveAndHold st6 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.41, 0.01, new Rotation2d(-3 * Math.PI / 4)), v);
+            MoveAndHold st7 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.4, 0.01, new Rotation2d(-Math.PI / 2)), v);
+            MoveAndHold st8 = m_machinery.m_arm.moveTrajSE2(
+                    new Pose2d(0.39, 0.01, new Rotation2d(-Math.PI / 4)), v);
+            whileTrue(m_controller::getYButton, // "v"
+                    st1.until(st1::isDone)
+                            .andThen(st2.until(st2::isDone))
+                            .andThen(st3.until(st3::isDone))
+                            .andThen(st4.until(st4::isDone))
+                            .andThen(st5.until(st5::isDone))
+                            .andThen(st6.until(st6::isDone))
+                            .andThen(st7.until(st7::isDone))
+                            .andThen(st8.until(st8::isDone)));
+        }
     }
 
     public void close() {

@@ -8,13 +8,14 @@ import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.spline.rn.SplineRn;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ModelR1;
+import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.Num;
 import edu.wpi.first.math.Vector;
 
 /** Produces references based on an N-dimensional spline. */
 public class SplineReferenceRn<N extends Num> implements ReferenceRn {
-
+    private static final boolean DEBUG = false;
     private final SplineRn<N> m_spline;
     private final double m_duration;
     private double m_startTime;
@@ -55,7 +56,11 @@ public class SplineReferenceRn<N extends Num> implements ReferenceRn {
     }
 
     Vector<N> sample(double t) {
-        return m_spline.x(t / m_duration);
+        double s = t / m_duration;
+        Vector<N> x = m_spline.x(s);
+        if (DEBUG)
+            System.out.printf("%f: %s\n", s, StrUtil.vecStr(x));
+        return x;
     }
 
     private double progress() {

@@ -13,6 +13,7 @@ import edu.wpi.first.math.Vector;
  * TODO: also dx, ddx, etc.
  */
 public class SplineRn<N extends Num> {
+    private static final boolean DEBUG = false;
 
     private final Nat<N> m_dim;
     private final SplineR1 m_splines[];
@@ -29,7 +30,8 @@ public class SplineRn<N extends Num> {
             double dx0 = p0.direction().get(i);
             double dx1 = p1.direction().get(i);
             SplineR1 spline = SplineR1.get(x0, x1, dx0, dx1, ddx0, ddx1);
-            System.out.printf("%d %s\n", i, spline);
+            if (DEBUG)
+                System.out.printf("%d %s\n", i, spline);
             m_splines[i] = spline;
         }
     }
