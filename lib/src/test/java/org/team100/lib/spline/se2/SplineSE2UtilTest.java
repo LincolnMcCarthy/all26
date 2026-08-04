@@ -8,8 +8,6 @@ import org.jfree.data.xy.VectorSeries;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
-import org.team100.lib.spline.se2.SplineSE2;
-import org.team100.lib.spline.se2.SplineSE2Util;
 import org.team100.lib.util.ChartUtil;
 
 import edu.wpi.first.math.Vector;

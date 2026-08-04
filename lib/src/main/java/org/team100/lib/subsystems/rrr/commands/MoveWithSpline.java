@@ -12,7 +12,6 @@ import org.team100.lib.spline.rn.SplineRn;
 import org.team100.lib.subsystems.rrr.RRRArm;
 
 import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;

@@ -7,9 +7,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.se3.DirectionSE3;
 import org.team100.lib.geometry.se3.WaypointSE3;
-import org.team100.lib.path.se3.PathSE3;
-import org.team100.lib.path.se3.PathSE3Factory;
-import org.team100.lib.path.se3.PathSE3Point;
 import org.team100.lib.spline.se3.SplineSE3;
 import org.team100.lib.spline.se3.SplineSE3Factory;
 

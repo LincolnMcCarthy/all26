@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.jfree.data.xy.VectorSeries;
 import org.jfree.data.xy.XYSeries;
-import org.team100.lib.spline.se2.ISplineSE2;
-import org.team100.lib.spline.se2.SplineSE2;
 
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;

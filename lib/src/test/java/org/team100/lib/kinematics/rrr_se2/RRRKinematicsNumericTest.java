@@ -1,7 +1,5 @@
 package org.team100.lib.kinematics.rrr_se2;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 import org.team100.lib.testing.TestUtil;
 

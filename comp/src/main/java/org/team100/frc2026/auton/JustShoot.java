@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;

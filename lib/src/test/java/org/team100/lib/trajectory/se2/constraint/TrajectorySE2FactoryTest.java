@@ -20,9 +20,6 @@ import org.team100.lib.trajectory.se2.TrajectorySE2;
 import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
 import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
 import org.team100.lib.trajectory.se2.TrajectorySE2ToVectorSeries;
-import org.team100.lib.trajectory.se2.constraint.CapsizeAccelerationConstraint;
-import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
 import org.team100.lib.util.ChartUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;

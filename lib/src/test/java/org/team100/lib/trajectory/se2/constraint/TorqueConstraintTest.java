@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.path.se2.PathSE2Point;
-import org.team100.lib.trajectory.se2.constraint.TorqueConstraint;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;

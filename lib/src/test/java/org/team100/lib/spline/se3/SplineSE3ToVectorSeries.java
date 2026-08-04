@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.jfree.chart3d.data.xyz.XYZDataset;
 import org.jfree.chart3d.data.xyz.XYZSeriesCollection;
-import org.team100.lib.spline.se3.SplineSE3;
 import org.team100.lib.util.ChartUtil3d;
 
 import edu.wpi.first.math.geometry.Pose3d;

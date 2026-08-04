@@ -14,10 +14,6 @@ import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.testing.Timeless;
 import org.team100.lib.trajectory.se2.TrajectorySE2;
 import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
-import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.se2.constraint.SwerveDriveDynamicsConstraint;
-import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
-import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
