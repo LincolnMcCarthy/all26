@@ -1,6 +1,7 @@
 package org.team100.lib.subsystems.rrr.commands;
 
 import org.team100.lib.commands.MoveAndHold;
+import org.team100.lib.geometry.Metrics;
 import org.team100.lib.geometry.rn.WaypointRn;
 import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.geometry.rrr.RRRVelocity;
@@ -14,8 +15,6 @@ import org.team100.lib.subsystems.rrr.RRRArm;
 
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N3;
 
 /**
@@ -32,7 +31,7 @@ import edu.wpi.first.math.numbers.N3;
  * anything in particular (e.g. be straight).
  */
 public class MoveWithSpline extends MoveAndHold {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private final LoggerFactory m_log;
     private final RRRArm m_arm;
     private final DirectionSE2 m_startv;
@@ -63,7 +62,8 @@ public class MoveWithSpline extends MoveAndHold {
     public void initialize() {
         // Pose2d start = m_arm.pose();
         // Translation2d currTranslation = start.getTranslation();
-        // Rotation2d courseToGoal = m_goal.getTranslation().minus(currTranslation).getAngle();
+        // Rotation2d courseToGoal =
+        // m_goal.getTranslation().minus(currTranslation).getAngle();
         // VelocitySE2 dx0 = VelocitySE2.fromAngle(courseToGoal);
         RRRConfig q0 = m_arm.getConfig();
         // RRRVelocity q0dot = m_arm.qdot(q0, dx0);
@@ -86,8 +86,20 @@ public class MoveWithSpline extends MoveAndHold {
         }
 
         SplineRn<N3> spline = new SplineRn<>(Nat.N3(), p0, p1);
+        // double duration = 1;
+        // use the city-block metric to choose duration.
+        // single axis should move about 2 rad/s
+        // l1 norm treats all joints the same: large wrist distances slow
+        // down the whole profile.
+        // RRRConfig.distance weighs the root higher, so wrist movements
+        // are quicker; maybe too fast?
+        // TODO: which is better?
+        // double duration = 0.5 * Metrics.l1Norm(q0.toVector().minus(q1.toVector()));
+        double duration = 0.5 * q0.distance(q1);
+        if (DEBUG)
+            System.out.printf("duration %f\n", duration);
         SplineReferenceRn<N3> reference = new SplineReferenceRn<>(
-                spline, 1);
+                spline, duration);
         m_referenceController = new PositionReferenceControllerRn(
                 m_arm, reference);
     }

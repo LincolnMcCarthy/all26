@@ -4,6 +4,8 @@ import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.profile.r1.ProfileR1;
+import org.team100.lib.profile.r1.WPITrapezoidProfileR1;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,15 +30,16 @@ public class Binder {
         // new Pose2d(0.5, 0.25, new Rotation2d(0))));
 
         // "Y" is button 4, "v" in sim
+        ProfileR1 profile = new WPITrapezoidProfileR1(3, 6);
 
         // profiles in joint space make kinda circular paths in workspace
-        MoveAndHold move1 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold move1 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0.25, new Rotation2d(0)));
-        MoveAndHold move2 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold move2 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.6, 0.25, new Rotation2d(0)));
-        MoveAndHold move3 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold move3 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.6, -0.25, new Rotation2d(0)));
-        MoveAndHold move4 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold move4 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, -0.25, new Rotation2d(0)));
         whileTrue(m_controller::getAButton,
                 move1.until(move1::isDone)
@@ -86,21 +89,21 @@ public class Binder {
         // this shows how the inverse kinematics selects the right
         // way to go, and also how joint profiles don't care about
         // covering any R2 ground
-        MoveAndHold s1 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s1 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(0)));
-        MoveAndHold s2 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s2 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(Math.PI / 4)));
-        MoveAndHold s3 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s3 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(Math.PI / 2)));
-        MoveAndHold s4 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s4 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(3 * Math.PI / 4)));
-        MoveAndHold s5 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s5 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(Math.PI)));
-        MoveAndHold s6 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s6 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(-3 * Math.PI / 4)));
-        MoveAndHold s7 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s7 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(-Math.PI / 2)));
-        MoveAndHold s8 = m_machinery.m_arm.moveProfiled(
+        MoveAndHold s8 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.4, 0, new Rotation2d(-Math.PI / 4)));
         whileTrue(m_controller::getYButton, // "c"
                 s1.until(s1::isDone)
