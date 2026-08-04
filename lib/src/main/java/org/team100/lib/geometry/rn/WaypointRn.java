@@ -6,14 +6,17 @@ import edu.wpi.first.math.Num;
 import edu.wpi.first.math.Vector;
 
 /**
- * A waypoint is a position, represented as a vector,
- * and a direction, represented as a unit vector.
+ * @param position  vector in Rn
+ * @param direction unit vector in Rn (normalized here)
+ * @param scale     influence of the direction
  */
-public record WaypointRn<N extends Num>(Vector<N> position, Vector<N> direction) {
+public record WaypointRn<N extends Num>(
+        Vector<N> position, Vector<N> direction, double scale) {
 
-    public WaypointRn(Vector<N> position, Vector<N> direction) {
+    public WaypointRn(Vector<N> position, Vector<N> direction, double scale) {
         this.position = position;
         this.direction = direction.unit();
+        this.scale = scale;
     }
 
     public int dim() {

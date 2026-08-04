@@ -3,7 +3,7 @@ package frc.robot;
 import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.commands.MoveAndHold;
-import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -45,18 +45,23 @@ public class Binder {
                         .andThen(move4.until(move4::isDone)));
 
         // spline ends are kinda straighter
+        // note approach directions.
         MoveAndHold move1s = m_machinery.m_arm.moveSplined(
+                new DirectionSE2(1, 0, 0),
                 new Pose2d(0.4, 0.25, new Rotation2d(0)),
-                new VelocitySE2(0, 1, 0));
+                new DirectionSE2(-1, 0, 0));
         MoveAndHold move2s = m_machinery.m_arm.moveSplined(
+                new DirectionSE2(0, -1, 0),
                 new Pose2d(0.6, 0.25, new Rotation2d(0)),
-                new VelocitySE2(1, 0, 0));
+                new DirectionSE2(0, 1, 0));
         MoveAndHold move3s = m_machinery.m_arm.moveSplined(
+                new DirectionSE2(-1, 0, 0),
                 new Pose2d(0.6, -0.25, new Rotation2d(0)),
-                new VelocitySE2(0, -1, 0));
+                new DirectionSE2(1, 0, 0));
         MoveAndHold move4s = m_machinery.m_arm.moveSplined(
+                new DirectionSE2(0, 1, 0),
                 new Pose2d(0.4, -0.25, new Rotation2d(0)),
-                new VelocitySE2(-1, 0, 0));
+                new DirectionSE2(0, -1, 0));
         whileTrue(m_controller::getBButton,
                 move1s.until(move1s::isDone)
                         .andThen(move2s.until(move2s::isDone))

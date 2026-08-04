@@ -5,6 +5,7 @@ import java.util.List;
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.geometry.rrr.RRRVelocity;
+import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.kinematics.rrr_se2.RRRFeasibility;
 import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
@@ -137,8 +138,8 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         return new MoveWithTrajectorySE2(m_log, this, goal, speed);
     }
 
-    public MoveAndHold moveSplined(Pose2d goal, VelocitySE2 goalv) {
-        return new MoveWithSpline(m_log, this, goal, goalv);
+    public MoveAndHold moveSplined(DirectionSE2 startv, Pose2d goal, DirectionSE2 goalv) {
+        return new MoveWithSpline(m_log, this, startv, goal, goalv);
     }
 
     @Override

@@ -137,6 +137,10 @@ public record VelocitySE2(double x, double y, double theta) {
         return new VelocitySE2(r.getCos(), r.getSin(), 0);
     }
 
+    public static VelocitySE2 fromDirection(DirectionSE2 d, double magnitude) {
+        return new VelocitySE2(d.x, d.y, d.theta).times(magnitude);
+    }
+
     public Vector<N3> toVector() {
         return VecBuilder.fill(x, y, theta);
     }

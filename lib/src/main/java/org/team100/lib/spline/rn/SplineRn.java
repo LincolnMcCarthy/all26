@@ -24,11 +24,14 @@ public class SplineRn<N extends Num> {
         // start and end second derivatives are always zero
         double ddx0 = 0;
         double ddx1 = 0;
+        double d = p0.position().minus(p1.position()).norm();
         for (int i = 0; i < dim.getNum(); ++i) {
             double x0 = p0.position().get(i);
             double x1 = p1.position().get(i);
-            double dx0 = p0.direction().get(i);
-            double dx1 = p1.direction().get(i);
+            double scale0 = p0.scale() * d;
+            double scale1 = p1.scale() * d;
+            double dx0 = p0.direction().get(i) * scale0;
+            double dx1 = p1.direction().get(i) * scale1;
             SplineR1 spline = SplineR1.get(x0, x1, dx0, dx1, ddx0, ddx1);
             if (DEBUG)
                 System.out.printf("%d %s\n", i, spline);
