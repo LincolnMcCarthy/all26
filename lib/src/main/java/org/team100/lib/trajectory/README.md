@@ -1,6 +1,6 @@
-# lib.trajectory
+# Trajectories
 
-This package represents trajectories.  A trajectory is a path with a schedule, i.e. a time parameterization.
+A trajectory is a path with a schedule, i.e. a time parameterization.
 
 Trajectories in SE(2), for Pose2d, handle course and heading separately, so
 they have four dimensions: (x, y, heading, course).  The word "point" below

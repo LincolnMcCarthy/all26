@@ -7,5 +7,4 @@ package org.team100.lib.geometry.rr;
  * @param q2 rotation of joint 2 ("distal", "elbow"),CCW rad from link 1
  */
 public record RRConfig(double q1, double q2) {
-
 }

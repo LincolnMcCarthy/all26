@@ -21,19 +21,32 @@ public class StrUtil {
                 p.getX(), p.getY(), p.getRotation().getRadians());
     }
 
+    public static String poseStr(Pose2d p) {
+        return String.format("%.8e, %.8e, %.8e",
+                p.getX(), p.getY(), p.getRotation().getRadians());
+    }
+
+    /** Lots of decimal places. */
     public static String poseStr(Pose3d p) {
         return String.format("%.8e, %.8e, %.8e, %.8e, %.8e, %.8e",
                 p.getX(), p.getY(), p.getZ(),
                 p.getRotation().getX(), p.getRotation().getY(), p.getRotation().getZ());
     }
 
+    /** Prettier. */
+    public static String poseStr2(Pose3d p) {
+        return String.format("%5.2f, %5.2f, %5.2f, %5.2f, %5.2f, %5.2f",
+                p.getX(), p.getY(), p.getZ(),
+                p.getRotation().getX(), p.getRotation().getY(), p.getRotation().getZ());
+    }
+
     public static String twistStr(Twist2d t) {
-        return String.format("Twist2d: [%.8e %.8e %.8e]",
+        return String.format("[ %8.3f %8.3f %8.3f ]",
                 t.dx, t.dy, t.dtheta);
     }
 
     public static String twistStr(Twist3d t) {
-        return String.format("Twist3d: [%.8e %.8e %.8e %.8e %.8e %.8e]",
+        return String.format("[ %.8f %.8f %.8f %.8f %.8f %.8f ]",
                 t.dx, t.dy, t.dz, t.rx, t.ry, t.rz);
     }
 
@@ -59,9 +72,9 @@ public class StrUtil {
 
     public static String vecStr(Vector<?> m) {
         StringBuilder b = new StringBuilder();
-        b.append("[");
+        b.append("[ ");
         for (int i = 0; i < m.getNumRows(); ++i) {
-            b.append(String.format(" %10.6f", m.get(i)));
+            b.append(String.format("%8.3f ", m.get(i)));
         }
         b.append("]");
         return b.toString();

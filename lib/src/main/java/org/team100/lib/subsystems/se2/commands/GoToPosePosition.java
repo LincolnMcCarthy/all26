@@ -9,8 +9,8 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.reference.se2.TrajectoryReferenceSE2;
 import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
 import org.team100.lib.subsystems.se2.commands.helper.PositionReferenceControllerSE2;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
 
 /**
  * Using the pose at initialization time, and the specified course, construct a

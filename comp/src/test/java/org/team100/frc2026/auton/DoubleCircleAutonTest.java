@@ -10,7 +10,7 @@ import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 
 public class DoubleCircleAutonTest {
     private static final LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());

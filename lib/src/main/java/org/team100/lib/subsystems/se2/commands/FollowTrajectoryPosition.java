@@ -5,7 +5,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.reference.se2.TrajectoryReferenceSE2;
 import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
 import org.team100.lib.subsystems.se2.commands.helper.PositionReferenceControllerSE2;
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 
 /** Analogous to DriveWithTrajectory, but for SE2 positional control. */
 public class FollowTrajectoryPosition extends MoveAndHold {
