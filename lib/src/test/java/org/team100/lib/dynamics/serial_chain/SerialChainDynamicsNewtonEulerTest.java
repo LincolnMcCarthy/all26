@@ -1,10 +1,12 @@
-package org.team100.lib.dynamics.rrr;
+package org.team100.lib.dynamics.serial_chain;
 
 import org.junit.jupiter.api.Test;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
+import edu.wpi.first.math.numbers.N3;
 
-public class RRRDynamicsNewtonEulerTest {
+public class SerialChainDynamicsNewtonEulerTest {
         /**
      * See modern_robotics.core.py
      * 
@@ -59,13 +61,12 @@ public class RRRDynamicsNewtonEulerTest {
      */
       @Test
     void testInverseDynamics() {
-        var thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
-        var dthetalist = VecBuilder.fill(0.1, 0.2, 0.3);
-        var ddthetalist = VecBuilder.fill(2, 1.5, 1);
+        Vector<N3> thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
+        Vector<N3> dthetalist = VecBuilder.fill(0.1, 0.2, 0.3);
+        Vector<N3> ddthetalist = VecBuilder.fill(2, 1.5, 1);
+        Vector<N3> g = VecBuilder.fill(0, 0, -9.8);
 
         /**
-        ddthetalist = np.array([2, 1.5, 1])
-        g = np.array([0, 0, -9.8])
         Ftip = np.array([1, 1, 1, 1, 1, 1])
         M01 = np.array([[1, 0, 0,        0],
                         [0, 1, 0,        0],
@@ -91,9 +92,10 @@ public class RRRDynamicsNewtonEulerTest {
         Slist = np.array([[1, 0, 1,      0, 1,     0],
                           [0, 1, 0, -0.089, 0,     0],
                           [0, 1, 0, -0.089, 0, 0.425]]).T
-    Output:
-        np.array([74.69616155, -33.06766016, -3.23057314])
          */
+
+        Vector<N3> output = VecBuilder.fill(74.69616155, -33.06766016, -3.23057314);
+
     }
     
         /**

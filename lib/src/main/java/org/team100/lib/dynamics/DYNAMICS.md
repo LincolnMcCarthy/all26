@@ -198,6 +198,157 @@ G_2 =
 
 ```
 
+For each link, compute the transform from its predecessor to
+its center of mass.  For that, we use the exponential
+of the joint twist, which is
+```math
+e^{[S]\theta}
+=
+I + [S]\theta + [S]^2\frac{\theta^2}{2!} + \cdots
+=
+\begin{bmatrix}
+e^{[\omega]\theta} & G(\theta)v \\
+0 & 1
+\end{bmatrix}
+```
+where
+```math
+G(\theta) = 
+I\theta + (1-cos\theta)[\omega] + (1-sin\theta)[\omega]^2
+```
+
+So
+
+```math
+e^{[A_1]\theta_1} =
+\begin{bmatrix}
+cos(\theta_1) & -sin(\theta_1) & 0 & -L_1(1-cos(\theta_1)) \\ 
+sin(\theta_1) & cos(\theta_1) & 0 & L_1sin(\theta_1) \\ 
+0 & 0 & 1 & 0 \\ 
+0 & 0 & 0 & 1
+\end{bmatrix}
+
+```
+
+```math
+T_{01}
+=
+M_1 e^{[A_1]\theta_1}
+=
+\begin{bmatrix}
+1 & 0 & 0 & L_1 \\ 
+0 & 1 & 0 & 0 \\ 
+0 & 0 & 1 & 0 \\ 
+0 & 0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix}
+cos(\theta_1) & -sin(\theta_1) & 0 & -L_1(1-cos(\theta_1)) \\ 
+sin(\theta_1) & cos(\theta_1) & 0 & L_1sin(\theta_1) \\ 
+0 & 0 & 1 & 0 \\ 
+0 & 0 & 0 & 1
+\end{bmatrix}
+```
+```math
+T_{01}
+=
+\begin{bmatrix}
+cos(\theta_1) & -sin(\theta_1) & 0 & L_1 cos(\theta_1) \\
+sin(\theta_1) & cos(\theta_1) & 0 & L_1 sin(\theta_1) \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+```
+
+Compute the velocity, $V_1$, of the first link in its own
+frame:
+
+```math
+V_1 = Ad_{T_{10}}V_0 + A_1\dot{\theta}_1
+```
+Since $V_0 = 0$,
+```math
+V_1 = 
+\begin{bmatrix}
+0 \\
+0 \\
+1 \\
+0 \\
+L_1 \\
+0
+\end{bmatrix}
+\dot{\theta}_1
+=
+\begin{bmatrix}
+0 \\
+0 \\
+\dot{\theta}_1 \\
+0 \\
+L_1 \dot{\theta}_1
+\\
+0
+\end{bmatrix}
+```
+
+Compute the acceleration, $\dot{V}_1$, of the first link in
+its own frame (note the Lie bracket).
+
+```math
+\dot{V}_1 =
+Ad_{T_{10}}\dot{V}_0 + [V_1,A_1]\dot{\theta}_1 + A_1\ddot{\theta}_1
+```
+Recall the acceleration of the base involves $g$:
+
+```math
+\dot{V}_1 =
+\begin{bmatrix}
+0 \\
+0 \\
+\ddot{\theta}_1 \\
+g sin (\theta_1) \\
+g cos (\theta_1) + L_1\ddot{\theta}_1 \\
+0
+\end{bmatrix}
+```
+
+Repeating for the second link:
+```math
+T_{12} =
+\begin{bmatrix}
+cos(\theta_2) & -sin(\theta_2) & 0 & L_2cos(\theta_2) \\
+sin(\theta_2) & cos(\theta_2) & 0 & L_2sin(\theta_2) \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+```
+
+```math
+V_2 =
+\begin{bmatrix}
+0 \\
+0 \\
+\dot{\theta}_1 + \dot{\theta}_2 \\
+L_1 sin(\theta_2)\dot{\theta}_1 \\
+(L_2 + L_1 cos(theta_2)) \dot{\theta}_1 + L_2\dot{\theta}_2
+\\
+0
+\end{bmatrix}
+```
+
+```math
+\dot{V}_1 =
+\begin{bmatrix}
+0 \\
+0 \\
+\ddot{\theta}_1 +\ddot{\theta}_2 \\
+g sin (\theta_1+\theta_2) + L_1 cos(\theta_2)\dot{\theta}_1\dot{\theta}_2 + L_1sin(\theta_2))\ddot{\theta}_1\\
+g cos (\theta_1+\theta_2) -L_1sin(\theta_2)\dot{\theta}_1\dot{\theta}_2 + (L_2 + L_1cos(\theta_2)\ddot{\theta}_1 + L_2\ddot{\theta}_2\\
+0
+\end{bmatrix}
+```
+
+Then work backwards from the end-effector (which has the
+same frame as link 2).)
+
 
 ## References
 

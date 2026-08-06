@@ -1,11 +1,11 @@
-package org.team100.lib.dynamics.rr;
+package org.team100.lib.dynamics.rrr;
 
 /**
  * Port of Modern Robotics dynamics code.
  * 
  * https://github.com/NxRLab/ModernRobotics/blob/master/packages/Python/modern_robotics/core.py
  */
-public class RRDynamicsNewtonEuler {
+public class RRRDynamicsNewtonEuler {
 
     /**
      * Computes forward dynamics in the space frame for an open chain robot.
@@ -37,7 +37,7 @@ public class RRDynamicsNewtonEuler {
             int Glist,
             int Slist) {
                 /*
-                 return np.dot(np.linalg.inv(MassMatrix(thetalist, Mlist, Glist, \
+                    return np.dot(np.linalg.inv(MassMatrix(thetalist, Mlist, Glist, \
                                            Slist)), \
                   np.array(taulist) \
                   - VelQuadraticForces(thetalist, dthetalist, Mlist, \
@@ -68,7 +68,7 @@ public class RRDynamicsNewtonEuler {
              chain at the given configuration thetalist
 
      */
-    void MassMatrix(
+            void MassMatrix(
         int thetalist, 
         int Mlist, 
         int Glist,
@@ -86,6 +86,7 @@ public class RRDynamicsNewtonEuler {
             */
 
     }
+
 
     /**
      * Computes inverse dynamics in the space frame for an open chain robot.
@@ -118,8 +119,9 @@ public class RRDynamicsNewtonEuler {
             int Mlist,
             int Glist,
             int Slist) {
-/*
-   n = len(thetalist)
+                /**
+                 *
+    n = len(thetalist)
     Mi = np.eye(4)
     Ai = np.zeros((6, n))
     AdTi = [[None]] * (n + 1)
@@ -146,6 +148,8 @@ public class RRDynamicsNewtonEuler {
                       np.dot(np.array(Glist[i]), Vi[:, i + 1]))
         taulist[i] = np.dot(np.array(Fi).T, Ai[:, i])
     return taulist
-*/
+                 */
+
     }
+
 }
