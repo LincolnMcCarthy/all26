@@ -21,141 +21,80 @@ import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.numbers.N6;
 
 /**
- * See modern_robotics.core.py
- * 
- * Example Input (3 Link Robot)
+ * See modern_robotics/core.py
  */
 public class SerialChainDynamicsNewtonEulerTest {
 
+    // Example Input (3 Link Robot)
+    Vector<N3> thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
+    Vector<N3> dthetalist = VecBuilder.fill(0.1, 0.2, 0.3);
+    Vector<N3> ddthetalist = VecBuilder.fill(2, 1.5, 1);
+    Vector<N3> taulist = VecBuilder.fill(0.5, 0.6, 0.7);
+    Vector<N3> g = VecBuilder.fill(0, 0, -9.8);
+    Vector<N6> Ftip = VecBuilder.fill(1, 1, 1, 1, 1, 1);
+    Matrix<N4, N4> M01 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
+            1, 0, 0, 0, //
+            0, 1, 0, 0, //
+            0, 0, 1, 0.089159, //
+            0, 0, 0, 1);
+    Matrix<N4, N4> M12 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
+            0, 0, 1, 0.28, //
+            0, 1, 0, 0.13585, //
+            -1, 0, 0, 0, //
+            0, 0, 0, 1);
+    Matrix<N4, N4> M23 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
+            1, 0, 0, 0, //
+            0, 1, 0, -0.1197, //
+            0, 0, 1, 0.395, //
+            0, 0, 0, 1);
+    Matrix<N4, N4> M34 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
+            1, 0, 0, 0, //
+            0, 1, 0, 0, //
+            0, 0, 1, 0.14225, //
+            0, 0, 0, 1);
+    Matrix<N6, N6> G1 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
+            0.010267, 0.010267, 0.00666, 3.7, 3.7, 3.7));
+    Matrix<N6, N6> G2 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
+            0.22689, 0.22689, 0.0151074, 8.393, 8.393, 8.393));
+    Matrix<N6, N6> G3 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
+            0.0494433, 0.0494433, 0.004095, 2.275, 2.275, 2.275));
+    FixedList<N3, Matrix<N6, N6>> Glist = new FixedList<>(Nat.N3(),
+            List.of(G1, G2, G3));
+    FixedList<N4, Matrix<N4, N4>> Mlist = new FixedList<>(Nat.N4(),
+            List.of(M01, M12, M23, M34));
+    FixedList<N3, Vector<N6>> Slist = new FixedList<>(Nat.N3(),
+            List.of(VecBuilder.fill(1, 0, 1, 0, 1, 0),
+                    VecBuilder.fill(0, 1, 0, -0.089, 0, 0),
+                    VecBuilder.fill(0, 1, 0, -0.089, 0, 0.425)));
+
     @Test
-    void testForwardDynamics() {
-        Vector<N3> thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
-        Vector<N3> dthetalist = VecBuilder.fill(0.1, 0.2, 0.3);
-        Vector<N3> taulist = VecBuilder.fill(0.5, 0.6, 0.7);
-        Vector<N3> g = VecBuilder.fill(0, 0, -9.8);
-        Vector<N6> Ftip = VecBuilder.fill(1, 1, 1, 1, 1, 1);
-        Matrix<N4, N4> M01 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.089159, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M12 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                0, 0, 1, 0.28, //
-                0, 1, 0, 0.13585, //
-                -1, 0, 0, 0, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M23 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, -0.1197, //
-                0, 0, 1, 0.395, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M34 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.14225, //
-                0, 0, 0, 1);
-
-        Matrix<N6, N6> G1 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.010267, 0.010267, 0.00666, 3.7, 3.7, 3.7));
-        Matrix<N6, N6> G2 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.22689, 0.22689, 0.0151074, 8.393, 8.393, 8.393));
-        Matrix<N6, N6> G3 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.0494433, 0.0494433, 0.004095, 2.275, 2.275, 2.275));
-        FixedList<N3, Matrix<N6, N6>> Glist = new FixedList<>(Nat.N3(),
-                List.of(G1, G2, G3));
-        FixedList<N4, Matrix<N4, N4>> Mlist = new FixedList<>(Nat.N4(),
-                List.of(M01, M12, M23, M34));
-        FixedList<N3, Vector<N6>> Slist = new FixedList<>(Nat.N3(),
-                List.of(VecBuilder.fill(1, 0, 1, 0, 1, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0.425)));
-
-        Vector<N3> output = VecBuilder.fill(-0.97392907, 25.58466784, -32.91499212);
+    void testad() {
+        Matrix<N6, N1> V = MatBuilder.fill(Nat.N6(), Nat.N1(), //
+                1, 2, 3, 4, 5, 6);
+        Matrix<N6, N6> actual = SerialChainDynamicsNewtonEuler.ad(V);
+        Matrix<N6, N6> expected = MatBuilder.fill(Nat.N6(), Nat.N6(), //
+                0, -3, 2, 0, 0, 0, //
+                3, 0, -1, 0, 0, 0, //
+                -2, 1, 0, 0, 0, 0, //
+                0, -6, 5, 0, -3, 2, //
+                6, 0, -4, 3, 0, -1, //
+                -5, 4, 0, -2, 1, 0);
+        TestUtil.verify(expected, actual);
     }
 
     @Test
     void testInverseDynamics() {
-        Vector<N3> thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
-        Vector<N3> dthetalist = VecBuilder.fill(0.1, 0.2, 0.3);
-        Vector<N3> ddthetalist = VecBuilder.fill(2, 1.5, 1);
-        Vector<N3> g = VecBuilder.fill(0, 0, -9.8);
-        Vector<N6> Ftip = VecBuilder.fill(1, 1, 1, 1, 1, 1);
-        Matrix<N4, N4> M01 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.089159, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M12 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                0, 0, 1, 0.28, //
-                0, 1, 0, 0.13585, //
-                -1, 0, 0, 0, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M23 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, -0.1197, //
-                0, 0, 1, 0.395, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M34 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.14225, //
-                0, 0, 0, 1);
-
-        Matrix<N6, N6> G1 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.010267, 0.010267, 0.00666, 3.7, 3.7, 3.7));
-        Matrix<N6, N6> G2 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.22689, 0.22689, 0.0151074, 8.393, 8.393, 8.393));
-        Matrix<N6, N6> G3 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.0494433, 0.0494433, 0.004095, 2.275, 2.275, 2.275));
-        FixedList<N3, Matrix<N6, N6>> Glist = new FixedList<>(Nat.N3(),
-                List.of(G1, G2, G3));
-        FixedList<N4, Matrix<N4, N4>> Mlist = new FixedList<>(Nat.N4(),
-                List.of(M01, M12, M23, M34));
-        FixedList<N3, Vector<N6>> Slist = new FixedList<>(Nat.N3(),
-                List.of(VecBuilder.fill(1, 0, 1, 0, 1, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0.425)));
-
-        Vector<N3> output = VecBuilder.fill(74.69616155, -33.06766016, -3.23057314);
+        SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
+                Nat.N3(), Nat.N4());
+        Vector<N3> actual = d.InverseDynamics(
+                thetalist, dthetalist, ddthetalist, g, Ftip,
+                Mlist, Glist, Slist);
+        Vector<N3> expected = VecBuilder.fill(74.69616155, -33.06766016, -3.23057314);
+        TestUtil.verify(expected, actual);
     }
 
     @Test
     void testMassMatrix() {
-        Vector<N3> thetalist = VecBuilder.fill(0.1, 0.1, 0.1);
-        Matrix<N4, N4> M01 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.089159, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M12 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                0, 0, 1, 0.28, //
-                0, 1, 0, 0.13585, //
-                -1, 0, 0, 0, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M23 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, -0.1197, //
-                0, 0, 1, 0.395, //
-                0, 0, 0, 1);
-        Matrix<N4, N4> M34 = MatBuilder.fill(Nat.N4(), Nat.N4(), //
-                1, 0, 0, 0, //
-                0, 1, 0, 0, //
-                0, 0, 1, 0.14225, //
-                0, 0, 0, 1);
-        Matrix<N6, N6> G1 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.010267, 0.010267, 0.00666, 3.7, 3.7, 3.7));
-        Matrix<N6, N6> G2 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.22689, 0.22689, 0.0151074, 8.393, 8.393, 8.393));
-        Matrix<N6, N6> G3 = MatUtil.diag(Nat.N6(), VecBuilder.fill(
-                0.0494433, 0.0494433, 0.004095, 2.275, 2.275, 2.275));
-        FixedList<N3, Matrix<N6, N6>> Glist = new FixedList<>(Nat.N3(),
-                List.of(G1, G2, G3));
-        FixedList<N4, Matrix<N4, N4>> Mlist = new FixedList<>(Nat.N4(),
-                List.of(M01, M12, M23, M34));
-        FixedList<N3, Vector<N6>> Slist = new FixedList<>(Nat.N3(),
-                List.of(VecBuilder.fill(1, 0, 1, 0, 1, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0),
-                        VecBuilder.fill(0, 1, 0, -0.089, 0, 0.425)));
         SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
                 Nat.N3(), Nat.N4());
         Matrix<N3, N3> actual = d.MassMatrix(thetalist, Mlist, Glist, Slist);
@@ -163,6 +102,48 @@ public class SerialChainDynamicsNewtonEulerTest {
                 2.25433380e+01, -3.07146754e-01, -7.18426391e-03, //
                 -3.07146754e-01, 1.96850717e+00, 4.32157368e-01, //
                 -7.18426391e-03, 4.32157368e-01, 1.91630858e-01);
+        TestUtil.verify(expected, actual);
+    }
+
+    @Test
+    void testVelQuadraticForces() {
+        SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
+                Nat.N3(), Nat.N4());
+        Vector<N3> actual = d.VelQuadraticForces(
+                thetalist, dthetalist, Mlist, Glist, Slist);
+        Vector<N3> expected = VecBuilder.fill(
+                0.26453118, -0.05505157, -0.00689132);
+        TestUtil.verify(expected, actual);
+    }
+
+    @Test
+    void testGravityForces() {
+        SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
+                Nat.N3(), Nat.N4());
+        Vector<N3> actual = d.GravityForces(thetalist, g, Mlist, Glist, Slist);
+        Vector<N3> expected = VecBuilder.fill(
+                28.40331262, -37.64094817, -5.4415892);
+        TestUtil.verify(expected, actual);
+    }
+
+    @Test
+    void testEndEffectorForces() {
+        SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
+                Nat.N3(), Nat.N4());
+        Vector<N3> actual = d.EndEffectorForces(
+                thetalist, Ftip, Mlist, Glist, Slist);
+        Vector<N3> expected = VecBuilder.fill(1.40954608, 1.85771497, 1.392409);
+        TestUtil.verify(expected, actual);
+    }
+
+    @Test
+    void testForwardDynamics() {
+        SerialChainDynamicsNewtonEuler<N3, N4> d = new SerialChainDynamicsNewtonEuler<>(
+                Nat.N3(), Nat.N4());
+        Vector<N3> actual = d.ForwardDynamics(
+                thetalist, dthetalist, taulist, g, Ftip,
+                Mlist, Glist, Slist);
+        Vector<N3> expected = VecBuilder.fill(-0.97392907, 25.58466784, -32.91499212);
         TestUtil.verify(expected, actual);
     }
 
@@ -266,7 +247,7 @@ public class SerialChainDynamicsNewtonEulerTest {
         Vector<N3> axis = VecBuilder.fill(0.26726124, 0.53452248, 0.80178373);
         double angle = 3.7416573867739413;
         TestUtil.verify(axis, aa.getFirst());
-        assertEquals(angle, aa.getSecond());
+        assertEquals(angle, aa.getSecond(), 1e-6);
     }
 
     @Test
@@ -293,21 +274,6 @@ public class SerialChainDynamicsNewtonEulerTest {
                 3, 0, -1, 5, //
                 -2, 1, 0, 6, //
                 0, 0, 0, 0);
-        TestUtil.verify(expected, actual);
-    }
-
-    @Test
-    void testad() {
-        Matrix<N6, N1> V = MatBuilder.fill(Nat.N6(), Nat.N1(), //
-                1, 2, 3, 4, 5, 6);
-        Matrix<N6, N6> actual = SerialChainDynamicsNewtonEuler.ad(V);
-        Matrix<N6, N6> expected = MatBuilder.fill(Nat.N6(), Nat.N6(), //
-                0, -3, 2, 0, 0, 0, //
-                3, 0, -1, 0, 0, 0, //
-                -2, 1, 0, 0, 0, 0, //
-                0, -6, 5, 0, -3, 2, //
-                6, 0, -4, 3, 0, -1, //
-                -5, 4, 0, -2, 1, 0);
         TestUtil.verify(expected, actual);
     }
 

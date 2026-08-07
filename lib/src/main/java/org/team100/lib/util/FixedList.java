@@ -21,7 +21,7 @@ public class FixedList<N extends Num, T> {
     public FixedList(Nat<N> n) {
         items = new ArrayList<>();
         for (int i = 0; i < n.getNum(); ++i) {
-            set(i, null);
+            items.add(null);
         }
     }
 
