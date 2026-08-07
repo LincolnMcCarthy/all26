@@ -1,8 +1,8 @@
-package org.team100.lib.dynamics.rr;
+package org.team100.lib.dynamics.six_dof;
 
 import org.junit.jupiter.api.Test;
 
-public class RRDynamicsNewtonEulerTest {
+public class SixDofDynamicsNewtonEulerTest {
     @Test
     void testInverseDynamics() {
 
@@ -12,5 +12,4 @@ public class RRDynamicsNewtonEulerTest {
     void testForwardDynamics() {
 
     }
-
 }
