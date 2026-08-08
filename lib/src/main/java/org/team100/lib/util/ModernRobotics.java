@@ -1,6 +1,8 @@
-package org.team100.lib.dynamics.serial_chain;
+package org.team100.lib.util;
 
-import org.team100.lib.util.FixedList;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
@@ -18,17 +20,7 @@ import edu.wpi.first.math.numbers.N6;
  * 
  * https://github.com/NxRLab/ModernRobotics/blob/master/packages/Python/modern_robotics/core.py
  */
-public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
-    private final Nat<N> num;
-    private final Nat<M> numPlusOne;
-
-    public SerialChainDynamicsNewtonEuler(Nat<N> num, Nat<M> numPlusOne) {
-        this.num = num;
-        this.numPlusOne = numPlusOne;
-        if (num.getNum() + 1 != numPlusOne.getNum())
-            throw new IllegalArgumentException();
-    }
-
+public class ModernRobotics {
     /**
      * Calculate the 6x6 matrix [adV] of the given 6-vector
      * 
@@ -70,61 +62,69 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @param Slist       Screw axes Si of the joints in a space frame
      * @return The n-vector of required joint forces/torques
      */
-    public Vector<N> InverseDynamics(
+    public static <N extends Num> Vector<N> InverseDynamics(
+            Nat<N> rows,
             Vector<N> thetalist,
             Vector<N> dthetalist,
             Vector<N> ddthetalist,
             Vector<N3> g,
             Vector<N6> Ftip,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
-        int n = num.getNum();
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
+        int n = rows.getNum();
+        ListUtil.size(n + 1, Mlist);
+        ListUtil.size(n, Glist);
+        ListUtil.size(n, Slist);
         Matrix<N4, N4> Mi = Matrix.eye(Nat.N4());
-        Matrix<N6, N> Ai = new Matrix<>(Nat.N6(), num);
+        List<Matrix<N6, N1>> Ai = new ArrayList<>(
+                Collections.nCopies(n, new Matrix<>(Nat.N6(), Nat.N1())));
         // a list of adjoint matrices
-        FixedList<M, Matrix<N6, N6>> AdTi = new FixedList<>(numPlusOne);
-        Matrix<N6, M> Vi = new Matrix<>(Nat.N6(), numPlusOne);
-        // this means Vdot
-        Matrix<N6, M> Vdi = new Matrix<>(Nat.N6(), numPlusOne);
+        List<Matrix<N6, N6>> AdTi = new ArrayList<>(
+                Collections.nCopies(n + 1, new Matrix<>(Nat.N6(), Nat.N6())));
+        List<Matrix<N6, N1>> Vi = new ArrayList<>(
+                Collections.nCopies(n + 1, new Matrix<>(Nat.N6(), Nat.N1())));
+        // Vdi means Vdot_i
+        List<Matrix<N6, N1>> Vdi = new ArrayList<>(
+                Collections.nCopies(n + 1, new Matrix<>(Nat.N6(), Nat.N1())));
         // Vdot for the base
         Vector<N6> Vd0 = new Vector<>(Nat.N6());
         Vd0.assignBlock(3, 0, g.times(-1));
         // so this is [0,0,0,-g] where g is a 3 vector
-        Vdi.assignBlock(0, 0, Vd0);
+        Vdi.set(0, Vd0);
         // tool point adjoint
         AdTi.set(n, Adjoint(TransInv(Mlist.get(n))));
         // tool point force
         Matrix<N6, N1> Fi = Ftip.copy();
 
-        Vector<N> taulist = new Vector<>(num);
+        Vector<N> taulist = new Vector<>(rows);
         // Walk from the base to the tool point, computing velocity and accel.
         for (int i = 0; i < n; ++i) {
             Mi = Mi.times(Mlist.get(i));
             // A_i = Ad_{m_i^-1} S_i
-            Ai.assignBlock(0, i, Adjoint(TransInv(Mi)).times(Slist.get(i)));
+            Ai.set(i, Adjoint(TransInv(Mi)).times(Slist.get(i)));
             AdTi.set(i, Adjoint(
                     MatrixExp6(
-                            VecTose3(col6(Ai, i)
+                            VecTose3(Ai.get(i)
                                     .times(-thetalist.get(i))))
                             .times(TransInv(Mlist.get(i)))));
-            Vi.assignBlock(0, i + 1,
-                    AdTi.get(i).times(col6(Vi, i))
-                            .plus(col6(Ai, i).times(dthetalist.get(i))));
-            Vdi.assignBlock(0, i + 1,
-                    AdTi.get(i).times(col6(Vdi, i))
-                            .plus(col6(Ai, i).times(ddthetalist.get(i)))
-                            .plus(ad(col6(Vi, i + 1))
-                                    .times(col6(Ai, i))
+            Vi.set(i + 1,
+                    AdTi.get(i).times(Vi.get(i))
+                            .plus(Ai.get(i).times(dthetalist.get(i))));
+            Vdi.set(i + 1,
+                    AdTi.get(i).times(Vdi.get(i))
+                            .plus(Ai.get(i).times(ddthetalist.get(i)))
+                            .plus(ad(Vi.get(i + 1))
+                                    .times(Ai.get(i))
                                     .times(dthetalist.get(i))));
         }
         // Walk from the tool point to the base, computing force and torque
         for (int i = n - 1; i > -1; --i) {
             Fi = AdTi.get(i + 1).transpose().times(Fi)
-                    .plus(Glist.get(i).times(col6(Vdi, i + 1)))
-                    .minus(ad(col6(Vi, i + 1)).transpose().times(
-                            Glist.get(i)).times(col6(Vi, i + 1)));
-            taulist.set(i, 0, Fi.transpose().times(col6(Ai, i)).get(0, 0));
+                    .plus(Glist.get(i).times(Vdi.get(i + 1)))
+                    .minus(ad(Vi.get(i + 1)).transpose().times(
+                            Glist.get(i)).times(Vi.get(i + 1)));
+            taulist.set(i, 0, Fi.transpose().times(Ai.get(i)).get(0, 0));
         }
         return taulist;
     }
@@ -146,19 +146,21 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @param Slist     Screw axes Si of the joints in a space frame
      * @return The numerical inertia matrix M
      */
-    Matrix<N, N> MassMatrix(
+    static <N extends Num> Matrix<N, N> MassMatrix(
+            Nat<N> rows,
             Vector<N> thetalist,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
-        int n = num.getNum();
-        Matrix<N, N> M = new Matrix<>(num, num);
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
+        int n = rows.getNum();
+        Matrix<N, N> M = new Matrix<>(rows, rows);
         for (int i = 0; i < n; ++i) {
-            Vector<N> ddthetalist = new Vector<>(num);
+            Vector<N> ddthetalist = new Vector<>(rows);
             ddthetalist.set(i, 0, 1);
             M.setColumn(i, InverseDynamics(
+                    rows,
                     thetalist,
-                    new Vector<>(num),
+                    new Vector<>(rows),
                     ddthetalist,
                     new Vector<>(Nat.N3()),
                     new Vector<>(Nat.N6()),
@@ -181,16 +183,18 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @param Slist      Screw axes Si of the joints in a space frame
      * @return The vector of Coriolis and centripetal terms
      */
-    Vector<N> VelQuadraticForces(
+    static <N extends Num> Vector<N> VelQuadraticForces(
+            Nat<N> rows,
             Vector<N> thetalist,
             Vector<N> dthetalist,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
         return InverseDynamics(
+                rows,
                 thetalist,
                 dthetalist,
-                new Vector<>(num),
+                new Vector<>(rows),
                 new Vector<>(Nat.N3()),
                 new Vector<>(Nat.N6()),
                 Mlist, Glist, Slist);
@@ -211,16 +215,18 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @param Slist     Screw axes Si of the joints in a space frame
      * @return The joint forces/torques required to overcome gravity
      */
-    Vector<N> GravityForces(
+    static <N extends Num> Vector<N> GravityForces(
+            Nat<N> rows,
             Vector<N> thetalist,
             Vector<N3> g,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
         return InverseDynamics(
+                rows,
                 thetalist,
-                new Vector<>(num),
-                new Vector<>(num),
+                new Vector<>(rows),
+                new Vector<>(rows),
                 g,
                 new Vector<>(Nat.N6()),
                 Mlist, Glist, Slist);
@@ -242,16 +248,18 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @return The joint forces and torques required only to create the
      *         end-effector force Ftip
      */
-    Vector<N> EndEffectorForces(
+    static <N extends Num> Vector<N> EndEffectorForces(
+            Nat<N> rows,
             Vector<N> thetalist,
             Vector<N6> Ftip,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
         return InverseDynamics(
+                rows,
                 thetalist,
-                new Vector<>(num),
-                new Vector<>(num),
+                new Vector<>(rows),
+                new Vector<>(rows),
                 new Vector<>(Nat.N3()),
                 Ftip,
                 Mlist, Glist, Slist);
@@ -275,24 +283,20 @@ public class SerialChainDynamicsNewtonEuler<N extends Num, M extends Num> {
      * @param Slist      Screw axes Si of the joints in a space frame
      * @return The resulting joint accelerations
      */
-    public Vector<N> ForwardDynamics(
+    public static <N extends Num> Vector<N> ForwardDynamics(
+            Nat<N> rows,
             Vector<N> thetalist,
             Vector<N> dthetalist,
             Vector<N> taulist,
             Vector<N3> g,
             Vector<N6> Ftip,
-            FixedList<M, Matrix<N4, N4>> Mlist,
-            FixedList<N, Matrix<N6, N6>> Glist,
-            FixedList<N, Vector<N6>> Slist) {
-        return new Vector<>(MassMatrix(thetalist, Mlist, Glist, Slist).inv().times(taulist
-                .minus(VelQuadraticForces(thetalist, dthetalist, Mlist, Glist, Slist))
-                .minus(GravityForces(thetalist, g, Mlist, Glist, Slist))
-                .minus(EndEffectorForces(thetalist, Ftip, Mlist, Glist, Slist))));
-    }
-
-    /** Return column i from 6xn matrix m. */
-    private static Matrix<N6, N1> col6(Matrix<N6, ? extends Num> m, int i) {
-        return m.block(Nat.N6(), Nat.N1(), 0, i);
+            List<Matrix<N4, N4>> Mlist,
+            List<Matrix<N6, N6>> Glist,
+            List<Vector<N6>> Slist) {
+        return new Vector<>(MassMatrix(rows, thetalist, Mlist, Glist, Slist).inv().times(taulist
+                .minus(VelQuadraticForces(rows, thetalist, dthetalist, Mlist, Glist, Slist))
+                .minus(GravityForces(rows, thetalist, g, Mlist, Glist, Slist))
+                .minus(EndEffectorForces(rows, thetalist, Ftip, Mlist, Glist, Slist))));
     }
 
     /**
