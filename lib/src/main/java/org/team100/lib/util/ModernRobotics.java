@@ -18,6 +18,8 @@ import edu.wpi.first.math.numbers.N6;
 /**
  * Direct port of Modern Robotics dynamics python code.
  * 
+ * Note this uses the opposite twist vector convention ([w, v]) from WPI ([v, w]).
+ * 
  * https://github.com/NxRLab/ModernRobotics/blob/master/packages/Python/modern_robotics/core.py
  */
 public class ModernRobotics {
@@ -26,10 +28,10 @@ public class ModernRobotics {
      * 
      * Used to calculate the Lie bracket [V1, V2] = [adV1]V2
      * 
-     * | w 0 |
-     * | [w] w |
+     * | [w] 0 |
+     * | [v] [w] |
      * 
-     * @param V A 6-vector spatial velocity
+     * @param V A 6-vector spatial velocity [w, v]
      * @return The corresponding 6x6 matrix [adV]
      */
     static Matrix<N6, N6> ad(Matrix<N6, N1> V) {
@@ -340,7 +342,7 @@ public class ModernRobotics {
 
     /**
      * Computes the adjoint representation of a homogeneous transformation
-     * matrix.
+     * matrix, using the 6D [w, v] convention.
      * 
      * | R 0 |
      * | [p]R R |

@@ -57,7 +57,7 @@ public class LieSE3 {
                 m.get(1, 0));
     }
 
-    /** The bracket of two tangents [A, B] hich is AB - BA. */
+    /** The bracket of two tangents [A, B] which is AB - BA. */
     public static Twist3d bracket(Twist3d a, Twist3d b) {
         Matrix<N4, N4> ahat = hat(a);
         Matrix<N4, N4> bhat = hat(b);
@@ -67,7 +67,7 @@ public class LieSE3 {
         return vee(s);
     }
 
-    /** The bracket of two tangents [A, B] hich is AB - BA. */
+    /** The bracket of two tangents [A, B] which is AB - BA. */
     public static Vector<N6> bracket(Vector<N6> a, Vector<N6> b) {
         Matrix<N4, N4> ahat = hat(a);
         Matrix<N4, N4> bhat = hat(b);
