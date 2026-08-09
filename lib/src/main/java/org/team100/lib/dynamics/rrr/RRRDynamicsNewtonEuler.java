@@ -17,6 +17,7 @@ import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.numbers.N6;
 
 public class RRRDynamicsNewtonEuler {
+    // TODO: make g variable, to account for drive base acceleration.
     final Vector<N3> g;
     final List<Matrix<N4, N4>> Mlist;
     final List<Matrix<N6, N6>> Glist;

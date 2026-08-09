@@ -7,12 +7,13 @@ import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRVelocity;
 
-public class RRDynamicsTest {
+public class RRDynamicsAnalyticTest {
     private static final double DELTA = 1e-3;
 
     @Test
     void test0() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // straight up
         RREffort t = d.effort(
                 new RRConfig(0, 0),
@@ -25,7 +26,8 @@ public class RRDynamicsTest {
 
     @Test
     void test1() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // to the side
         RREffort t = d.effort(
                 new RRConfig(Math.PI / 2, 0),
@@ -39,7 +41,8 @@ public class RRDynamicsTest {
 
     @Test
     void test2() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // wrist only to the side (bent arm)
         RREffort t = d.effort(
                 new RRConfig(0, Math.PI / 2),
@@ -53,7 +56,8 @@ public class RRDynamicsTest {
 
     @Test
     void test3() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // bent arm moving at the root
         RREffort t = d.effort(
                 new RRConfig(0, Math.PI / 2),
@@ -67,7 +71,8 @@ public class RRDynamicsTest {
 
     @Test
     void test4() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // bent arm accelerating at the root
         RREffort t = d.effort(
                 new RRConfig(0, Math.PI / 2),
@@ -81,7 +86,8 @@ public class RRDynamicsTest {
 
     @Test
     void test5() {
-        RRDynamics d = new RRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
+        RRDynamicsAnalytic d = new RRDynamicsAnalytic(
+                1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // like a whip: extended, moving, slowing down at the root
         RREffort t = d.effort(
                 new RRConfig(0, 0),

@@ -2,8 +2,9 @@ package org.team100.lib.servo;
 
 import org.team100.lib.dynamics.r.RAcceleration;
 import org.team100.lib.dynamics.r.RConfig;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.dynamics.r.REffort;
+import org.team100.lib.dynamics.r.RVelocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.ControlR1Logger;
@@ -32,7 +33,7 @@ public class OutboardAngularPositionServo extends AngularPositionServoImpl {
     public OutboardAngularPositionServo(
             LoggerFactory parent,
             RotaryMechanism mech,
-            RDynamics dynamics,
+            RDynamicsAnalytic dynamics,
             ReferenceR1 ref) {
         super(parent, mech, dynamics, ref);
         LoggerFactory log = parent.type(this);
@@ -47,7 +48,7 @@ public class OutboardAngularPositionServo extends AngularPositionServoImpl {
     public static OutboardAngularPositionServo make(
             LoggerFactory log,
             BareMotor motor,
-            RDynamics dyn,
+            RDynamicsAnalytic dyn,
             ReferenceR1 ref,
             double gearRatio,
             double initialPosition) {
@@ -64,7 +65,7 @@ public class OutboardAngularPositionServo extends AngularPositionServoImpl {
     public static OutboardAngularPositionServo make(
             LoggerFactory log,
             BareMotor motor,
-            RDynamics dyn,
+            RDynamicsAnalytic dyn,
             ReferenceR1 ref,
             double gearRatio,
             double initialPosition,
@@ -87,6 +88,7 @@ public class OutboardAngularPositionServo extends AngularPositionServoImpl {
 
         REffort t = m_dynamics.effort(
                 new RConfig(nextUnwrappedSetpoint.x()),
+                new RVelocity(nextUnwrappedSetpoint.v()),
                 new RAcceleration(nextUnwrappedSetpoint.a()));
 
         m_mechanism.setUnwrappedPosition(

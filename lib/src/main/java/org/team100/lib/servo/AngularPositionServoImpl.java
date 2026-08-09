@@ -1,6 +1,6 @@
 package org.team100.lib.servo;
 
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.BooleanLogger;
@@ -26,7 +26,7 @@ public abstract class AngularPositionServoImpl implements AngularPositionServo {
     private static final double POSITION_TOLERANCE = 0.02;
     private static final double VELOCITY_TOLERANCE = 0.02;
     protected final RotaryMechanism m_mechanism;
-    protected final RDynamics m_dynamics;
+    protected final RDynamicsAnalytic m_dynamics;
     private final ReferenceR1 m_ref;
     private final BooleanLogger m_log_atGoal;
     private final DoubleLogger m_log_goal;
@@ -58,7 +58,7 @@ public abstract class AngularPositionServoImpl implements AngularPositionServo {
     protected AngularPositionServoImpl(
             LoggerFactory parent,
             RotaryMechanism mechanism,
-            RDynamics dynamics,
+            RDynamicsAnalytic dynamics,
             ReferenceR1 ref) {
         m_mechanism = mechanism;
         m_dynamics = dynamics;
