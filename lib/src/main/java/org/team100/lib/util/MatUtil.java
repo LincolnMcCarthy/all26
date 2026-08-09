@@ -6,6 +6,7 @@ import edu.wpi.first.math.Num;
 import edu.wpi.first.math.Vector;
 
 public class MatUtil {
+    /** Return an NxN matrix with the given vector on the diagonal. */
     public static <N extends Num> Matrix<N, N> diag(Nat<N> n, Vector<N> v) {
         if (n.getNum() != v.getNumRows())
             throw new IllegalArgumentException();
@@ -14,5 +15,12 @@ public class MatUtil {
             result.set(i, i, v.get(i));
         }
         return result;
+    }
+
+    /** Throw if the trace is not positive. */
+    public static void positiveTrace(Matrix<?, ?> m) {
+        if (m.trace() > 0)
+            return;
+        throw new IllegalArgumentException();
     }
 }

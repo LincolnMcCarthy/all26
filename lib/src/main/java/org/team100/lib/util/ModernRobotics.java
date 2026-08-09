@@ -18,11 +18,14 @@ import edu.wpi.first.math.numbers.N6;
 /**
  * Direct port of Modern Robotics dynamics python code.
  * 
- * Note this uses the opposite twist vector convention ([w, v]) from WPI ([v, w]).
+ * Note this uses the opposite twist vector convention ([w, v]) from WPI ([v,
+ * w]).
  * 
  * https://github.com/NxRLab/ModernRobotics/blob/master/packages/Python/modern_robotics/core.py
  */
 public class ModernRobotics {
+    private static final boolean DEBUG = true;
+
     /**
      * Calculate the 6x6 matrix [adV] of the given 6-vector
      * 
@@ -75,10 +78,15 @@ public class ModernRobotics {
             List<Matrix<N6, N6>> Glist,
             List<Vector<N6>> Slist) {
         int n = rows.getNum();
-        ListUtil.size(n + 1, Mlist);
-        ListUtil.size(n, Glist);
-        ListUtil.size(n, Slist);
+        Arg.verify(() -> Mlist.size() == n + 1);
+        Arg.verify(() -> Glist.size() == n);
+        Arg.verify(() -> Slist.size() == n);
+
+        // Transform from origin to i'th frame
         Matrix<N4, N4> Mi = Matrix.eye(Nat.N4());
+        // joint screw i in its own frame.
+        // since we chose frames aligned with the pivots, these should all
+        // be pure rotations.
         List<Matrix<N6, N1>> Ai = new ArrayList<>(
                 Collections.nCopies(n, new Matrix<>(Nat.N6(), Nat.N1())));
         // a list of adjoint matrices
@@ -119,6 +127,13 @@ public class ModernRobotics {
                             .plus(ad(Vi.get(i + 1))
                                     .times(Ai.get(i))
                                     .times(dthetalist.get(i))));
+            if (DEBUG) {
+                System.out.printf("i %d Si %s\n", i, StrUtil.matStr(Slist.get(i).transpose()));
+                System.out.printf("i %d Mi %s\n", i, StrUtil.matStr(Mi));
+                System.out.printf("i %d Ai %s\n", i, StrUtil.matStr(Ai.get(i).transpose()));
+                System.out.printf("i %d Vi %s\n", i, StrUtil.matStr(Vi.get(i).transpose()));
+                System.out.printf("i %d Vdi %s\n", i, StrUtil.matStr(Vdi.get(i).transpose()));
+            }
         }
         // Walk from the tool point to the base, computing force and torque
         for (int i = n - 1; i > -1; --i) {
@@ -127,7 +142,11 @@ public class ModernRobotics {
                     .minus(ad(Vi.get(i + 1)).transpose().times(
                             Glist.get(i)).times(Vi.get(i + 1)));
             taulist.set(i, 0, Fi.transpose().times(Ai.get(i)).get(0, 0));
+            if (DEBUG) {
+                System.out.printf("i %d Fi %s\n", i, StrUtil.matStr(Fi.transpose()));
+            }
         }
+
         return taulist;
     }
 
@@ -295,10 +314,18 @@ public class ModernRobotics {
             List<Matrix<N4, N4>> Mlist,
             List<Matrix<N6, N6>> Glist,
             List<Vector<N6>> Slist) {
-        return new Vector<>(MassMatrix(rows, thetalist, Mlist, Glist, Slist).inv().times(taulist
-                .minus(VelQuadraticForces(rows, thetalist, dthetalist, Mlist, Glist, Slist))
-                .minus(GravityForces(rows, thetalist, g, Mlist, Glist, Slist))
-                .minus(EndEffectorForces(rows, thetalist, Ftip, Mlist, Glist, Slist))));
+        Matrix<N, N> M = MassMatrix(rows, thetalist, Mlist, Glist, Slist);
+        Vector<N> C = VelQuadraticForces(rows, thetalist, dthetalist, Mlist, Glist, Slist);
+        Vector<N> gF = GravityForces(rows, thetalist, g, Mlist, Glist, Slist);
+        Vector<N> tipF = EndEffectorForces(rows, thetalist, Ftip, Mlist, Glist, Slist);
+        Vector<N> t = taulist
+                .minus(C)
+                .minus(gF)
+                .minus(tipF);
+        if (DEBUG) {
+            System.out.printf("M %s\n", StrUtil.matStr(M));
+        }
+        return new Vector<>(M.inv().times(t));
     }
 
     /**
