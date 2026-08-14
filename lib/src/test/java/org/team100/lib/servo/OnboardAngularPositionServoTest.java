@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.PIDFeedback;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -29,7 +29,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
     @Test
     void testNoReset() {
         // what happens if you don't reset it?
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
         MockBareMotor turningMotor = new MockBareMotor(friction);
         MockRotaryPositionSensor positionSensor = new MockRotaryPositionSensor();
@@ -48,7 +48,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
 
     @Test
     void testOnboard() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
         final MockBareMotor turningMotor = new MockBareMotor(friction);
         final MockRotaryPositionSensor positionSensor = new MockRotaryPositionSensor();
@@ -82,7 +82,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
     /** This takes the short path. */
     @Test
     void testShortWayOnboardProfiled() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(logger, encoder, 1);
@@ -148,7 +148,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
      */
     @Test
     void testLongWayOnboardProfiled() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(logger, encoder, 1);
@@ -209,7 +209,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
 
     @Test
     void testDirect() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(logger, encoder, 1);
@@ -248,7 +248,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
     /** From -3 to 3 the short way */
     @Test
     void testShortWayOnboardDirect() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(logger, encoder, 1);
@@ -318,7 +318,7 @@ public class OnboardAngularPositionServoTest implements Timeless {
     /** From -3 to 3 the long way with "direct". */
     @Test
     void testLongWayOnboardDirect() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         SimulatedBareMotor motor = new SimulatedBareMotor(logger, 600);
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(logger, encoder, 1);
