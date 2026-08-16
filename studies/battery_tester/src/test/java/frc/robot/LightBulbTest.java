@@ -50,4 +50,11 @@ public class LightBulbTest {
         }
     }
 
+    @Test
+    void test5() {
+        LightBulb b = new LightBulb();
+        double i = b.IforV(5);
+        assertEquals(112, i, 1);
+    }
+
 }

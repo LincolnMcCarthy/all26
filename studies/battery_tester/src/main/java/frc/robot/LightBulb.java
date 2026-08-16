@@ -116,6 +116,22 @@ public class LightBulb {
         return Math.sqrt(p / r);
     }
 
+    /** Current drawn at voltage. */
+    public double IforV(double v) {
+        double t = 0;
+        for (int j = 0; j < 10; ++j) {
+            double r = RatT(t);
+            double p = v * v / r;
+            double t0 = t;
+            t = temperature(p);
+            System.out.println(t);
+            if (Math.abs(t - t0) < 1)
+                return Math.sqrt(p / r);
+        }
+        System.out.println("WARNING! CONVERGENCE!");
+        return 0;
+    }
+
     /**
      * Resistance (ohms) at temperature (kelvin), of the full bulb array (15 bulbs).
      */

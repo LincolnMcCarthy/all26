@@ -22,5 +22,12 @@ public class Battery {
      */
     public static double V = 12.6;
 
+    public Battery() {
+
+    }
+
+    public double VforI(double i) {
+        return Math.max(0, V - i * R);
+    }
 
 }
