@@ -124,7 +124,6 @@ public class LightBulb {
             double p = v * v / r;
             double t0 = t;
             t = temperature(p);
-            System.out.println(t);
             if (Math.abs(t - t0) < 1)
                 return Math.sqrt(p / r);
         }

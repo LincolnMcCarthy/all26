@@ -24,7 +24,7 @@ import edu.wpi.first.math.numbers.N6;
  * https://github.com/NxRLab/ModernRobotics/blob/master/packages/Python/modern_robotics/core.py
  */
 public class ModernRobotics {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * Calculate the 6x6 matrix [adV] of the given 6-vector
