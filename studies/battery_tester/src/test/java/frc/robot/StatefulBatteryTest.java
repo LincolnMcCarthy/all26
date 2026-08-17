@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 public class StatefulBatteryTest {
+
     @Test
     void test0() {
         // voltage
@@ -45,7 +46,7 @@ public class StatefulBatteryTest {
             b.discharge(0.9, dt);
         }
         // 5% of the duration at the rated rate, so 5% discharged.
-        assertEquals(0.95, b.soc(), 1e-3);
+        assertEquals(0.95, b.SOC(), 1e-3);
     }
 
     @Test
@@ -57,7 +58,7 @@ public class StatefulBatteryTest {
             b.discharge(11.8, dt);
         }
         // 50% of the duration at the rated rate, so 50% discharged.
-        assertEquals(0.5, b.soc(), 1e-3);
+        assertEquals(0.5, b.SOC(), 1e-3);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class StatefulBatteryTest {
             b.discharge(140, dt);
             // System.out.printf("t %f soc %f\n", t, b.soc());
         }
-        // 80% discharged after 2:40.  (!)
-        assertEquals(0.2, b.soc(), 1e-2);
+        // 80% discharged after 2:40. (!)
+        assertEquals(0.2, b.SOC(), 1e-2);
     }
 }

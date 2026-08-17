@@ -35,9 +35,7 @@ public class StatefulBattery extends BatteryBase {
     /** Peukert's constant. */
     final double k;
     /** State of charge, coulombs. */
-    double c;
-
-    // TODO: implement discharging.
+    private double c;
 
     public StatefulBattery() {
         ocv = makeOCV();
@@ -45,46 +43,76 @@ public class StatefulBattery extends BatteryBase {
         c0 = 18 * 3600;
         // state of charge starts at c0, fully charged.
         c = c0;
+        // for testing low-SOC
+        // c = c0 / 10;
         // 18 Ah / 20 h = 0.9 A.
         i0 = 18.0 / 20;
-        // Adjusted to fit the rated discharge rates.
-        // The rated rates don't fit Peukert's law very well, and there are only three
-        // points to fit.
+        // Adjusted to fit the discharge rates published by PowerSonic.
+        // The published rates don't fit Peukert's law very well, and there are only
+        // three points to fit.
         // I just used the highest rate since it's closest to the (very high) current we
         // actually use.
         // see
         // https://docs.google.com/spreadsheets/d/1gB8hojtICp1v2dbFhKkuQ7yY3v1sJFDWeo-w5ABYFcA/edit?gid=862420482#gid=862420482
         k = 1.1641;
-
     }
 
     /** Discharge at the specified current (amps) for the specified time (sec). */
     public void discharge(double i, double t) {
+        if (Double.isInfinite(i) || Double.isNaN(i))
+            throw new IllegalArgumentException();
         // derating is less than 1
         double derate = peukert(i);
         // derated (i.e. additional) current
         double i1 = i / derate;
-        if (DEBUG)
-            System.out.printf("i1 %f\n", i1);
+
         // derated coulombs produced
         double dc = i1 * t;
+
         if (DEBUG)
-            System.out.printf("dc %f\n", dc);
-        c = c - dc;
+            System.out.printf("StatefulBattery.discharge: i %f derate %f dc %f i1 %f\n",
+                    i, derate, dc, i1);
+        setC(c - dc);
     }
 
-    double soc() {
+    @Override
+    double SOC() {
         return MathUtil.clamp(c / c0, 0, 1);
     }
 
     @Override
-    double V() {
-        return ocv.get(soc());
+    double V0() {
+        return ocv.get(SOC());
     }
 
     @Override
     double R() {
-        return r.get(soc());
+        return r.get(SOC());
+    }
+
+    /**
+     * Applies Peukert's law, returns derating [0,1] for the given discharge
+     * current.
+     * 
+     * The 20h capacity implies a 0.9A discharge rate.
+     * 
+     * https://en.wikipedia.org/wiki/Peukert's_law
+     * 
+     * Note this "derating" is only useful if the current draw is constant: it
+     * models a time-dependent phenomenon in the battery (reactant migration), and
+     * given time at lower discharge (or at rest), some of the "lost" capacity can
+     * "reappear".
+     */
+    double peukert(double i) {
+        if (i < 0.1)
+            return 1.0;
+        return Math.pow(i0 / i, k - 1);
+    }
+
+    void setC(double c) {
+        if (Double.isNaN(c))
+            throw new IllegalArgumentException();
+        this.c = c;
     }
 
     /**
@@ -97,7 +125,13 @@ public class StatefulBattery extends BatteryBase {
      */
     private static InterpolatingDoubleTreeMap makeOCV() {
         InterpolatingDoubleTreeMap ocv = new InterpolatingDoubleTreeMap();
-        ocv.put(0.00, 10.70);
+        // This value makes sure that the battery doesn't go below zero.
+        // In a real battery, there is still some tiny amount of voltage
+        // that will "polarize" the battery after resting, but not produce
+        // useful current. Nobody ever uses lead-acid batteries at such low SOC, it
+        // damages them.
+        ocv.put(0.00, 0.0);
+        ocv.put(0.02, 10.70);
         ocv.put(0.05, 11.05);
         ocv.put(0.10, 11.25);
         ocv.put(0.20, 11.49);
@@ -124,7 +158,11 @@ public class StatefulBattery extends BatteryBase {
      */
     private static InterpolatingDoubleTreeMap makeR() {
         InterpolatingDoubleTreeMap r = new InterpolatingDoubleTreeMap();
-        r.put(0.0, 0.07);
+        // This value prevents high power output at low SOC. I'm not sure
+        // what the real value should be here. Nobody ever uses lead-acid
+        // batteries at such low SOC, it damages them.
+        r.put(0.0, 10.0);
+        r.put(0.02, 0.07);
         r.put(0.05, 0.0532);
         r.put(0.1, 0.042);
         r.put(0.2, 0.0308);
@@ -139,22 +177,4 @@ public class StatefulBattery extends BatteryBase {
         return r;
     }
 
-    /**
-     * Applies Peukert's law, returns derating [0,1] for the given discharge
-     * current.
-     * 
-     * The 20h capacity implies a 0.9A discharge rate.
-     * 
-     * https://en.wikipedia.org/wiki/Peukert's_law
-     * 
-     * Note this "derating" is only useful if the current draw is constant: it
-     * models a time-dependent phenomenon in the battery (reactant migration), and
-     * given time at lower discharge (or at rest), some of the "lost" capacity can
-     * "reappear".
-     */
-    double peukert(double i) {
-        if (i < 0.1)
-            return 1.0;
-        return Math.pow(i0 / i, k - 1);
-    }
 }

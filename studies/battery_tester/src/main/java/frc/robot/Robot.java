@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class Robot extends TimedRobot {
 
     private final DriverXboxControl m_controller;
-    private final CurrentSource m_subsystem;
+    private final BatteryTester m_subsystem;
     private final LightBulbVisualizer m_viz;
 
     public Robot() {
@@ -27,7 +27,7 @@ public class Robot extends TimedRobot {
         Logging log = Logging.instance();
         LoggerFactory robotLog = log.rootLogger;
         m_controller = new DriverXboxControl(0);
-        m_subsystem = new CurrentSource(robotLog);
+        m_subsystem = new BatteryTester(robotLog);
         m_viz = new LightBulbVisualizer(m_subsystem::temperature);
         new Trigger(m_controller::a)
                 .whileTrue(m_subsystem.run(() -> m_subsystem.setPower(100)));
