@@ -10,7 +10,7 @@ public class LightBulbTest {
     void test0() {
         // Array resistance at 3200K
         LightBulb b = new LightBulb();
-        double r = b.RatT(3200.0);
+        double r = b.R(3200.0);
         assertEquals(0.064170, r, 1e-6);
     }
 
@@ -34,7 +34,7 @@ public class LightBulbTest {
     void test3() {
         // Voltage required for 150W(*15 bulbs)
         LightBulb b = new LightBulb();
-        double v = b.VforP(150 * 15);
+        double v = b.operatingPoint(150 * 15).v();
         assertEquals(12.0, v, 0.02);
     }
 
@@ -44,8 +44,8 @@ public class LightBulbTest {
         LightBulb b = new LightBulb();
         for (double p = 0; p < 150 * 15; p += 100) {
             double t = b.temperature(p);
-            double v = b.VforP(p);
-            double i = b.IforP(p);
+            double v = b.operatingPoint(p).v();
+            double i = b.operatingPoint(p).i();
             System.out.printf("%f, %f, %f, %f\n", p, t, v, i);
         }
     }

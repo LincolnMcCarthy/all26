@@ -60,6 +60,11 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
  * https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
  */
 public class LightBulb {
+    /** Operating point of the bulbs. */
+    public record Op(double v, double i) {
+    }
+
+    private static final boolean DEBUG = false;
     /**
      * Filament cross-section divided by length, in meters, for the whole array.
      * To get resistance, divide resistivity (in ohm-m) by this number.
@@ -77,7 +82,7 @@ public class LightBulb {
      * key: temperature, kelvin
      * value: total emissivity, [0, 1]
      */
-    final InterpolatingDoubleTreeMap epsilon;
+    private final InterpolatingDoubleTreeMap epsilon;
 
     /**
      * Resistivity as a function of temperature.
@@ -85,56 +90,78 @@ public class LightBulb {
      * key: temperature, kelvin
      * value: resistivity, microohm-cm
      */
-    final InterpolatingDoubleTreeMap rho;
+    private final InterpolatingDoubleTreeMap rho;
 
     public LightBulb() {
         epsilon = makeE();
         rho = makeR();
     }
 
-    /**
-     * Voltage required to dissipate the desired power (watts).
-     */
-    public double VforP(double p) {
+    /** Operating point for the given power (watts). */
+    public Op operatingPoint(double p) {
         // Temperature required to radiate the required powper
         double t = temperature(p);
         // Resistance at that temperature.
-        double r = RatT(t);
-        // Ohm's law using that resistance.
-        return Math.sqrt(p * r);
+        double r = R(t);
+        // Ohm and Joule's laws, P = V^2 / R
+        double v = Math.sqrt(p * r);
+        // Joule's law, P = I^2 R
+        double i = Math.sqrt(p / r);
+        return new Op(v, i);
     }
 
     /**
-     * Current required for the desired power (watts).
+     * Current drawn at voltage.
+     * 
+     * This is just Ohm's law, but it involves iteration, because the resistance is
+     * strongly dependent on temperature, which is strongly dependent on current.
      */
-    public double IforP(double p) {
-        // Temperature required to radiate the required powper
-        double t = temperature(p);
-        // Resistance at that temperature.
-        double r = RatT(t);
-        return Math.sqrt(p / r);
-    }
-
-    /** Current drawn at voltage. */
     public double IforV(double v) {
+        if (Double.isNaN(v))
+            throw new IllegalArgumentException();
         double t = 0;
-        for (int j = 0; j < 10; ++j) {
-            double r = RatT(t);
+        for (int j = 0; j < 100; ++j) {
+            double r = R(t);
             double p = v * v / r;
             double t0 = t;
             t = temperature(p);
-            if (Math.abs(t - t0) < 1)
-                return v / r;
+            if (Math.abs(t - t0) < 1) {
+                double i = v / r;
+                if (DEBUG)
+                    System.out.printf("LightBulb.IforV: i %f p %f\n", i, p);
+                return i;
+            }
         }
         System.out.printf(
                 "LightBulb: current failed to converge for voltage %f\n", v);
-        return v / RatT(t);
+        return v / R(t);
+    }
+
+    /**
+     * Temperature (kelvin) to radiate power (watts), across the full array (15
+     * bulbs).
+     * 
+     * This is Stefan-Boltzman, solving for temperature. Note because
+     * emissivity depends on temperature, this involves (a tiny bit of) iteration.
+     */
+    public double temperature(double p) {
+        if (Double.isNaN(p))
+            throw new IllegalArgumentException();
+        double t = 0;
+        for (int i = 0; i < 100; ++i) {
+            double t0 = t;
+            t = Math.pow(p / (Asigma * epsilon.get(t0)), 0.25);
+            if (Math.abs(t - t0) < 1)
+                return t;
+        }
+        System.out.printf("Lightbulb: temperature failed to converge for power %f\n", p);
+        return t;
     }
 
     /**
      * Resistance (ohms) at temperature (kelvin), of the full bulb array (15 bulbs).
      */
-    public double RatT(double t) {
+    double R(double t) {
         double rhomOhmCm = rho.get(t);
         double rhoOhmM = rhomOhmCm * 1e-8;
         return rhoOhmM / AoverL;
@@ -143,32 +170,13 @@ public class LightBulb {
     /**
      * Radiation (watts) at temperature (kelvin), of the full bulb array (15 bulbs).
      * 
-     * This is exactly Stefan-Boltzmann:
+     * This is exactly the Stefan-Boltzmann equation:
      * 
      * P = A * sigma * e * T^4.
      */
-    public double radiation(double t) {
+    double radiation(double t) {
         double e = epsilon.get(t);
         return Asigma * e * Math.pow(t, 4);
-    }
-
-    /**
-     * Temperature (kelvin) to radiate power (watts), across the full array (15
-     * bulbs).
-     * 
-     * This is Stefan-Boltzman, solving for temperature. Note because
-     * emissivity is not constant, this involves (a tiny bit of) iteration.
-     */
-    public double temperature(double p) {
-        double t = 0;
-        for (int i = 0; i < 10; ++i) {
-            double t0 = t;
-            t = Math.pow(p / (Asigma * epsilon.get(t0)), 0.25);
-            if (Math.abs(t - t0) < 1)
-                return t;
-        }
-        System.out.printf("Lightbulb: temperature failed to converge for power %f\n", p);
-        return t;
     }
 
     /**
@@ -267,13 +275,4 @@ public class LightBulb {
         R.put(3600.0, 115.00);
         return R;
     }
-
-    /** Voltage required to produce the desired current. */
-    public double voltsForAmps(double i) {
-        // Use desired current to look up the resistance.
-        double r = rho.get(i);
-        // Find the desired voltage using Ohm's law.
-        return i * r;
-    }
-
 }
