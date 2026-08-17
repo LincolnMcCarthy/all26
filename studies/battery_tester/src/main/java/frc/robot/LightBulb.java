@@ -1,7 +1,6 @@
 package frc.robot;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 
 /**
  * This is a basic physics model of a light bulb, used for feedforward for the
@@ -125,10 +124,11 @@ public class LightBulb {
             double t0 = t;
             t = temperature(p);
             if (Math.abs(t - t0) < 1)
-                return Math.sqrt(p / r);
+                return v / r;
         }
-        System.out.println("WARNING! CONVERGENCE!");
-        return 0;
+        System.out.printf(
+                "LightBulb: current failed to converge for voltage %f\n", v);
+        return v / RatT(t);
     }
 
     /**
@@ -167,7 +167,7 @@ public class LightBulb {
             if (Math.abs(t - t0) < 1)
                 return t;
         }
-        System.out.println("WARNING! CONVERGENCE!");
+        System.out.printf("Lightbulb: temperature failed to converge for power %f\n", p);
         return t;
     }
 

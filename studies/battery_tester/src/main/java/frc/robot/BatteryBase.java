@@ -17,14 +17,15 @@ public abstract class BatteryBase {
         // this iteration is really inefficient but it will work for an arbitrary
         // battery model.
         double v = V();
-        for (int j = 0; j < 100; ++j) {
+        for (int j = 0; j < 1000; ++j) {
             double i = p / v;
             double v0 = v;
             v = VforI(i);
             if (Math.abs(v - v0) < 0.001)
                 return v;
         }
-        System.out.println("WARNING CONVERGENCE");
-        return 0;
+        System.out.printf(
+                "BatteryBase: voltage failed to converge for power %f\n", p);
+        return v;
     }
 }

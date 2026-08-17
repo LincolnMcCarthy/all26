@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 
 /**
@@ -22,6 +23,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
  * https://www.power-sonic.com/product/ps-12180/
  */
 public class StatefulBattery extends BatteryBase {
+    private static final boolean DEBUG = false;
     /** Open Circuit Voltage as a function of State of Charge. */
     final InterpolatingDoubleTreeMap ocv;
     /** Internal resistance as a function of State of Charge. */
@@ -32,8 +34,8 @@ public class StatefulBattery extends BatteryBase {
     final double i0;
     /** Peukert's constant. */
     final double k;
-    /** State of charge, [0,1]. */
-    double soc;
+    /** State of charge, coulombs. */
+    double c;
 
     // TODO: implement discharging.
 
@@ -41,6 +43,8 @@ public class StatefulBattery extends BatteryBase {
         ocv = makeOCV();
         r = makeR();
         c0 = 18 * 3600;
+        // state of charge starts at c0, fully charged.
+        c = c0;
         // 18 Ah / 20 h = 0.9 A.
         i0 = 18.0 / 20;
         // Adjusted to fit the rated discharge rates.
@@ -51,18 +55,36 @@ public class StatefulBattery extends BatteryBase {
         // see
         // https://docs.google.com/spreadsheets/d/1gB8hojtICp1v2dbFhKkuQ7yY3v1sJFDWeo-w5ABYFcA/edit?gid=862420482#gid=862420482
         k = 1.1641;
-        // starting state
-        soc = 1.0;
+
+    }
+
+    /** Discharge at the specified current (amps) for the specified time (sec). */
+    public void discharge(double i, double t) {
+        // derating is less than 1
+        double derate = peukert(i);
+        // derated (i.e. additional) current
+        double i1 = i / derate;
+        if (DEBUG)
+            System.out.printf("i1 %f\n", i1);
+        // derated coulombs produced
+        double dc = i1 * t;
+        if (DEBUG)
+            System.out.printf("dc %f\n", dc);
+        c = c - dc;
+    }
+
+    double soc() {
+        return MathUtil.clamp(c / c0, 0, 1);
     }
 
     @Override
     double V() {
-        return ocv.get(soc);
+        return ocv.get(soc());
     }
 
     @Override
     double R() {
-        return r.get(soc);
+        return r.get(soc());
     }
 
     /**
@@ -118,11 +140,17 @@ public class StatefulBattery extends BatteryBase {
     }
 
     /**
-     * Applies Peukert's law, returns derating for the given discharge current.
+     * Applies Peukert's law, returns derating [0,1] for the given discharge
+     * current.
      * 
      * The 20h capacity implies a 0.9A discharge rate.
      * 
      * https://en.wikipedia.org/wiki/Peukert's_law
+     * 
+     * Note this "derating" is only useful if the current draw is constant: it
+     * models a time-dependent phenomenon in the battery (reactant migration), and
+     * given time at lower discharge (or at rest), some of the "lost" capacity can
+     * "reappear".
      */
     double peukert(double i) {
         if (i < 0.1)

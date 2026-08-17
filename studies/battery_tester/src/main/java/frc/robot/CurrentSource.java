@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.PIDFeedback;
+import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
@@ -34,12 +35,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * control velocity.
  */
 public class CurrentSource extends SubsystemBase {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private final PowerDistribution pdh;
     private final List<VictorSP> controllers;
     private final FeedbackR1 feedback;
     private final LightBulb lightbulb;
     private final Battery battery;
+    private final StatefulBattery simBattery;
 
     private final DoubleLogger m_log_power;
     private final DoubleLogger m_log_desired_power;
@@ -52,6 +54,7 @@ public class CurrentSource extends SubsystemBase {
     private final DoubleLogger m_log_output_power;
     private final DoubleLogger m_log_battery_voltage;
     private final DoubleLogger m_log_sim_battery_voltage;
+    private final DoubleLogger m_log_soc;
 
     // previously requested power (to avoid time travel)
     private double m_p;
@@ -75,6 +78,7 @@ public class CurrentSource extends SubsystemBase {
         feedback = new PIDFeedback(log, 0.00025, 0, 0.000001, false, 0.1, 1);
         lightbulb = new LightBulb();
         battery = new Battery();
+        simBattery = new StatefulBattery();
         m_log_power = log.doubleLogger(Level.DEBUG, "power (W)");
         m_log_desired_power = log.doubleLogger(Level.DEBUG, "desired power (W)");
         m_log_ff = log.doubleLogger(Level.DEBUG, "ff");
@@ -86,6 +90,7 @@ public class CurrentSource extends SubsystemBase {
         m_log_output_power = log.doubleLogger(Level.DEBUG, "output power (W)");
         m_log_battery_voltage = log.doubleLogger(Level.DEBUG, "battery voltage (V)");
         m_log_sim_battery_voltage = log.doubleLogger(Level.DEBUG, "sim battery voltage (V)");
+        m_log_soc = log.doubleLogger(Level.DEBUG, "soc");
     }
 
     /** Set bulb power (watts). */
@@ -110,7 +115,7 @@ public class CurrentSource extends SubsystemBase {
         m_p = p;
         m_log_fb.log(() -> fb);
         m_fb += fb;
-        m_dutycycle = ff + m_fb;
+        m_dutycycle = MathUtil.clamp(ff + m_fb, 0, 1);
         controllers.stream().forEach(x -> x.set(m_dutycycle));
     }
 
@@ -179,11 +184,19 @@ public class CurrentSource extends SubsystemBase {
     @Override
     public void periodic() {
         if (RobotBase.isSimulation()) {
-            double p = powerForDutyCycle(lightbulb, battery, dutycycle());
-            double v = battery.VforP(p);
+            // use the stateful battery to model the increase
+            // in resistance and decrease in voltage
+            // double p = powerForDutyCycle(lightbulb, battery, dutycycle());
+            // double v = battery.VforP(p);
+            double p = powerForDutyCycle(lightbulb, simBattery, dutycycle());
+            double v = simBattery.VforP(p);
             // System.out.printf("p %f v %f\n", p, v);
             m_log_sim_battery_voltage.log(() -> v);
             RoboRioSim.setVInVoltage(v);
+            // discharge the battery
+            double inputI = p / v;
+            simBattery.discharge(inputI, TimedRobot100.LOOP_PERIOD_S);
+            m_log_soc.log(simBattery::soc);
         }
         m_log_power.log(this::power);
         m_log_t.log(this::temperature);
@@ -197,9 +210,9 @@ public class CurrentSource extends SubsystemBase {
     // static for testing
     // TODO: move to another class
     public static double batteryVoltageForDutycycle(
-            LightBulb l, Battery b, double d) {
+            LightBulb l, BatteryBase b, double d) {
         double inputV = Battery.R;
-        for (int j = 0; j < 100; ++j) {
+        for (int j = 0; j < 1000; ++j) {
             double outputV = d * inputV;
             double outputI = l.IforV(outputV);
             double p = outputV * outputI;
@@ -210,12 +223,13 @@ public class CurrentSource extends SubsystemBase {
             if (Math.abs(inputV - v0) < 0.001)
                 return inputV;
         }
-        System.out.println("WARNING CONVERGENCE");
+        System.out.printf(
+            "CurrentSource: voltage failed to converge for duty cycle %f\n", d);
         return 0;
     }
 
     public static double powerForDutyCycle(
-            LightBulb l, Battery b, double d) {
+            LightBulb l, BatteryBase b, double d) {
         double inputV = batteryVoltageForDutycycle(l, b, d);
         double outputV = d * inputV;
         double outputI = l.IforV(outputV);

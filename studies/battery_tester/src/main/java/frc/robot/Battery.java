@@ -11,10 +11,6 @@ public class Battery extends BatteryBase {
     /** Open-circuit voltage. */
     public static double V = 12.6;
 
-    public Battery() {
-
-    }
-
     @Override
     double V() {
         return V;
