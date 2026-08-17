@@ -73,15 +73,15 @@ public class LightBulb {
     private static final double Asigma = 6.23770e-11;
 
     /**
-     * Emissivity.
+     * Emissivity as a function of temperature.
      * 
      * key: temperature, kelvin
      * value: total emissivity, [0, 1]
      */
-    final InterpolatingTreeMap<Double, Double> epsilon;
+    final InterpolatingDoubleTreeMap epsilon;
 
     /**
-     * Resistivity.
+     * Resistivity as a function of temperature.
      * 
      * key: temperature, kelvin
      * value: resistivity, microohm-cm

@@ -34,7 +34,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * control velocity.
  */
 public class CurrentSource extends SubsystemBase {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private final PowerDistribution pdh;
     private final List<VictorSP> controllers;
     private final FeedbackR1 feedback;
@@ -57,6 +57,8 @@ public class CurrentSource extends SubsystemBase {
     private double m_p;
     // previously commanded dutycycle (to avoid discretization error)
     private double m_dutycycle;
+    // feedback accumulates, so the controller task is easier.
+    private double m_fb;
 
     public CurrentSource(LoggerFactory parent) {
         LoggerFactory log = parent.type(this);
@@ -67,7 +69,10 @@ public class CurrentSource extends SubsystemBase {
                 new VictorSP(2),
                 new VictorSP(3),
                 new VictorSP(4));
-        feedback = new PIDFeedback(log, 0.0005, 0.00001, 0, false, 0.1, 1);
+        // a good proportional output would be 0.1 for an error of 1000.
+        // there is no opposing force here so no reason for I.
+        // the slew rate should be something like 1000/s,
+        feedback = new PIDFeedback(log, 0.00025, 0, 0.000001, false, 0.1, 1);
         lightbulb = new LightBulb();
         battery = new Battery();
         m_log_power = log.doubleLogger(Level.DEBUG, "power (W)");
@@ -86,6 +91,8 @@ public class CurrentSource extends SubsystemBase {
     /** Set bulb power (watts). */
     public void setPower(double p) {
         m_log_desired_power.log(() -> p);
+        // try it without feedforward.
+        // double ff = 0;
         double ff = ff(p);
         m_log_ff.log(() -> ff);
         // feedback compares previous command to previous result
@@ -95,18 +102,23 @@ public class CurrentSource extends SubsystemBase {
         double fb = feedback.calculate(
                 new ModelR1(measurement),
                 new ModelR1(m_p));
-        if (DEBUG)
+        if (DEBUG) {
             System.out.printf("measurement %f setpoint %f fb %f\n",
                     measurement, setpoint, fb);
+            System.out.printf("at setpoint %b\n", feedback.atSetpoint());
+        }
         m_p = p;
         m_log_fb.log(() -> fb);
-        m_dutycycle = MathUtil.clamp(ff + fb, 0, 1);
+        m_fb += fb;
+        m_dutycycle = ff + m_fb;
         controllers.stream().forEach(x -> x.set(m_dutycycle));
     }
 
     public void off() {
         setPower(0);
         feedback.reset();
+        m_dutycycle = 0;
+        m_fb = 0;
         controllers.stream().forEach(VictorSP::stopMotor);
     }
 
