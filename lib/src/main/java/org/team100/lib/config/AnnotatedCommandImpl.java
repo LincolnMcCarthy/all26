@@ -3,7 +3,7 @@ package org.team100.lib.config;
 import java.util.List;
 import java.util.function.Function;
 
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.driverstation.Alliance;

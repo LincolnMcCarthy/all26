@@ -1,5 +1,7 @@
 package org.team100.lib.kinematics.pr;
 
+import java.util.List;
+
 import org.team100.lib.geometry.pr.PRAcceleration;
 import org.team100.lib.geometry.pr.PRConfig;
 import org.team100.lib.geometry.pr.PRVelocity;
@@ -70,31 +72,38 @@ public class PRKinematics {
     /**
      * Inverse position kinematics: joint configuration from cartesian position.
      * 
-     * The inverse kinematics are not unique: there are two ways to get to almost
-     * all points in the envelope: the "arm pointing up" orientation and the "arm
-     * pointing down" orientation. The use of arcsin below prefers the "arm pointing
-     * up" case.
-     * 
-     * There are also unreachable points outside the envelope; in that case we
-     * return null.
+     * Returns zero ("outside envelope"), one ("straight out"),
+     * or two solutions ("arm pointing up" and "arm pointing down").
      */
-    public PRConfig inverse(Translation2d t) {
+    public List<PRConfig> inverse(Translation2d t) {
         double x = t.getX();
         double y = t.getY();
-        double q2 = Math.asin(y / l);
-        double q1 = x - Math.sqrt(l * l - y * y);
-        if (Double.isNaN(q2) || Double.isNaN(q1))
-            return null;
-        return new PRConfig(q1, q2);
+        if (Math.abs(y) > l + 1e-6) {
+            // outside envelope, no solution
+            return List.of();
+        }
+        if (Math.abs(y) > l - 1e-6) {
+            // straight out, one solution
+            return List.of(new PRConfig(x, Math.signum(y) * Math.PI / 2));
+        }
+        // inside envelope, two solutions.
+        double q2Up = Math.asin(y / l);
+        double q1Up = x - l * Math.cos(q2Up);
+        PRConfig armUp = new PRConfig(q1Up, q2Up);
+        double q2Down = Math.PI - q2Up;
+        double q1Down = x - l * Math.cos(q2Down);
+        PRConfig armDown = new PRConfig(q1Down, q2Down);
+        return List.of(armUp, armDown);
     }
 
     /**
      * Inverse velocity kinematics.
      * 
      * \dot{q} = J^{-1}(x) \dot{x}
+     * 
+     * Depends on choice of configuration, q.
      */
-    public PRVelocity inverse(Translation2d x, VelocityR2 xdot) {
-        PRConfig q = inverse(x);
+    public PRVelocity inverse(PRConfig q, VelocityR2 xdot) {
         Matrix<N2, N2> Jinv = Jinv(q);
         return PRVelocity.fromVector(Jinv.times(xdot.toVector()));
     }
@@ -105,9 +114,10 @@ public class PRKinematics {
      * \ddot{q} = J^{-1}(\ddot{x} - \dot{J}J^{-1}\dot{x})
      * 
      * See doc/README.md equation 9
+     * 
+     * Depends on choice of configuration, q.
      */
-    public PRAcceleration inverse(Translation2d x, VelocityR2 xdot, AccelerationR2 xddot) {
-        PRConfig q = inverse(x);
+    public PRAcceleration inverse(PRConfig q, VelocityR2 xdot, AccelerationR2 xddot) {
         Matrix<N2, N2> Jinv = Jinv(q);
         PRVelocity qdot = PRVelocity.fromVector(Jinv.times(xdot.toVector()));
         Matrix<N2, N2> Jdot = Jdot(q, qdot);
@@ -143,16 +153,17 @@ public class PRKinematics {
     }
 
     /**
-     * Inverse Jacobian, or zero if singular.
+     * Inverse Jacobian.
+     * 
+     * When singular, some motion is still possible, so this doesn't return zero,
+     * just the pseudoinverse. Note this might not be what you want?
      */
     private Matrix<N2, N2> Jinv(PRConfig q) {
         Matrix<N2, N2> J = J(q);
         if (Math.abs(J.det()) < 1e-3) {
-            // not invertible
-            System.out.printf("WARNING: zero jacobian for config %s\n", q.toString());
-            return new Matrix<>(Nat.N2(), Nat.N2());
+            System.out.printf("WARNING: singularity at config %s\n", q.toString());
         }
-        return J.inv();
+        return new Matrix<>(J.getStorage().pseudoInverse());
     }
 
 }

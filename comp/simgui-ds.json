@@ -1,19 +1,53 @@
 {
-      "FMS": {"window": {"visible": false}},
-      "Joysticks": {"window": {"visible": false}},
-      "System Joysticks": {"window": {"enabled": false}},
-      "keyboardJoysticks": [{
-        "axisConfig": [{}, {}, {}, {
-          "decKey": 546,
-          "incKey": 549
-        }, {
-          "decKey": 564,
-          "incKey": 568
-        }],
-        "axisCount": 6,
-        "buttonCount": 7,
-        "buttonKeys": [-1, -1, -1, -1, -1, -1, -1],
-        "povConfig": [{
+  "FMS": {
+    "window": {
+      "visible": false
+    }
+  },
+  "Joysticks": {
+    "window": {
+      "visible": false
+    }
+  },
+  "System Joysticks": {
+    "window": {
+      "enabled": false
+    }
+  },
+  "keyboardJoysticks": [
+    {
+      "axisConfig": [
+        {
+          "decKey": 81,
+          "incKey": 69
+        },
+        {},
+        {
+          "decKey": 74,
+          "incKey": 76
+        },
+        {
+          "decKey": 65,
+          "incKey": 68
+        },
+        {
+          "decKey": 87,
+          "incKey": 83
+        }
+      ],
+      "axisCount": 6,
+      "buttonCount": 7,
+      "buttonKeys": [
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55
+      ],
+      "povConfig": [
+        {
           "key0": 265,
           "key180": 264,
           "key270": 263,

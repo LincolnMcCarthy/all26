@@ -25,8 +25,12 @@ import org.wpilib.math.numbers.N5;
  */
 public class URDFAL5D extends URDFRobot<N5> {
 
-    private URDFAL5D(String name, List<URDFLink> links, List<URDFJoint> joints) {
-        super(Nat.N5(), name, links, joints);
+    private URDFAL5D(
+            String name,
+            List<URDFLink> links,
+            List<URDFJoint> joints) {
+        super(URDFRobot.Solver.NEWTON, Nat.N5(), name,
+                links, joints, VecBuilder.fill(1, 1, 1, 1, 1));
     }
 
     public static URDFAL5D make() {

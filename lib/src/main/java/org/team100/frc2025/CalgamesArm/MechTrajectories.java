@@ -8,14 +8,14 @@ import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.se2.commands.GoToPosePosition;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TorqueConstraint;
-import org.team100.lib.trajectory.constraint.YawRateConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TorqueConstraint;
+import org.team100.lib.trajectory.se2.constraint.YawRateConstraint;
 
 import org.wpilib.command2.Command;
 

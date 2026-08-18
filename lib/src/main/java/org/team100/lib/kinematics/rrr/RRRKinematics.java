@@ -9,6 +9,7 @@ import org.team100.lib.kinematics.urdf.URDFJoint.JointType;
 import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
 import org.team100.lib.kinematics.urdf.URDFLink;
 import org.team100.lib.kinematics.urdf.URDFRobot;
+import org.team100.lib.kinematics.urdf.URDFRobot.Solver;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.linalg.VecBuilder;
@@ -66,6 +67,7 @@ public class RRRKinematics {
                 new Pose3d(l3, 0, 0, new Rotation3d()), null);
 
         m_arm = new URDFRobot<>(
+                Solver.NEWTON,
                 Nat.N3(),
                 "RRR",
                 List.of(
@@ -78,7 +80,8 @@ public class RRRKinematics {
                         shoulder,
                         elbow,
                         wrist,
-                        center_point));
+                        center_point),
+                VecBuilder.fill(0.1, 0.1, 0.1));
     }
 
     public Pose3d forward(RRRConfig q) {
@@ -96,7 +99,7 @@ public class RRRKinematics {
     public RRRConfig inverse(Pose3d x) {
         // will this work without the initial value?
         Vector<N3> q0 = VecBuilder.fill(0, 0, 0);
-        Map<String, Double> qMap = m_arm.inverse(q0, 1, "center_point", x);
+        Map<String, Double> qMap = m_arm.inverse(q0, "center_point", x);
         return new RRRConfig(
                 qMap.get("shoulder"),
                 qMap.get("elbow"),

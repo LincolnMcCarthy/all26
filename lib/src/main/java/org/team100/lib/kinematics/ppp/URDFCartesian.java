@@ -3,16 +3,15 @@ package org.team100.lib.kinematics.ppp;
 import java.util.List;
 
 import org.team100.lib.kinematics.urdf.URDFJoint;
-import org.team100.lib.kinematics.urdf.URDFLink;
-import org.team100.lib.kinematics.urdf.URDFRobot;
 import org.team100.lib.kinematics.urdf.URDFJoint.JointType;
 import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
-
-import org.wpilib.math.util.Nat;
-import org.wpilib.math.linalg.VecBuilder;
+import org.team100.lib.kinematics.urdf.URDFLink;
+import org.team100.lib.kinematics.urdf.URDFRobot;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
+import org.wpilib.math.linalg.VecBuilder;
 import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.Nat;
 
 /**
  * Cartesian prismatic, like the Shopsabre:
@@ -26,7 +25,8 @@ import org.wpilib.math.numbers.N3;
  */
 public class URDFCartesian extends URDFRobot<N3> {
     private URDFCartesian(String name, List<URDFLink> links, List<URDFJoint> joints) {
-        super(Nat.N3(), name, links, joints);
+        super(URDFRobot.Solver.NEWTON, Nat.N3(),
+                name, links, joints, VecBuilder.fill(1, 1, 1));
     }
 
     public static URDFCartesian make() {

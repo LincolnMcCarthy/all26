@@ -14,15 +14,15 @@ import org.team100.lib.controller.se2.ControllerSE2;
 import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.constraint.VelocityLimitRegionConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
+import org.team100.lib.trajectory.se2.constraint.VelocityLimitRegionConstraint;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.math.geometry.Pose2d;
@@ -100,22 +100,20 @@ public class RightBumpFullSweepAuton implements AnnotatedCommand {
 
         // Intake, score
         return sequence(
-            parallel(
-                IntakeSetUp.until(IntakeSetUp::isDone).withTimeout(8),
-                    sequence(
-                        Commands.waitUntil(() -> FieldConstants2026
+                parallel(
+                        IntakeSetUp.until(IntakeSetUp::isDone).withTimeout(8),
+                        sequence(
+                                Commands.waitUntil(() -> FieldConstants2026
                                         .isInNeutralZone(machinery.m_drive.getState().translation())),
-                        (machinery.m_intakeExtend.goToExtendedPosition()
-                        .andThen(machinery.m_intake.intake())).withTimeout(4),
-        
-                        Commands.waitUntil(() -> FieldConstants2026
+                                (machinery.m_intakeExtend.goToExtendedPosition()
+                                        .andThen(machinery.m_intake.intake())).withTimeout(4),
+
+                                Commands.waitUntil(() -> FieldConstants2026
                                         .isInAllianceZone(machinery.m_drive.getState().translation())),
-                        parallel(
-                            machinery.m_intake.stop(),
-                            machinery.m_intakeExtend.goToRetractedPosition(),
-                            machinery.m_shooter.auto())
-                                ))
-                    );
+                                parallel(
+                                        machinery.m_intake.stop(),
+                                        machinery.m_intakeExtend.goToRetractedPosition(),
+                                        machinery.m_shooter.auto()))));
     }
 
     @Override

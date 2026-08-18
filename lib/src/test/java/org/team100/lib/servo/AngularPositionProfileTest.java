@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.PIDFeedback;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
@@ -47,7 +47,7 @@ class AngularPositionProfileTest implements Timeless {
      */
     @Test
     void testTrapezoid() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         final ProfileR1 profile = new WPITrapezoidProfileR1(1, 1);
         ref = new ProfileReferenceR1(logger, () -> profile, 0.05, 0.05);
         servo = new OnboardAngularPositionServo(
@@ -59,7 +59,7 @@ class AngularPositionProfileTest implements Timeless {
 
     @Test
     void testProfile() {
-        RDynamics dyn = new RDynamics(0, 0, 0);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         final ProfileR1 profile = new TrapezoidProfileR1(1, 1, 0.05);
         ref = new ProfileReferenceR1(logger, () -> profile, 0.05, 0.05);
         servo = new OnboardAngularPositionServo(

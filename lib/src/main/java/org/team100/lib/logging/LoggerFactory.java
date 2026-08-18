@@ -19,6 +19,7 @@ import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.localization.Blip;
 import org.team100.lib.localization.SwerveState;
 import org.team100.lib.logging.primitive.PrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Point;
 import org.team100.lib.reference.r1.SetpointsR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
@@ -28,8 +29,7 @@ import org.team100.lib.state.VelocityControlR1;
 import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePosition100;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePositions;
-import org.team100.lib.trajectory.TrajectorySE2Entry;
-import org.team100.lib.trajectory.path.PathSE2Point;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.VariableR1;
 

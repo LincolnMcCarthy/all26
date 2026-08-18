@@ -5,6 +5,7 @@ import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -41,7 +42,7 @@ public class IntakeExtend extends SubsystemBase {
 
         // Mass is zero for now because gravity coordinate doesn't match
         // the mechanism.
-        RDynamics dynamics = new RDynamics(0, 0, 0);
+        RDynamics dynamics = new RDynamicsAnalytic(0, 0, 0, 0);
         TrapezoidProfileR1 profile = new TrapezoidProfileR1(4, 8, 0.1);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.1, 0.05);
         final BareMotor motor;

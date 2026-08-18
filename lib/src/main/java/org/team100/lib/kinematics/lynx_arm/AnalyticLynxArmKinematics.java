@@ -1,5 +1,6 @@
 package org.team100.lib.kinematics.lynx_arm;
 
+import java.util.List;
 import java.util.OptionalDouble;
 
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
@@ -134,11 +135,18 @@ public class AnalyticLynxArmKinematics implements LynxArmKinematics {
         Translation2d twoDofEnd = new Translation2d(
                 hypot,
                 twoDofY);
-        RRConfig twoDofConfig = twodof.inverse(twoDofEnd);
+        // TODO: default
+        List<RRConfig> twoDofConfig = twodof.inverse(twoDofEnd, null);
+        // for now, throw like it used to
+        // TODO: handle zero solutions gracefully
+        if (twoDofConfig.isEmpty())
+            throw new IllegalArgumentException();
 
         // the 2d coordinates are inverted for convenience, so fix it here.
-        boom = -1.0 * twoDofConfig.q1();
-        stick = -1.0 * twoDofConfig.q2();
+        // TODO: assuming the first result is good.
+        // TODO: instead, test against joint limits and choose the feasible one.
+        boom = -1.0 * twoDofConfig.get(0).q1();
+        stick = -1.0 * twoDofConfig.get(0).q2();
 
         Rotation3d endRotation = end.getRotation();
         if (translation.getNorm() < 1e-3) {

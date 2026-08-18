@@ -6,6 +6,7 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
+import org.team100.lib.logging.LoggerFactory.ModelR1Logger;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
 import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
@@ -28,6 +29,7 @@ public class SimulatedBareMotor implements BareMotor {
     private final DoubleLogger m_log_velocityInput;
     private final DoubleLogger m_log_positionInput;
     private final DoubleLogger m_log_torqueInput;
+    private final ModelR1Logger m_log_state;
     private final ObjectCache<ModelR1> m_stateCache;
 
     // just like in a real motor, the inputs remain until zeroed by the watchdog.
@@ -47,6 +49,7 @@ public class SimulatedBareMotor implements BareMotor {
         m_log_velocityInput = m_log.doubleLogger(Level.DEBUG, "velocity input");
         m_log_positionInput = m_log.doubleLogger(Level.DEBUG, "position input");
         m_log_torqueInput = m_log.doubleLogger(Level.DEBUG, "torque input");
+        m_log_state = m_log.ModelR1Logger(Level.DEBUG, "state");
         m_stateCache = Cache.of(this::update);
     }
 
@@ -88,6 +91,7 @@ public class SimulatedBareMotor implements BareMotor {
         if (DEBUG) {
             System.out.printf("SimulatedBareMotor state %s\n", m_state);
         }
+        m_log_state.log(() -> m_state);
         return m_state;
     }
 
@@ -185,6 +189,7 @@ public class SimulatedBareMotor implements BareMotor {
         return 0;
     }
 
+    @Override
     public double getUnwrappedPositionRad() {
         double pos = m_stateCache.get().x();
         if (Double.isNaN(pos))

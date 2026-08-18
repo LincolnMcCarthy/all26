@@ -21,6 +21,10 @@ public class InterpolatingMap100<K, V> {
         m_interpolator = interpolator;
     }
 
+    public static InterpolatingMap100<Double, Double> forDouble() {
+        return new InterpolatingMap100<>(InverseInterpolator.forDouble(), Interpolator.forDouble());
+    }
+
     public void put(K key, V value) {
         m_map.put(key, value);
     }

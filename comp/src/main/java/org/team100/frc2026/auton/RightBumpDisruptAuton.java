@@ -13,15 +13,15 @@ import org.team100.lib.controller.se2.ControllerSE2;
 import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.constraint.VelocityLimitRegionConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
+import org.team100.lib.trajectory.se2.constraint.VelocityLimitRegionConstraint;
 import org.wpilib.command2.Command;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -78,7 +78,7 @@ public class RightBumpDisruptAuton implements AnnotatedCommand {
                 new WaypointSE2(startingPose,
                         new DirectionSE2(1, 0, 0), 1),
                 new WaypointSE2(new Pose2d(7.75, 2, Rotation2d.k180deg),
-                        new DirectionSE2(0, 1, 0), 1),   
+                        new DirectionSE2(0, 1, 0), 1),
                 new WaypointSE2(new Pose2d(7.75, 7, Rotation2d.k180deg),
                         new DirectionSE2(0, 1, 0), 1));
         return planner.restToRest(waypoints);

@@ -8,9 +8,9 @@ import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.ChassisAcceleration;
 import org.team100.lib.state.ControlSE2;
 import org.team100.lib.subsystems.tank.TankDrive;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Entry;
-import org.team100.lib.trajectory.TrajectorySE2Point;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
+import org.team100.lib.trajectory.se2.TrajectorySE2Point;
 import org.team100.lib.visualization.TrajectoryVisualization;
 
 import org.wpilib.math.controller.LTVUnicycleController;

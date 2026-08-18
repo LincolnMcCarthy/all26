@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import org.team100.lib.coherence.Cache;
+import org.team100.lib.coherence.Takt;
 import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
@@ -12,6 +14,7 @@ import org.team100.lib.logging.Logging;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
+import org.team100.lib.motor.ctre.KrakenX60Motor;
 import org.team100.lib.motor.rev.NeoVortexCANSparkMotor;
 import org.team100.lib.util.CanId;
 
@@ -23,37 +26,44 @@ public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
     private final RobotContainer m_robotContainer;
-    private final NeoVortexCANSparkMotor top;
-    private final NeoVortexCANSparkMotor bottom;
+    private final KrakenX60Motor left;
+    private final KrakenX60Motor right;
 
     private static final LoggerFactory rootLogger = Logging.instance().rootLogger;
     private static final TotalCurrentLog currentLog = new TotalCurrentLog(rootLogger);
 
     public Robot() {
         m_robotContainer = new RobotContainer();
-        top = new NeoVortexCANSparkMotor(
-                rootLogger,
+        left = new KrakenX60Motor(
+                rootLogger.name("left"),
                 currentLog,
-                new CanId(1),
+                new CanId(6),
                 NeutralMode100.BRAKE,
                 MotorPhase.FORWARD,
-                new CurrentLimit(1, 1),
+                new CurrentLimit(50, 50),
                 new Friction(0, 0, 0, 0),
-                PIDConstants.zero(), 0, 0);
-        bottom = new NeoVortexCANSparkMotor(
-                rootLogger,
+                PIDConstants.makeVelocityPID(0.03));
+        right = new KrakenX60Motor(
+                rootLogger.name("right"),
                 currentLog,
-                new CanId(2),
+                new CanId(7),
                 NeutralMode100.BRAKE,
-                MotorPhase.FORWARD,
-                new CurrentLimit(1, 1),
+                MotorPhase.REVERSE,
+                new CurrentLimit(50, 50),
                 new Friction(0, 0, 0, 0),
-                PIDConstants.makeVelocityPID(1), 0, 0);
+                PIDConstants.makeVelocityPID(0.03));
     }
 
     @Override
     public void robotPeriodic() {
+         // Advance the drumbeat.
+        Takt.update();
+        // Take all the measurements we can, as soon and quickly as possible.
+        Cache.refresh();
+     
         CommandScheduler.getInstance().run();
+        left.periodic();
+        right.periodic();
     }
 
     @Override
@@ -90,12 +100,15 @@ public class Robot extends TimedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
-        top.setDutyCycle(1);
-        bottom.setDutyCycle(1);
+        left.setVelocity(250, 0);// left.setDutyCycle(1.0);
+        right.setVelocity(250, 0);// right.setDutyCycle(1.0);
     }
 
     @Override
     public void teleopPeriodic() {
+        left.setDutyCycle(0.5);
+        right.setDutyCycle(0.5);
+        // System.out.println("Running!");
     }
 
     @Override

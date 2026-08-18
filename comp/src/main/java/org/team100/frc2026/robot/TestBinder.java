@@ -1,7 +1,7 @@
 package org.team100.frc2026.robot;
 
-import static org.team100.frc2026.util.TriggerUtil.onTrue;
-import static org.team100.frc2026.util.TriggerUtil.whileTrue;
+import static org.team100.lib.util.TriggerUtil.onTrue;
+import static org.team100.lib.util.TriggerUtil.whileTrue;
 import static org.wpilib.command2.Commands.parallel;
 import static org.wpilib.command2.Commands.repeatingSequence;
 import static org.wpilib.command2.Commands.waitUntil;
@@ -58,7 +58,6 @@ public class TestBinder {
                 m_machinery.m_intakeExtend.stop());
         m_machinery.m_shooter.setDefaultCommand(
                 m_machinery.m_shooter.stop());
-        
 
         ////////////////////////////////////////////////////
         ///
@@ -249,17 +248,16 @@ public class TestBinder {
         // };
 
         // whileTrue(driver::y,
-        //         repeatingSequence(
-        //                 m_machinery.m_intakeExtend.goToWobbleSlightlyInExtendedPosition().withTimeout(0.5),
-        //                 m_machinery.m_intakeExtend.goToWobbleSlightlyOutRetractedPosition().withTimeout(0.5)));
+        // repeatingSequence(
+        // m_machinery.m_intakeExtend.goToWobbleSlightlyInExtendedPosition().withTimeout(0.5),
+        // m_machinery.m_intakeExtend.goToWobbleSlightlyOutRetractedPosition().withTimeout(0.5)));
 
-        whileTrue(driver::povUp,(
-                m_machinery.m_shooter.tune()));
+        whileTrue(driver::povUp, (m_machinery.m_shooter.tune()));
 
         // Tester tester = new Tester(m_machinery);
         // onTrue(() -> RobotState.isTest(), tester.prompt());
         // whileTrue(() -> (RobotState.isTest() && driver.a() && driver.b()),
-        //         tester.prematch());
+        // tester.prematch());
     }
 
     /** Keeps tests from conflicting. */

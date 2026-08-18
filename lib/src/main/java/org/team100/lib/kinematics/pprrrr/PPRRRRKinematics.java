@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.team100.lib.geometry.pprrrr.PPRRRRConfig;
-import org.team100.lib.geometry.rrr.RRRConfig;
 import org.team100.lib.kinematics.urdf.URDFJoint;
 import org.team100.lib.kinematics.urdf.URDFJoint.JointType;
 import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
 import org.team100.lib.kinematics.urdf.URDFLink;
 import org.team100.lib.kinematics.urdf.URDFRobot;
+import org.team100.lib.kinematics.urdf.URDFRobot.Solver;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.linalg.VecBuilder;
@@ -67,6 +67,7 @@ public class PPRRRRKinematics {
                 new Pose3d(l3, 0, 0, new Rotation3d()), null);
 
         m_arm = new URDFRobot<>(
+                Solver.CD,
                 Nat.N6(),
                 "PPRRRR",
                 List.of(
@@ -85,7 +86,8 @@ public class PPRRRRKinematics {
                         shoulder,
                         elbow,
                         wrist,
-                        center_point));
+                        center_point),
+                VecBuilder.fill(0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
     }
 
     public Pose3d forward(PPRRRRConfig q) {
@@ -103,7 +105,7 @@ public class PPRRRRKinematics {
     public PPRRRRConfig inverse(Pose3d x) {
         // will this work without the initial value?
         Vector<N6> q0 = VecBuilder.fill(0, 0, 0, 0, 0, 0);
-        Map<String, Double> qMap = m_arm.inverse(q0, 1, "center_point", x);
+        Map<String, Double> qMap = m_arm.inverse(q0, "center_point", x);
         return new PPRRRRConfig(
                 qMap.get("swerve_x_joint"),
                 qMap.get("swerve_y_joint"),
