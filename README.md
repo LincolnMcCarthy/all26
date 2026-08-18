@@ -6,13 +6,19 @@ Main builds:
 
 Study builds:
 
+* [![CI](https://github.com/Team100/all26/actions/workflows/ClimbExtendTEST.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/ClimbExtendTEST.yml)
+* [![CI](https://github.com/Team100/all26/actions/workflows/ShooterTest.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/ShooterTest.yml)
+* [![CI](https://github.com/Team100/all26/actions/workflows/ShooterTestSpin.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/ShooterTestSpin.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/ballerina.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/ballerina.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/battery_tester.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/battery_tester.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/cartpole-1d.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/cartpole-1d.yml)
+* [![CI](https://github.com/Team100/all26/actions/workflows/corner_vision.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/corner_vision.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/demo_bot.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/demo_bot.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/discus.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/discus.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/lynxmotion_arm_trainer.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/lynxmotion_arm_trainer.yml)
+* [![CI](https://github.com/Team100/all26/actions/workflows/new-encoder.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/new-encoder.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/rrr.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/rrr.yml)
+* [![CI](https://github.com/Team100/all26/actions/workflows/serializerTest.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/serializerTest.yml)
 * [![CI](https://github.com/Team100/all26/actions/workflows/six_dof.yml/badge.svg)](https://github.com/Team100/all26/actions/workflows/six_dof.yml)
 
 
