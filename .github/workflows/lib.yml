@@ -1,19 +1,11 @@
-# This is a basic workflow to build robot code.
-
 name: Lib Unit Tests
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the main branch.
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
-    path-ignores:
-      - 'studies/**'
+    branches: [ main, 2027 ]
   pull_request:
-    branches: [ main ]
-    path-ignores:
-      - 'studies/**'
+    branches: [ main, 2027 ]
 
 permissions:
   checks: write
@@ -30,7 +22,7 @@ jobs:
         working-directory: ./lib
 
     # This grabs the WPILib docker container
-    container: wpilib/roborio-cross-ubuntu:2024-22.04
+    container: wpilib/systemcore-cross-ubuntu:2026-24.04-py314
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
