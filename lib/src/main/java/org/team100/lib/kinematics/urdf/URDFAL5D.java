@@ -25,8 +25,12 @@ import org.wpilib.math.numbers.N5;
  */
 public class URDFAL5D extends URDFRobot<N5> {
 
-    private URDFAL5D(String name, List<URDFLink> links, List<URDFJoint> joints) {
-        super(Nat.N5(), name, links, joints);
+    private URDFAL5D(
+            String name,
+            List<URDFLink> links,
+            List<URDFJoint> joints) {
+        super(URDFRobot.Solver.NEWTON, Nat.N5(), name,
+                links, joints, VecBuilder.fill(1, 1, 1, 1, 1));
     }
 
     public static URDFAL5D make() {
@@ -102,7 +106,9 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 null,
                                 gripper,
                                 tool_center_point,
-                                // 55mm is the distance to the *end* of the end effector, not the target grip point
-                                new Pose3d(0.055, 0, 0, new Rotation3d()), null)));
+                                // 55mm is the distance to the *end* of the end effector, not the target grip
+                                // point
+                                new Pose3d(0.055, 0, 0, new Rotation3d()),
+                                null)));
     }
 }

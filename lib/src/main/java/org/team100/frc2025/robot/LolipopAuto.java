@@ -18,7 +18,7 @@ import org.team100.lib.profile.se2.ProfileSE2;
 import org.team100.lib.subsystems.se2.commands.DriveToPoseWithProfile;
 import org.team100.lib.subsystems.se2.commands.DriveToTranslationFacingWithProfile;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
 
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;

@@ -4,7 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.RotaryMechanism;
@@ -42,8 +42,9 @@ public class OutboardRotaryPositionSubsystem extends SubsystemBase {
         LoggerFactory log = parent.type(this);
         // NOTE! the coordinates of the dynamics assume "zero" is parallel
         // to the force of gravity, which may not match.
-        RDynamics dynamics = new RDynamics(
+        RDynamicsAnalytic dynamics = new RDynamicsAnalytic(
                 0.2, // arm mass kg
+                0.3,
                 0.3, // arm length m
                 0); // arm moment, kg m^2
         ProfileR1 profile = new TrapezoidProfileR1(

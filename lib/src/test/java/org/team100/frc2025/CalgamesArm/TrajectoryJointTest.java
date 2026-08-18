@@ -9,21 +9,20 @@ import org.team100.lib.geometry.prr.PRRVelocity;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
-import org.team100.lib.kinematics.prr.AnalyticalPRRJacobian;
 import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.state.ControlSE2;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Entry;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.TrajectorySE2Point;
-import org.team100.lib.trajectory.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.YawRateConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.TrajectorySE2Point;
+import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.YawRateConstraint;
 
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
@@ -61,9 +60,7 @@ public class TrajectoryJointTest {
                 WaypointSE2.irrotational(
                         new Pose2d(1.9, 0.5, new Rotation2d(2.5)), 2, 1.2)));
 
-        PRRKinematics k = new PRRKinematics(
-                0.5, 0.3);
-        AnalyticalPRRJacobian J = new AnalyticalPRRJacobian(k);
+        PRRKinematics k = new PRRKinematics(0.5, 0.3, PRRKinematics.Solver.ANALYTIC);
         if (DEBUG)
             System.out
                     .println(
@@ -76,8 +73,8 @@ public class TrajectoryJointTest {
             VelocitySE2 v = m.velocity();
             AccelerationSE2 a = m.acceleration();
             PRRConfig q = k.inverse(p);
-            PRRVelocity jv = J.inverse(m.model());
-            PRRAcceleration ja = J.inverseA(m);
+            PRRVelocity jv = k.inverse(m.model());
+            PRRAcceleration ja = k.inverse(m);
             if (DEBUG) {
                 System.out.printf(
                         "%6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f\n",

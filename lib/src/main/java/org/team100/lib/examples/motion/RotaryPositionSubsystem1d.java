@@ -6,7 +6,7 @@ import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.FullStateFeedback;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.RotaryMechanism;
@@ -65,8 +65,9 @@ public class RotaryPositionSubsystem1d extends SubsystemBase {
     public RotaryPositionSubsystem1d(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory log = parent.type(this);
 
-        RDynamics dynamics = new RDynamics(
+        RDynamicsAnalytic dynamics = new RDynamicsAnalytic(
                 0.2, // arm mass kg
+                0.3,
                 0.3, // arm length m
                 0); // arm moment, kg m^2
 

@@ -19,17 +19,17 @@ import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.TrajectorySE2ToVectorSeries;
-import org.team100.lib.trajectory.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TorqueConstraint;
-import org.team100.lib.trajectory.constraint.YawRateConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.TrajectorySE2ToVectorSeries;
+import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TorqueConstraint;
+import org.team100.lib.trajectory.se2.constraint.YawRateConstraint;
 import org.team100.lib.util.ChartUtil;
 
 import org.wpilib.math.geometry.Pose2d;
@@ -102,7 +102,7 @@ public class TrajectoryGallery {
         PathSE2Factory pathFactory = new PathSE2Factory(0.05, 0.01, 0.1);
         TrajectorySE2Planner m_planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
 
-        PRRKinematics m_kinematics = new PRRKinematics(0.5, 0.343);
+        PRRKinematics m_kinematics = new PRRKinematics(0.5, 0.343, PRRKinematics.Solver.ANALYTIC);
         Pose2d m_home = m_kinematics.forward(CalgamesMech.HOME);
         WaypointSE2 start = new WaypointSE2(m_home, m_course, 1);
         TrajectorySE2 m_trajectory = m_planner.restToRest(List.of(start, m_goal));

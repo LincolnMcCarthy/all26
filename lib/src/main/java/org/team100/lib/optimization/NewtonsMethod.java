@@ -8,6 +8,7 @@ import org.team100.lib.util.StrUtil;
 import org.wpilib.math.jni.EigenJNI;
 import org.wpilib.math.linalg.Matrix;
 import org.wpilib.math.linalg.Vector;
+import org.wpilib.math.util.MathUtil;
 import org.wpilib.math.util.Nat;
 import org.wpilib.math.util.Num;
 
@@ -22,8 +23,9 @@ import org.wpilib.math.util.Num;
  * https://en.wikipedia.org/wiki/Newton%27s_method
  * https://hades.mech.northwestern.edu/images/7/7f/MR.pdf
  */
+@SuppressWarnings("unused")
 public class NewtonsMethod<X extends Num, Y extends Num> {
-    private static final boolean DEBUG = false;
+    private static final int DEBUG = 0;
     private final Nat<X> m_xdim;
     private final Nat<Y> m_ydim;
     private final Function<Vector<X>, Vector<Y>> m_f;
@@ -34,7 +36,7 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
     /**
      * Max change in estimate per iteration, to avoid overreacting.
      */
-    private final double m_dxLimit;
+    private final Vector<X> m_dxLimit;
 
     private final Random random = new Random();
 
@@ -61,7 +63,7 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             Vector<X> xMax,
             double tolerance,
             int iterations,
-            double dxLimit) {
+            Vector<X> dxLimit) {
         m_xdim = xdim;
         m_ydim = ydim;
         m_f = f;
@@ -72,39 +74,20 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
         m_dxLimit = dxLimit;
     }
 
-    /** Symmetric Jacobian, slower. */
-    public Vector<X> solve(Vector<X> initial) {
-        Vector<X> x = new Vector<>(initial.getStorage().copy());
-        for (int i = 0; i < m_iterations; ++i) {
-            Vector<Y> error = m_f.apply(x);
-            if (within(error)) {
-                return x;
-            }
-            Matrix<Y, X> j = NumericalJacobian100.numericalJacobian(m_xdim, m_ydim, m_f, x);
-            Vector<X> dx = new Vector<>(j.solve(error));
-            // Too-high dx results in oscillation.
-            clamp(dx);
-            update(x, dx);
-            // Keep the x estimate within bounds.
-            limit(x);
-        }
-        System.out.println("exceeded max iterations");
-        return x;
-    }
-
     /**
-     * Single-sided Jacobian, faster.
+     * Find a zero of f.
      * 
      * @param initialX       start here
      * @param restarts       number of random restarts in case of non-convergence
      * @param throwOnFailure throw an exception if we fail to find a solution. Some
      *                       clients can't tolerate a "kinda close" solution.
      */
-    public Vector<X> solve2(Vector<X> initialX, int restarts, boolean throwOnFailure) {
+    public Vector<X> solve(Vector<X> initialX, int restarts, boolean throwOnFailure) {
         // make sure our guess is within the limits.
         limit(initialX);
-        if (DEBUG)
-            System.out.printf("NewtonsMethod.solve2()\ninitialX: %s\n", StrUtil.vecStr(initialX));
+        if (DEBUG > 1)
+            System.out.printf("NewtonsMethod.solve2()\ninitialX: %s\n",
+                    StrUtil.vecStr(initialX));
         long startTime = System.nanoTime();
         int iter = 0;
         Vector<Y> error = new Vector<>(m_ydim);
@@ -112,34 +95,36 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             // x is the solution estimate
             Vector<X> x = new Vector<>(initialX.getStorage().copy());
             for (iter = 0; iter < m_iterations; ++iter) {
-                if (DEBUG)
-                    System.out.printf("iter: %d x: %s\n", iter, StrUtil.vecStr(x));
 
                 error = m_f.apply(x);
-                if (DEBUG)
+                if (DEBUG > 0)
+                    System.out.printf("iter %d x %s err %s\n",
+                            iter, StrUtil.vecStr(x), StrUtil.vecStr(error));
+
+                if (DEBUG > 1)
                     System.out.printf("error: %s\n", StrUtil.vecStr(error));
 
                 if (within(error)) {
-                    if (DEBUG)
+                    if (DEBUG > 1)
                         System.out.printf("success iter=%d\n", iter);
                     return x;
                 }
 
                 if (!solveOnce(error, x)) {
-                    if (DEBUG)
+                    if (DEBUG > 1)
                         System.out.println("solve failed");
                     break;
                 }
             }
             if (restarts > 0) {
-                if (DEBUG)
+                if (DEBUG > 1)
                     System.out.println("convergence failed, trying random restart");
                 // nearbyStart(x);
                 randomStart(x);
                 limit(x);
-                return solve2(x, restarts - 1, throwOnFailure);
+                return solve(x, restarts - 1, throwOnFailure);
             }
-            if (DEBUG)
+            if (DEBUG > 1)
                 System.out.printf("random restart failed, error %f\n", error.maxAbs());
             if (throwOnFailure)
                 throw new IllegalArgumentException(
@@ -149,7 +134,7 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             return x;
         } finally {
             long finishTime = System.nanoTime();
-            if (DEBUG) {
+            if (DEBUG > 1) {
                 System.out.printf("solve2 iterations: %d ET (ms): %6.3f\n", iter,
                         ((double) finishTime - startTime) / 1000000);
             }
@@ -178,13 +163,15 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
      * @return false if unsolvable
      */
     private boolean solveOnce(Vector<Y> error, Vector<X> x) {
-        // Matrix<Y, X> J = NumericalJacobian100.numericalJacobian2(m_xdim, m_ydim, m_f,
-        // x);
-        // ths single-sided jacobian is wrong when the error is at the minimum -- the
-        // slope is obviously nonzero on both sides, and opposite, so if you only look
-        // at one side, you'll think it is nonzero, and orbit the solution.  :-(
-        Matrix<Y, X> J = NumericalJacobian100.numericalJacobian(m_xdim, m_ydim, m_f, x);
-        if (DEBUG) {
+        // Used to use the single-sided jacobian, but that's wrong when the error is at
+        // the minimum -- the slope is obviously nonzero on both sides, and opposite, so
+        // if you only look at one side, you'll think it is nonzero, and orbit the
+        // solution. :-(
+        // Note this is the Jacobian of the error, so it's the opposite
+        // of the Jacobian of the forward function.
+        Matrix<Y, X> J = NumericalJacobian100.numericalJacobian(
+                m_xdim, m_ydim, m_f, x);
+        if (DEBUG > 1) {
             System.out.printf("x %s\n", StrUtil.vecStr(x));
             System.out.printf("J %s\n", StrUtil.matStr(J));
         }
@@ -194,16 +181,23 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             Vector<X> dx;
             if (m_ydim.getNum() >= m_xdim.getNum()) {
                 // For "narrow" systems, the normal solver seems to work:
-                dx = new Vector<>(J.solve(error));
+                // dx = new Vector<>(J.solve(error));
+                // Bah. The solver is confused by singularities
+                // so always use the pseudoinverse.
+                Matrix<X, Y> jInv = new Matrix<>(J.getStorage().pseudoInverse());
+                dx = new Vector<>(jInv.times(error));
+                if (DEBUG > 1)
+                    System.out.printf("Jinv %s\n", StrUtil.matStr(jInv));
+
             } else {
-            // QR decomposition also works:
-            // Vector<X> dx = getDxWithQRDecomp(error, J);
-            // The pseudoinverse should always work (but slower)
+                // QR decomposition also works:
+                // Vector<X> dx = getDxWithQRDecomp(error, J);
+                // The pseudoinverse should always work (but slower)
                 Matrix<X, Y> jInv = new Matrix<>(J.getStorage().pseudoInverse());
                 dx = new Vector<>(jInv.times(error));
             }
 
-            if (DEBUG)
+            if (DEBUG > 1)
                 System.out.printf("dx: %s\n", StrUtil.vecStr(dx));
 
             // Too-high dx results in oscillation.
@@ -213,7 +207,7 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             limit(x);
             return true;
         } catch (SingularMatrixException ex) {
-            if (DEBUG)
+            if (DEBUG > 1)
                 System.out.println("solver cannot succeed");
             return false;
         }
@@ -252,7 +246,7 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
      * The "x" space is Euclidean, so using a simple sum is ok.
      */
     private void update(Vector<X> x, Vector<X> dx) {
-        if (DEBUG) {
+        if (DEBUG > 1) {
             System.out.println("NewtonsMethod.update()");
             System.out.printf("x %s \n", StrUtil.vecStr(x));
             System.out.printf("dx %s\n", StrUtil.vecStr(dx));
@@ -261,23 +255,25 @@ public class NewtonsMethod<X extends Num, Y extends Num> {
             double newXi = x.get(i) - dx.get(i);
             x.set(i, 0, newXi);
         }
-        if (DEBUG) {
+        if (DEBUG > 1) {
             System.out.printf("new x %s \n", StrUtil.vecStr(x));
         }
     }
 
     /**
      * Clamp abs(dx) using a fixed limit.
+     * Too-high dx results in oscillation.
      * Mutates dx to save allocations.
      */
     private void clamp(Vector<X> dx) {
         for (int i = 0; i < dx.getNumRows(); ++i) {
             double dxI = dx.get(i);
-            if (Math.abs(dxI) > m_dxLimit) {
-                if (DEBUG)
-                    System.out.println("clamped!");
+            double dxLim = m_dxLimit.get(i);
+            if (Math.abs(dxI) > dxLim) {
+                if (DEBUG > 1)
+                    System.out.printf("clamp %d\n", i);
             }
-            double clampedDxI = Math.clamp(dxI, -m_dxLimit, m_dxLimit);
+            double clampedDxI = Math.clamp(dxI, -dxLim, dxLim);
             // System.out.printf("clamp %d %15.10f %15.10f\n", i, dxI, clampedDxI);
             dx.set(i, 0, clampedDxI);
         }

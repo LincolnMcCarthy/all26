@@ -7,18 +7,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.OptionalDouble;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.geometry.lynx_arm.LynxArmPose;
+import org.team100.lib.testing.TestUtil;
 import org.team100.lib.util.StrUtil;
-
-import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Rotation3d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
+import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.numbers.N3;
+import org.wpilib.math.util.MathUtil;
+
+
 
 public class AnalyticLynxArmKinematicsTest {
     private static final boolean DEBUG = false;
@@ -82,7 +84,7 @@ public class AnalyticLynxArmKinematicsTest {
         Pose3d end = new Pose3d(0.15, 0.1, 0.1, new Rotation3d(0, Math.PI / 2, 0));
         LynxArmConfig q = new LynxArmConfig(0, 0, 0, 0, 0);
         for (double s = 0; s <= 1; s += 0.1) {
-            Pose3d lerp = GeometryUtil.interpolate(start, end, s);
+            Pose3d lerp = LynxArmPose.interpolate(start, end, s);
             // wrist should be pointing down the whole time
             q = k.inverse(q, lerp);
             if (DEBUG)
@@ -379,32 +381,26 @@ public class AnalyticLynxArmKinematicsTest {
     }
 
     void verify(AnalyticLynxArmKinematics k, LynxArmPose p, LynxArmConfig q) {
-        verifyFwd(p, k.forward(q));
+        TestUtil.verify(p, k.forward(q));
         LynxArmConfig q0 = new LynxArmConfig(0, 0, 0, 0, 0);
         verifyInv(q, k.inverse(q0, p.p6()));
     }
 
-    void verifyFwd(LynxArmPose expected, LynxArmPose actual) {
-        assertEquals(expected.p1(), actual.p1(), "fwd p1");
-        assertEquals(expected.p2(), actual.p2(), "fwd p2");
-        assertEquals(expected.p3(), actual.p3(), "fwd p3");
-        assertEquals(expected.p4(), actual.p4(), "fwd p4");
-        assertEquals(expected.p5(), actual.p5(), "fwd p5");
-        assertEquals(expected.p6(), actual.p6(), "fwd p6");
-
-    }
-
     void verifyInv(LynxArmConfig expected, LynxArmConfig actual) {
         if (expected.swing().isPresent()) {
-            assertEquals(expected.swing().getAsDouble(), actual.swing().getAsDouble(), DELTA, "inv swing");
+            assertEquals(MathUtil.angleModulus(expected.swing().getAsDouble()),
+                    MathUtil.angleModulus(actual.swing().getAsDouble()), DELTA, "inv swing");
         } else {
             assertTrue(actual.swing().isEmpty(), "inv swing");
         }
-        assertEquals(expected.boom(), actual.boom(), DELTA, "inv boom");
-        assertEquals(expected.stick(), actual.stick(), DELTA, "inv stick");
-        assertEquals(expected.wrist(), actual.wrist(), DELTA, "inv wrist");
+        assertEquals(MathUtil.angleModulus(expected.boom()), MathUtil.angleModulus(actual.boom()), DELTA, "inv boom");
+        assertEquals(MathUtil.angleModulus(expected.stick()), MathUtil.angleModulus(actual.stick()), DELTA,
+                "inv stick");
+        assertEquals(MathUtil.angleModulus(expected.wrist()), MathUtil.angleModulus(actual.wrist()), DELTA,
+                "inv wrist");
         if (expected.twist().isPresent()) {
-            assertEquals(expected.twist().getAsDouble(), actual.twist().getAsDouble(), DELTA, "inv twist");
+            assertEquals(MathUtil.angleModulus(expected.twist().getAsDouble()),
+                    MathUtil.angleModulus(actual.twist().getAsDouble()), DELTA, "inv twist");
         } else {
             assertTrue(actual.twist().isEmpty());
         }

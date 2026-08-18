@@ -3,8 +3,9 @@ package org.team100.lib.servo;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.dynamics.r.RAcceleration;
 import org.team100.lib.dynamics.r.RConfig;
-import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.dynamics.r.REffort;
+import org.team100.lib.dynamics.r.RVelocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.ControlR1Logger;
@@ -39,7 +40,7 @@ public class OnboardAngularPositionServo extends AngularPositionServoImpl {
     public OnboardAngularPositionServo(
             LoggerFactory parent,
             RotaryMechanism mech,
-            RDynamics dynamics,
+            RDynamicsAnalytic dynamics,
             ReferenceR1 ref,
             FeedbackR1 feedback) {
         super(parent, mech, dynamics, ref);
@@ -81,6 +82,7 @@ public class OnboardAngularPositionServo extends AngularPositionServoImpl {
 
         REffort t = m_dynamics.effort(
                 new RConfig(nextUnwrappedSetpoint.x()),
+                new RVelocity(nextUnwrappedSetpoint.v()),
                 new RAcceleration(nextUnwrappedSetpoint.a()));
 
         if (DEBUG) {

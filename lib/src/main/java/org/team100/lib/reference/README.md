@@ -2,9 +2,10 @@
 
 Classes here supply "references" (controller setpoints).
 
-There are two dimensionalities:
+There are three dimensionalities:
 
 * R1: one-dimensional, used for single-DOF mechanisms.
+* R^n: n-dimensional, used for multi-DOF mechanisms.
 * SE(2): planar, i.e. `Pose2d`, used for drivetrain and planar mechanism.
 
 The reference sources can wrap two different suppliers:

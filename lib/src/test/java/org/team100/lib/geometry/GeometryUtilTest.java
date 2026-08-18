@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.team100.lib.testing.TestUtil;
 
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Quaternion;
@@ -223,5 +224,29 @@ class GeometryUtilTest {
         assertEquals(0, xforward.getX(), DELTA);
         assertEquals(0, xforward.getY(), DELTA);
         assertEquals(-1, xforward.getZ(), DELTA);
+    }
+
+    @Test
+    void testCompose0() {
+        TestUtil.verify(
+                new Pose2d(1, 0, Rotation2d.kZero),
+                GeometryUtil.compose(
+                        new Pose2d(),
+                        new Pose2d(1, 0, Rotation2d.kZero)));
+        TestUtil.verify(
+                new Pose2d(2, 0, Rotation2d.kZero),
+                GeometryUtil.compose(
+                        new Pose2d(1, 0, Rotation2d.kZero),
+                        new Pose2d(1, 0, Rotation2d.kZero)));
+        TestUtil.verify(
+                new Pose2d(1, 1, Rotation2d.kPi),
+                GeometryUtil.compose(
+                        new Pose2d(1, 0, Rotation2d.kCCW_Pi_2),
+                        new Pose2d(1, 0, Rotation2d.kCCW_Pi_2)));
+        TestUtil.verify(
+                new Pose2d(0, 0, Rotation2d.kZero),
+                GeometryUtil.compose(
+                        new Pose2d(1, 0, Rotation2d.kCCW_Pi_2),
+                        new Pose2d(0, 1, Rotation2d.kCW_Pi_2)));
     }
 }

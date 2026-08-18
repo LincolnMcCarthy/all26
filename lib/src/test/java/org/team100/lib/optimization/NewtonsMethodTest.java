@@ -353,21 +353,45 @@ public class NewtonsMethodTest {
         assertEquals(2.094, q3.get(1), 1e-3);
     }
 
-    // there's something weird wrong with this test
-    // @Test
+    @Test
     void testLinear1d() {
         // linear function: f(x) = x + 1
         // exact answer in one iteration
         // 2 microseconds on my desktop machine.
-        Function<Vector<N1>, Vector<N1>> f = x -> x.plus(VecBuilder.fill(1));
+        Function<Vector<N1>, Vector<N1>> f = //
+                x -> x.plus(VecBuilder.fill(1));
         Vector<N1> q0 = VecBuilder.fill(0);
         Vector<N1> minQ = VecBuilder.fill(-10);
         Vector<N1> maxQ = VecBuilder.fill(10);
-        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, 1);
+        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(
+                Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1));
 
         // f(-1) = -1 + 1 = 0
-        Vector<N1> x = s.solve2(q0, 1, true);
+        Vector<N1> x = s.solve(q0, 1, true);
         assertEquals(-1, x.get(0), 1e-3);
+    }
+
+    @Test
+    void testLinear1d2() {
+        // linear function: f(x) = x + 1
+        // goal = 2
+        // error function: err(x) = 2 - f(x)
+        // f(x) = 2
+        // x+1 = 2
+        // x = 1
+        Function<Vector<N1>, Vector<N1>> f = //
+                x -> x.plus(VecBuilder.fill(1));
+        Vector<N1> goal = VecBuilder.fill(2);
+        Function<Vector<N1>, Vector<N1>> err = //
+                x -> goal.minus(f.apply(x));
+        Vector<N1> q0 = VecBuilder.fill(0);
+        Vector<N1> minQ = VecBuilder.fill(-10);
+        Vector<N1> maxQ = VecBuilder.fill(10);
+        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(
+                Nat.N1(), Nat.N1(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1));
+
+        Vector<N1> x = s.solve(q0, 1, true);
+        assertEquals(1, x.get(0), 1e-3);
     }
 
     @Test
@@ -377,12 +401,13 @@ public class NewtonsMethodTest {
         Vector<N1> q0 = VecBuilder.fill(0);
         Vector<N1> minQ = VecBuilder.fill(-10);
         Vector<N1> maxQ = VecBuilder.fill(10);
-        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, 1);
+        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(
+                Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1));
         long startTime = System.nanoTime();
         int iter = 0;
         int maxIter = 100000;
         for (iter = 0; iter < maxIter; ++iter) {
-            s.solve2(q0, 1, true);
+            s.solve(q0, 1, true);
         }
         long finishTime = System.nanoTime();
         if (DEBUG) {
@@ -401,8 +426,9 @@ public class NewtonsMethodTest {
         Vector<N1> q0 = VecBuilder.fill(0);
         Vector<N1> minQ = VecBuilder.fill(-10);
         Vector<N1> maxQ = VecBuilder.fill(10);
-        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, 1);
-        Vector<N1> x = s.solve2(q0, 1, true);
+        NewtonsMethod<N1, N1> s = new NewtonsMethod<>(
+                Nat.N1(), Nat.N1(), f, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1));
+        Vector<N1> x = s.solve(q0, 1, true);
         // f(1.414) = 2 - 2 = 0
         // note +/-
         assertEquals(1.414, Math.abs(x.get(0)), 1e-3);
@@ -420,8 +446,9 @@ public class NewtonsMethodTest {
         Vector<N2> q0 = VecBuilder.fill(0, Math.PI / 2);
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N3> s = new NewtonsMethod<>(Nat.N2(), Nat.N3(), err, minQ, maxQ, 1e-3, 10, 1);
-        Vector<N2> x = s.solve(q0);
+        NewtonsMethod<N2, N3> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N3(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
+        Vector<N2> x = s.solve(q0, 0, false);
         assertEquals(0.524, x.get(0), 1e-3);
         assertEquals(2.094, x.get(1), 1e-3);
     }
@@ -445,8 +472,9 @@ public class NewtonsMethodTest {
         Vector<N2> q0 = VecBuilder.fill(0, Math.PI / 2);
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N3> s = new NewtonsMethod<>(Nat.N2(), Nat.N3(), err, minQ, maxQ, 1e-3, 10, 1);
-        Vector<N2> x = s.solve2(q0, 5, true);
+        NewtonsMethod<N2, N3> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N3(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
+        Vector<N2> x = s.solve(q0, 5, true);
         assertEquals(0.524, x.get(0), 1e-3);
         assertEquals(2.094, x.get(1), 1e-3);
     }
@@ -583,8 +611,9 @@ public class NewtonsMethodTest {
 
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, 1);
-        Vector<N2> x = s.solve(q0);
+        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
+        Vector<N2> x = s.solve(q0, 0, false);
         assertEquals(0.524, x.get(0), 1e-3);
         assertEquals(2.094, x.get(1), 1e-3);
     }
@@ -603,11 +632,12 @@ public class NewtonsMethodTest {
 
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, 1);
+        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
         int iterations = 1000000;
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < iterations; ++i) {
-            s.solve(q0);
+            s.solve(q0, 0, false);
         }
         long finishTime = System.currentTimeMillis();
         if (DEBUG) {
@@ -629,8 +659,9 @@ public class NewtonsMethodTest {
 
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, 1);
-        Vector<N2> x = s.solve2(q0, 5, true);
+        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
+        Vector<N2> x = s.solve(q0, 5, true);
         assertEquals(0.524, x.get(0), 1e-3);
         assertEquals(2.094, x.get(1), 1e-3);
     }
@@ -648,12 +679,13 @@ public class NewtonsMethodTest {
 
         Vector<N2> minQ = VecBuilder.fill(-Math.PI, -Math.PI);
         Vector<N2> maxQ = VecBuilder.fill(Math.PI, Math.PI);
-        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, 1);
+        NewtonsMethod<N2, N2> s = new NewtonsMethod<>(
+                Nat.N2(), Nat.N2(), err, minQ, maxQ, 1e-3, 10, VecBuilder.fill(1, 1));
         // int iterations = 1000000;
         int iterations = 50000;
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < iterations; ++i) {
-            s.solve2(q0, 5, true);
+            s.solve(q0, 5, true);
         }
         long finishTime = System.currentTimeMillis();
         if (DEBUG) {
@@ -687,7 +719,7 @@ public class NewtonsMethodTest {
 
         double tolerance = 1e-3;
         int iterations = 5;
-        double dqLimit = 2;
+        Vector<N5> dqLimit = VecBuilder.fill(1, 1, 1, 1, 1);
         int restarts = 10;
 
         NewtonsMethod<N5, N6> solver = new NewtonsMethod<>(
@@ -704,7 +736,7 @@ public class NewtonsMethodTest {
         Vector<N5> q0 = c.toVec();
         long startTime = System.nanoTime();
         assertThrows(IllegalArgumentException.class,
-                () -> solver.solve2(q0, restarts, true));
+                () -> solver.solve(q0, restarts, true));
         if (DEBUG) {
             long finishTime = System.nanoTime();
             System.out.printf("ET (ms): %6.3f\n",

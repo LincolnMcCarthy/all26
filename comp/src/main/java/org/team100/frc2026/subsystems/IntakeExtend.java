@@ -5,6 +5,7 @@ import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -18,10 +19,9 @@ import org.team100.lib.reference.r1.ReferenceR1;
 import org.team100.lib.servo.AngularPositionServo;
 import org.team100.lib.servo.OutboardAngularPositionServo;
 import org.team100.lib.util.CanId;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.command2.Command;
+import org.wpilib.command2.SubsystemBase;
+import org.wpilib.math.util.MathUtil;
 
 /** Intake must be retracted at startup. */
 public class IntakeExtend extends SubsystemBase {
@@ -42,7 +42,7 @@ public class IntakeExtend extends SubsystemBase {
 
         // Mass is zero for now because gravity coordinate doesn't match
         // the mechanism.
-        RDynamics dynamics = new RDynamics(0, 0, 0);
+        RDynamics dynamics = new RDynamicsAnalytic(0, 0, 0, 0);
         TrapezoidProfileR1 profile = new TrapezoidProfileR1(4, 8, 0.1);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.1, 0.05);
         final BareMotor motor;

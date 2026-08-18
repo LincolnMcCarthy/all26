@@ -74,7 +74,7 @@ public class SwerveModuleCollection implements Player {
                 // case SWERVE_TWO:
                 System.out.println("************** WCP MODULES w/Duty-Cycle Encoders **************");
                 return new SwerveModuleCollection(
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 frontLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(1), // drive
                                 DriveRatio.MEDIUM,
@@ -83,7 +83,7 @@ public class SwerveModuleCollection implements Player {
                                 0.109162,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 frontRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(22), // drive
                                 DriveRatio.MEDIUM,
@@ -92,7 +92,7 @@ public class SwerveModuleCollection implements Player {
                                 0.361342,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 rearLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(8), // drive
                                 DriveRatio.MEDIUM,
@@ -101,7 +101,7 @@ public class SwerveModuleCollection implements Player {
                                 0.611814,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 rearRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(23), // drive
                                 DriveRatio.MEDIUM,
@@ -113,7 +113,7 @@ public class SwerveModuleCollection implements Player {
             case SWERVE_ONE:
                 System.out.println("************** WCP MODULES w/Duty-Cycle Encoders **************");
                 return new SwerveModuleCollection(
-                        WCPSwerveModule100.getFalconDrive(
+                        WCPSwerveModule100.getFalconDriveFalconSteer(
                                 frontLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(12), // drive
                                 DriveRatio.FAST,
@@ -122,7 +122,7 @@ public class SwerveModuleCollection implements Player {
                                 0.936189,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getFalconDrive(
+                        WCPSwerveModule100.getFalconDriveFalconSteer(
                                 frontRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(11), // drive
                                 DriveRatio.FAST,
@@ -131,7 +131,7 @@ public class SwerveModuleCollection implements Player {
                                 0.875511,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getFalconDrive(
+                        WCPSwerveModule100.getFalconDriveFalconSteer(
                                 rearLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(21), // drive
                                 DriveRatio.FAST,
@@ -140,7 +140,7 @@ public class SwerveModuleCollection implements Player {
                                 0.409354,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getFalconDrive(
+                        WCPSwerveModule100.getFalconDriveFalconSteer(
                                 rearRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(22), // drive
                                 DriveRatio.FAST,
@@ -153,7 +153,7 @@ public class SwerveModuleCollection implements Player {
                 // case SWERVE_TWO:
                 System.out.println("************** WCP MODULES w/Duty-Cycle Encoders **************");
                 return new SwerveModuleCollection(
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 frontLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(3), // drive
                                 DriveRatio.MEDIUM,
@@ -162,7 +162,7 @@ public class SwerveModuleCollection implements Player {
                                 0.228237,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 frontRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(8), // drive
                                 DriveRatio.MEDIUM,
@@ -171,7 +171,7 @@ public class SwerveModuleCollection implements Player {
                                 0.817243,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 rearLeftLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(2), // drive
                                 DriveRatio.MEDIUM,
@@ -180,7 +180,7 @@ public class SwerveModuleCollection implements Player {
                                 0.147507,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
-                        WCPSwerveModule100.getKrakenDrive(
+                        WCPSwerveModule100.getKrakenDriveKrakenSteer(
                                 rearRightLogger, currentLog, driveLimit, steerLimit,
                                 new CanId(4), // drive
                                 DriveRatio.MEDIUM,

@@ -6,7 +6,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.reference.se2.TrajectoryReferenceSE2;
 import org.team100.lib.subsystems.se2.VelocitySubsystemSE2;
 import org.team100.lib.subsystems.se2.commands.helper.VelocityReferenceControllerSE2;
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 import org.team100.lib.visualization.TrajectoryVisualization;
 
 /**

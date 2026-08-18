@@ -6,10 +6,6 @@ import org.team100.lib.geometry.se2.DirectionSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.state.VelocityControlSE2;
-
-import org.wpilib.math.util.MathUtil;
-import org.wpilib.math.linalg.VecBuilder;
-import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Pose3d;
 import org.wpilib.math.geometry.Quaternion;
@@ -22,9 +18,15 @@ import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.math.geometry.Twist2d;
 import org.wpilib.math.geometry.Twist3d;
 import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.linalg.MatBuilder;
+import org.wpilib.math.linalg.Matrix;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.linalg.Vector;
 import org.wpilib.math.numbers.N2;
 import org.wpilib.math.numbers.N3;
 import org.wpilib.math.numbers.N6;
+import org.wpilib.math.util.MathUtil;
+import org.wpilib.math.util.Nat;
 
 /**
  * Lots of utility functions.
@@ -119,6 +121,36 @@ public class GeometryUtil {
         return new Twist3d(t.dx * s, t.dy * s, t.dz * s, t.rx * s, t.ry * s, t.rz * s);
     }
 
+    /** Exponential at zero of the twist, scaled by q. */
+    public static Pose2d exp(Twist2d t, double q) {
+        return Pose2d.kZero.plus(scale(t, q).exp());
+    }
+
+    /** Exponential at zero of the twist, scaled by q. */
+    public static Pose3d exp(Twist3d t, double q) {
+        return Pose3d.kZero.plus(scale(t, q).exp());
+    }
+
+    /**
+     * p1 relative to p0
+     * 
+     * In affine matrix form this is p0 * p1.
+     */
+    public static Pose2d compose(Pose2d p0, Pose2d p1) {
+        // return p0.transformBy(new Transform2d(Pose2d.kZero, p1));
+        return new Pose2d(p0.toMatrix().times(p1.toMatrix()));
+    }
+
+    /**
+     * p1 relative to p0
+     * 
+     * In affine matrix form this is p0 * p1.
+     */
+    public static Pose3d compose(Pose3d p0, Pose3d p1) {
+        // return p0.transformBy(new Transform3d(Pose3d.kZero, p1));
+        return new Pose3d(p0.toMatrix().times(p1.toMatrix()));
+    }
+
     public static VelocitySE2 scale(VelocitySE2 v, double scale) {
         return new VelocitySE2(v.x() * scale, v.y() * scale, v.theta() * scale);
     }
@@ -202,6 +234,10 @@ public class GeometryUtil {
 
     public static Rotation2d flip(Rotation2d a) {
         return new Rotation2d(MathUtil.angleModulus(a.getRadians() + Math.PI));
+    }
+
+    public static double flip(double theta) {
+        return MathUtil.angleModulus(theta + Math.PI);
     }
 
     /** Straight-line (not constant-twist) interpolation. */
@@ -373,19 +409,41 @@ public class GeometryUtil {
                 zForwardToXForward(zForward.getRotation()));
     }
 
+    public static Vector<N3> toVec(Pose2d p) {
+        return VecBuilder.fill(p.getX(), p.getY(), p.getRotation().getRadians());
+    }
+
+    public static Vector<N3> toVec(Translation3d x) {
+        return VecBuilder.fill(x.getX(), x.getY(), x.getZ());
+    }
+
     public static Vector<N3> toVec(Twist2d twist) {
         return VecBuilder.fill(twist.dx, twist.dy, twist.dtheta);
     }
 
-    public static Vector<N6> toVec(Twist3d twist) {
-        return VecBuilder.fill(twist.dx, twist.dy, twist.dz, twist.rx, twist.ry, twist.rz);
+    public static Vector<N6> toVec(Twist3d t) {
+        return VecBuilder.fill(t.dx, t.dy, t.dz, t.rx, t.ry, t.rz);
+    }
+
+    public static Vector<N6> toVec(Transform3d t) {
+        return VecBuilder.fill(
+                t.getX(),
+                t.getY(),
+                t.getZ(),
+                t.getRotation().getX(),
+                t.getRotation().getY(),
+                t.getRotation().getZ());
     }
 
     public static Vector<N2> toVec(Translation2d t) {
         return VecBuilder.fill(t.getX(), t.getY());
     }
 
-    public static Rotation2d fromVec(Vector<N2> v) {
+    public static Pose2d pose2dFromVec(Vector<N3> v) {
+        return new Pose2d(v.get(0), v.get(1), new Rotation2d(v.get(2)));
+    }
+
+    public static Rotation2d rotation2dFromVec(Vector<N2> v) {
         return new Rotation2d(v.get(0), v.get(1));
     }
 
@@ -408,6 +466,21 @@ public class GeometryUtil {
     /** Vector determinant, like the cross product in R2 */
     public static double det(Vector<N2> a, Vector<N2> b) {
         return a.get(0) * b.get(1) - a.get(1) * b.get(0);
+    }
+
+    /**
+     * Skew-symmetric matrix of the translation vector.
+     * 
+     * See https://en.wikipedia.org/wiki/Skew-symmetric_matrix
+     */
+    public static Matrix<N3, N3> skewSymmetric(Translation3d t) {
+        double x = t.getX();
+        double y = t.getY();
+        double z = t.getZ();
+        return MatBuilder.fill(Nat.N3(), Nat.N3(), //
+                0, -z, y, //
+                z, 0, -x, //
+                -y, x, 0);
     }
 
     /////////////////////////////////////////////////////////////////
