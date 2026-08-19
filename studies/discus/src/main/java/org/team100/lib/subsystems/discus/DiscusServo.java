@@ -7,6 +7,7 @@ import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.RotaryMechanism;
@@ -54,7 +55,7 @@ public class DiscusServo extends SubsystemBase {
                 MAX_VELOCITY, MAX_ACCEL, POSITION_TOLERANCE);
         ReferenceR1 ref = new ProfileReferenceR1(
                 logger, () -> profile, POSITION_TOLERANCE, VELOCITY_TOLERANCE);
-        RDynamics dyn = new RDynamics(0, 0, 0.005);
+        RDynamics dyn = new RDynamicsAnalytic(0, 0, 0, 0.005);
 
         BareMotor motor;
         switch (Identity.instance) {

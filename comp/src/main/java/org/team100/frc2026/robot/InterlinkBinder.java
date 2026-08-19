@@ -1,7 +1,7 @@
 package org.team100.frc2026.robot;
 
-import static org.team100.frc2026.util.TriggerUtil.onTrue;
-import static org.team100.frc2026.util.TriggerUtil.whileTrue;
+import static org.team100.lib.util.TriggerUtil.onTrue;
+import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.controller.r1.AzimuthController;
 import org.team100.lib.controller.r1.FeedbackR1;

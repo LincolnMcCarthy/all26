@@ -124,6 +124,8 @@ public class PRRKinematics {
 
     /**
      * Inverse position kinematics: joint config from cartesian pose.
+     * 
+     * TODO: return a list here.
      */
     public PRRConfig inverse(Pose2d pose) {
         /** Translation from wrist axis to tool point. */
@@ -198,18 +200,17 @@ public class PRRKinematics {
     }
 
     /**
-     * Inverse Jacobian, or zero if singular.
+     * Inverse Jacobian.
+     * 
+     * When singular, some motion is still possible, so this doesn't return zero,
+     * just the pseudoinverse. Note this might not be what you want?
      */
     private Matrix<N3, N3> Jinv(PRRConfig q) {
         Matrix<N3, N3> J = J(q);
         if (Math.abs(J.det()) < 1e-3) {
-            // Don't try to invert if it's not possible.
-            // a zero inverse determinant will result in zero speed,
-            // which is the safe thing.
-            System.out.printf("WARNING: zero jacobian for config %s\n", q.toString());
-            return new Matrix<>(Nat.N3(), Nat.N3());
+            System.out.printf("WARNING: singularity at config %s\n", q.toString());
         }
-        return J.inv();
+        return new Matrix<>(J.getStorage().pseudoInverse());
     }
 
     private Matrix<N3, N3> numericJ(PRRConfig c) {

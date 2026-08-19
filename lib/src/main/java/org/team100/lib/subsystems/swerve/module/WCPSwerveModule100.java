@@ -55,7 +55,7 @@ public class WCPSwerveModule100 extends SwerveModule100 {
     /**
      * MAKE SURE THAT THE BEVELS ON THE WHEELS FOR ZEROING GO TO THE RIGHT
      */
-    public static WCPSwerveModule100 getKrakenDrive(
+    public static WCPSwerveModule100 getKrakenDriveKrakenSteer(
             LoggerFactory parent,
             TotalCurrentLog currentLog,
             CurrentLimit driveLimit,
@@ -93,7 +93,7 @@ public class WCPSwerveModule100 extends SwerveModule100 {
     /**
      * MAKE SURE THAT THE BEVELS ON THE WHEELS FOR ZEROING GO TO THE RIGHT
      */
-    public static WCPSwerveModule100 getFalconDrive(
+    public static WCPSwerveModule100 getFalconDriveFalconSteer(
             LoggerFactory parent,
             TotalCurrentLog currentLog,
             CurrentLimit driveLimit,
@@ -108,6 +108,45 @@ public class WCPSwerveModule100 extends SwerveModule100 {
             NeutralMode100 neutral,
             MotorPhase motorPhase) {
         LinearMechanism drive = driveFalcon(
+                parent.name("Drive"),
+                currentLog,
+                driveLimit,
+                driveMotorCanId,
+                ratio);
+        RotaryMechanism steer = steerFalcon(
+                parent.name("Turning"),
+                currentLog,
+                steerLimit,
+                turningMotorCanId,
+                turningEncoderChannel,
+                turningOffset,
+                STEERING_RATIO,
+                encoderDrive,
+                neutral,
+                motorPhase);
+        return new WCPSwerveModule100(parent, drive, steer, ratio);
+    }
+
+    /**
+     * TODO: use this on the drivetrain that works this way.
+     * 
+     * MAKE SURE THAT THE BEVELS ON THE WHEELS FOR ZEROING GO TO THE RIGHT
+     */
+    public static WCPSwerveModule100 getKrakenDriveFalconSteer(
+            LoggerFactory parent,
+            TotalCurrentLog currentLog,
+            CurrentLimit driveLimit,
+            CurrentLimit steerLimit,
+            CanId driveMotorCanId,
+            DriveRatio ratio,
+            CanId turningMotorCanId,
+            RoboRioChannel turningEncoderChannel,
+            double turningOffset,
+            SwerveKinodynamics kinodynamics,
+            EncoderDrive encoderDrive,
+            NeutralMode100 neutral,
+            MotorPhase motorPhase) {
+        LinearMechanism drive = driveKraken(
                 parent.name("Drive"),
                 currentLog,
                 driveLimit,

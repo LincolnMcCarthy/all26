@@ -84,6 +84,14 @@ public class Metrics {
         return Math.hypot(a.vxMetersPerSecond, a.vyMetersPerSecond);
     }
 
+    public static double l1Norm(Vector<?> v) {
+        double s = 0;
+        for (int i = 0; i < v.getNumRows(); ++i) {
+            s += Math.abs(v.get(i, 0));
+        }
+        return s;
+    }
+
     /////////////////////////////////////////////////////////////////
     ///
     /// DANGER ZONE

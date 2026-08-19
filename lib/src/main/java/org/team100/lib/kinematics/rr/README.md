@@ -24,6 +24,8 @@ c_{ij} &= cos(q_i + q_j)
 
 ## Forward kinematics
 
+<img src="image.png" width=600/>
+
 ```math
 P_1 = 
 \begin{bmatrix}
@@ -175,3 +177,7 @@ Or
 \ddot{q} = J^{-1}(\ddot{x} - \dot{J}J^{-1}\dot{x})
 \end{equation}
 ```
+
+## References 
+
+* [Cornell text](https://rpal.cs.cornell.edu/foundations/kinematics.pdf)

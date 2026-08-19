@@ -1,10 +1,14 @@
 package org.team100.lib.trajectory;
 
-import org.team100.lib.trajectory.path.PathSE2Entry;
-import org.team100.lib.trajectory.path.PathSE2Point;
-import org.team100.lib.trajectory.path.PathSE3Entry;
-import org.team100.lib.trajectory.path.PathSE3Point;
-import org.team100.lib.trajectory.path.PathUtil;
+import org.team100.lib.path.PathUtil;
+import org.team100.lib.path.se2.PathSE2Entry;
+import org.team100.lib.path.se2.PathSE2Point;
+import org.team100.lib.path.se3.PathSE3Entry;
+import org.team100.lib.path.se3.PathSE3Point;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
+import org.team100.lib.trajectory.se2.TrajectorySE2Point;
+import org.team100.lib.trajectory.se3.TrajectorySE3Entry;
+import org.team100.lib.trajectory.se3.TrajectorySE3Point;
 
 public class TrajectoryUtil {
     private static final boolean DEBUG = false;
@@ -56,7 +60,7 @@ public class TrajectoryUtil {
     public static TrajectorySE3Entry interpolate(TrajectorySE3Entry a, TrajectorySE3Entry b, double delta_t) {
         if (delta_t < 0)
             throw new IllegalArgumentException("delta_t must be non-negative");
-        if (TrajectorySE3Entry.DEBUG)
+        if (DEBUG)
             System.out.println("lerp");
         double tLerp = a.point().time() + delta_t;
         double vLerp = a.point().velocity() + a.point().accel() * delta_t;
@@ -71,11 +75,11 @@ public class TrajectoryUtil {
         }
     
         double timeInterp = delta_t / (b.point().time() - a.point().time());
-        if (TrajectorySE3Entry.DEBUG)
+        if (DEBUG)
             System.out.printf("t0 %f t1 %f delta t %f s %f\n",
                     a.point().time(), b.point().time(), delta_t, timeInterp);
     
-        if (TrajectorySE3Entry.DEBUG)
+        if (DEBUG)
             System.out.printf("tlerp %f\n", tLerp);
     
         PathSE3Entry aEntry = new PathSE3Entry(a.parameter(), aPoint);
