@@ -7,6 +7,7 @@ import org.team100.lib.state.ModelR1;
 
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
+/** Represents position in joint space ("Q") with N independent dimensions. */
 public interface PositionSubsystemRn extends Subsystem {
     void setRn(List<ControlR1> setpoint);
 

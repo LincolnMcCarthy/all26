@@ -4,7 +4,10 @@ import org.team100.lib.state.ModelSE2;
 
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
-/** A planar subsystem */
+/**
+ * A subsystem that represents planar rigid-body transforms, i.e. the SE(2) Lie
+ * group.
+ */
 public interface SubsystemSE2 extends Subsystem {
     /** State for the current Takt. */
     ModelSE2 getState();
