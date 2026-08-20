@@ -2,14 +2,18 @@ package org.team100.lib.subsystems.rr.commands;
 
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.framework.TimedRobot100;
+import org.team100.lib.geometry.rr.RRAcceleration;
 import org.team100.lib.geometry.rr.RRConfig;
+import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ModelR1;
 import org.team100.lib.subsystems.rr.RRArm;
 import org.team100.lib.util.StrUtil;
 
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N2;
 
 /**
  * Move the arm to the goal, endlessly.
@@ -31,6 +35,8 @@ public class MoveWithProfile extends MoveAndHold {
     private RRConfig m_start;
     // config goal depends on start, to choose the closest one.
     private RRConfig m_configGoal;
+    // unit vector (using the distance metric) pointing from start to goal.
+    private Vector<N2> m_unit;
 
     private ControlR1 m_setpoint;
     // for now this is always 1.
@@ -48,7 +54,6 @@ public class MoveWithProfile extends MoveAndHold {
 
     @Override
     public void initialize() {
-
         m_start = m_arm.getConfig();
         m_configGoal = m_arm.config(m_goal);
         // l1 norm treats all joints the same
@@ -57,6 +62,7 @@ public class MoveWithProfile extends MoveAndHold {
         // double distance =
         // Metrics.l1Norm(m_start.toVector().minus(m_configGoal.toVector()));
         double distance = m_start.distance(m_configGoal);
+        m_unit = RRConfig.unit(m_start, m_configGoal);
         if (m_configGoal == null)
             throw new IllegalArgumentException(
                     "infeasible goal: " + StrUtil.transStr(m_goal));
@@ -67,6 +73,7 @@ public class MoveWithProfile extends MoveAndHold {
 
     @Override
     public void execute() {
+        // the distance here is the RRConfig distance.
         double distance = m_profileGoal.x();
         if (distance < 1e-6)
             return;
@@ -75,10 +82,11 @@ public class MoveWithProfile extends MoveAndHold {
                 m_setpoint,
                 m_profileGoal);
 
-        double s = m_setpoint.x() / distance;
+        RRConfig q = m_start.plus(RRConfig.fromVector(m_unit.times(m_setpoint.x())));
+        RRVelocity qdot = RRVelocity.fromVector(m_unit.times(m_setpoint.v()));
+        RRAcceleration qddot = RRAcceleration.fromVector(m_unit.times(m_setpoint.a()));
 
-        RRConfig c = RRConfig.interpolate(m_start, m_configGoal, s);
-        m_arm.setConfig(c);
+        m_arm.set(q, qdot, qddot);
     }
 
     @Override

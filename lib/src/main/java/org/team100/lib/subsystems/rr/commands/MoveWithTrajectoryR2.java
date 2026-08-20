@@ -61,7 +61,7 @@ public class MoveWithTrajectoryR2 extends MoveAndHold {
 
     @Override
     public void initialize() {
-        Pose2d start = new Pose2d(m_arm.pose(), Rotation2d.kZero);
+        Pose2d start = new Pose2d(m_arm.translation(), Rotation2d.kZero);
         Translation2d currTranslation = start.getTranslation();
         Rotation2d courseToGoal = m_goal.getTranslation().minus(currTranslation).getAngle();
 

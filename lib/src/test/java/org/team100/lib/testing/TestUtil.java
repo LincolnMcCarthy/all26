@@ -30,6 +30,7 @@ import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Num;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -292,6 +293,12 @@ public class TestUtil {
 
     public static void verify(RRPose expected, RRPose actual) {
         verify(expected.p1(), actual.p1());
+    }
+
+    public static <N extends Num> void verify(Vector<N> expected, Vector<N> actual) {
+        for (int i = 0; i < expected.getNumRows(); ++i) {
+            assertEquals(expected.get(i), actual.get(i), 1e-3, Integer.toString(i));
+        }
     }
 
 }
