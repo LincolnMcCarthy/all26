@@ -2,14 +2,18 @@ package org.team100.lib.subsystems.rrr.commands;
 
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.framework.TimedRobot100;
+import org.team100.lib.geometry.rrr.RRRAcceleration;
 import org.team100.lib.geometry.rrr.RRRConfig;
+import org.team100.lib.geometry.rrr.RRRVelocity;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ModelR1;
 import org.team100.lib.subsystems.rrr.RRRArm;
 import org.team100.lib.util.StrUtil;
 
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.numbers.N3;
 
 /**
  * Move the arm to the goal, endlessly.
@@ -31,6 +35,8 @@ public class MoveWithProfile extends MoveAndHold {
     private RRRConfig m_start;
     // config goal depends on start, to choose the closest one.
     private RRRConfig m_configGoal;
+    // unit vector (using the distance metric) pointing from start to goal.
+    private Vector<N3> m_unit;
 
     private ControlR1 m_setpoint;
     // for now this is always 1.
@@ -56,6 +62,8 @@ public class MoveWithProfile extends MoveAndHold {
         // double distance =
         // Metrics.l1Norm(m_start.toVector().minus(m_configGoal.toVector()));
         double distance = m_start.distance(m_configGoal);
+        m_unit = RRRConfig.unit(m_start, m_configGoal);
+
         if (m_configGoal == null)
             throw new IllegalArgumentException(
                     "infeasible goal: " + StrUtil.poseStr(m_goal));
@@ -74,10 +82,11 @@ public class MoveWithProfile extends MoveAndHold {
                 m_setpoint,
                 m_profileGoal);
 
-        double s = m_setpoint.x() / distance;
+        RRRConfig q = m_start.plus(RRRConfig.fromVector(m_unit.times(m_setpoint.x())));
+        RRRVelocity qdot = RRRVelocity.fromVector(m_unit.times(m_setpoint.v()));
+        RRRAcceleration qddot = RRRAcceleration.fromVector(m_unit.times(m_setpoint.a()));
 
-        RRRConfig c = RRRConfig.interpolate(m_start, m_configGoal, s);
-        m_arm.setConfig(c);
+        m_arm.set(q, qdot, qddot);
     }
 
     @Override

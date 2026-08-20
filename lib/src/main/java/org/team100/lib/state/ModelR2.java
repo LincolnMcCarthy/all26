@@ -1,10 +1,8 @@
 package org.team100.lib.state;
 
 import org.team100.lib.geometry.r2.VelocityR2;
-import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /** Represents planar position only. */
 public class ModelR2 {
