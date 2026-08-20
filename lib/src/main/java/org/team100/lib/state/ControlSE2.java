@@ -131,7 +131,7 @@ public class ControlSE2 {
     }
 
     public String toString() {
-        return "SwerveControl(" + m_x + ", " + m_y + ", " + m_theta + ")";
+        return "ControlSE2(" + m_x + ", " + m_y + ", " + m_theta + ")";
     }
 
 }
