@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 /**
  * Simple model of a battery, a fixed voltage source and a resistor.

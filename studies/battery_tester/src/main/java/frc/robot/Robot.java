@@ -1,24 +1,28 @@
-
 package frc.robot;
 
+import org.team100.battery_tester.BatteryTester;
+import org.team100.battery_tester.LightBulbVisualizer;
+import org.team100.battery_tester.TestProtocol;
 import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.Takt;
 import org.team100.lib.experiments.Experiments;
+import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.hid.DriverXboxControl;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.util.Banner;
 
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-public class Robot extends TimedRobot {
+public class Robot extends TimedRobot100 {
 
     private final DriverXboxControl m_controller;
     private final BatteryTester m_subsystem;
     private final LightBulbVisualizer m_viz;
+    private final Command m_auton;
 
     public Robot() {
         Banner.printBanner();
@@ -35,12 +39,13 @@ public class Robot extends TimedRobot {
                 .whileTrue(m_subsystem.run(() -> m_subsystem.setPower(500)));
         new Trigger(m_controller::x)
                 .whileTrue(m_subsystem.run(() -> m_subsystem.setPower(1000)));
-        // Around 1.5kw is the maximum possible.  The battery label capacity is
+        // Around 1.5kw is the maximum possible. The battery label capacity is
         // something like 700kJ, so 1.5kw will discharge it fully in about 8 minutes.
         // This will likely destroy the battery; start with something lower.
         new Trigger(m_controller::y)
                 .whileTrue(m_subsystem.run(() -> m_subsystem.setPower(1500)));
         m_subsystem.setDefaultCommand(m_subsystem.run(m_subsystem::off));
+        m_auton = new TestProtocol(m_subsystem);
     }
 
     @Override
@@ -53,6 +58,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        CommandScheduler.getInstance().cancelAll();
     }
 
     @Override
@@ -63,4 +69,13 @@ public class Robot extends TimedRobot {
     public void teleopExit() {
     }
 
+    @Override
+    public void autonomousInit() {
+        CommandScheduler.getInstance().schedule(m_auton);
+    }
+
+    @Override
+    public void autonomousExit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
 }

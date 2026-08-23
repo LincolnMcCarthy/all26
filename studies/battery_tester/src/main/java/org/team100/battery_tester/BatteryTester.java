@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 import java.util.List;
 
@@ -116,7 +116,7 @@ public class BatteryTester extends SubsystemBase {
         controllers.stream().forEach(VictorSP::stopMotor);
     }
 
-    /** Operating point. */
+    /** Operating point = control output. */
     public record Op(double v, double i) {
         double p() {
             return v * i;
@@ -132,12 +132,23 @@ public class BatteryTester extends SubsystemBase {
 
     private Op inputOp() {
         // Only works with a real PDH.
-        return new Op(batteryVoltage(), pdh.getTotalCurrent());
+        // battery voltage
+        double v = batteryVoltage();
+        // battery current
+        double i = pdh.getTotalCurrent();
+        return new Op(v, i);
     }
 
     private Op outputOp() {
-        double v = m_dutycycle * batteryVoltage();
-        double i = lightbulb.IforV(v);
+        CircuitUtil.Op op = circuit.operatingPoint(m_dutycycle);
+        // bulb voltage
+        // double v = m_dutycycle * batteryVoltage();
+        // battery voltage
+        double v = op.inputV();
+        // bulb current
+        // double i = lightbulb.IforV(v);
+        // battery current
+        double i = op.inputI();
         return new Op(v, i);
     }
 
@@ -158,7 +169,7 @@ public class BatteryTester extends SubsystemBase {
         return MathUtil.clamp(op.v() / vBatt, 0, 1);
     }
 
-    private double batteryVoltage() {
+    public double batteryVoltage() {
         return RobotController.getBatteryVoltage();
     }
 
@@ -171,7 +182,8 @@ public class BatteryTester extends SubsystemBase {
             simBattery.discharge(op.inputI(), TimedRobot100.LOOP_PERIOD_S);
             m_log_soc.log(simBattery::SOC);
         }
-        m_log_power.log(() -> operatingPoint().p());
+        Op op = operatingPoint();
+        m_log_power.log(() -> op.p());
         m_log_t.log(this::temperature);
         m_log_dutycycle.log(() -> {
             return m_dutycycle;

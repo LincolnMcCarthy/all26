@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

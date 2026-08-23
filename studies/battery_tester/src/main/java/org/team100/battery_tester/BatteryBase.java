@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 /** Battery base class. */
 public abstract class BatteryBase {
