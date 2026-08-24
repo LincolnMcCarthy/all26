@@ -56,12 +56,23 @@ public class ConstantCurrentProtocol extends Command {
     }
 
     private void summary() {
-        System.out.println("*********************************");
-        System.out.println("TEST COMPLETE");
-        System.out.printf("TARGET CURRENT (AMPS)  %10.3f\n", m_i);
-        System.out.printf("CUTOFF VOLTAGE (VOLTS) %10.3f\n", m_v);
-        m_summarizer.summary();
-        System.out.println("*********************************");
+        double q = m_summarizer.charge();
+        double t = m_summarizer.duration();
+        // Peukert correction
+        double k = 1.1641; // measured constant
+        double i0 = 0.9; // 20h rate
+        double ratio = Math.pow(i0 / m_i, k - 1);
+        double qCorrected = q / ratio;
+        System.out.printf("***********************************\n");
+        System.out.printf("TEST COMPLETE\n");
+        System.out.printf("TARGET CURRENT (AMPS)    %10.3f\n", m_i);
+        System.out.printf("CUTOFF VOLTAGE (VOLTS)   %10.3f\n", m_v);
+        System.out.printf("CHARGE (COULOMBS)        %10.3f\n", q);
+        System.out.printf("CHARGE (AMP-HOURS)       %10.3f\n", q / 3600);
+        System.out.printf("RATED CHARGE (COULOMBS)  %10.3f\n", qCorrected);
+        System.out.printf("RATED CHARGE (AMP-HOURS) %10.3f\n", qCorrected / 3600);
+        System.out.printf("DURATION (SECONDS)       %10.3f\n", t);
+        System.out.printf("***********************************\n");
     }
 
 }

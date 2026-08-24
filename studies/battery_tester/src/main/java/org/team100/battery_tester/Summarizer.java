@@ -37,14 +37,18 @@ public class Summarizer {
         System.out.flush();
     }
 
-    public void summary() {
+    public double charge() {
         Summary last = m_result.peekLast();
-        if (last == null) {
-            System.out.println("NO RESULT");
-        } else {
-            System.out.printf("CHARGE (COULOMBS)      %10.3f\n", last.qSum);
-            System.out.printf("DURATION (SECONDS)     %10.3f\n", last.tMax);
-        }
+        if (last == null)
+            return 0;
+        return last.qSum;
+    }
+
+    public double duration() {
+        Summary last = m_result.peekLast();
+        if (last == null)
+            return 0;
+        return last.tMax;
     }
 
     /** Print the output table header. */

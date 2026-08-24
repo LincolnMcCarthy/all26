@@ -67,7 +67,10 @@ public class Robot extends TimedRobot100 {
                         .whileTrue(m_subsystem.run(() -> m_subsystem.setCurrent(150)));
                 new Trigger(m_controller::y)
                         .whileTrue(m_subsystem.run(() -> m_subsystem.setCurrent(200)));
-                m_auton = new ConstantCurrentProtocol(m_subsystem, 200, 9.5);
+                // this is like the old tester
+                m_auton = new ConstantCurrentProtocol(m_subsystem, 10, 10.5);
+                // 
+                // m_auton = new ConstantCurrentProtocol(m_subsystem, 150, 9.5);
                 break;
         }
     }

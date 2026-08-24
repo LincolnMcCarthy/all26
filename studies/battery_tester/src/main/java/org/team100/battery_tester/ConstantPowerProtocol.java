@@ -21,7 +21,7 @@ public class ConstantPowerProtocol extends Command {
      * @param v         cutoff voltage, volts
      */
     public ConstantPowerProtocol(
-        BatteryTester subsystem, double p, double v) {
+            BatteryTester subsystem, double p, double v) {
         m_subsystem = subsystem;
         m_p = p;
         m_v = v;
@@ -56,12 +56,16 @@ public class ConstantPowerProtocol extends Command {
     }
 
     private void summary() {
-        System.out.println("*********************************");
-        System.out.println("TEST COMPLETE");
+        double q = m_summarizer.charge();
+        double t = m_summarizer.duration();
+        System.out.printf("***********************************\n");
+        System.out.printf("TEST COMPLETE\n");
         System.out.printf("TARGET POWER (WATTS)   %10.3f\n", m_p);
         System.out.printf("CUTOFF VOLTAGE (VOLTS) %10.3f\n", m_v);
-        m_summarizer.summary();
-        System.out.println("*********************************");
+        System.out.printf("CHARGE (COULOMBS)        %10.3f\n", q);
+        System.out.printf("CHARGE (AMP-HOURS)       %10.3f\n", q / 3600);
+        System.out.printf("DURATION (SECONDS)       %10.3f\n", t);
+        System.out.printf("***********************************\n");
     }
 
 }
