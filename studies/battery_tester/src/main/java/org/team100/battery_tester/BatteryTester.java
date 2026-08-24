@@ -26,18 +26,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * There are 5 controllers with 3 bulbs each, so 15 bulbs,
  * effectively all parallel.
  */
-public class BatteryTester extends SubsystemBase {
+public class BatteryTester extends SubsystemBase implements AutoCloseable {
     private static final boolean DEBUG = false;
-    private final PowerDistribution pdh;
-    private final List<VictorSP> controllers;
-    private final FeedbackR1 feedback;
-    private final LightBulb lightbulb;
-    private final EternalBattery battery;
-    private final StatefulBattery simBattery;
-    private final CircuitUtil circuit;
+    private final PowerDistribution m_pdh;
+    private final List<VictorSP> m_controllers;
+    private final FeedbackR1 m_feedback;
+    private final LightBulb m_lightbulb;
+    private final EternalBattery m_battery;
+    private final StatefulBattery m_simBattery;
+    final CircuitUtil m_circuit;
 
     private final DoubleLogger m_log_power;
     private final DoubleLogger m_log_desired_power;
+    private final DoubleLogger m_log_desired_current;
     private final DoubleLogger m_log_ff;
     private final DoubleLogger m_log_fb;
     private final DoubleLogger m_log_t;
@@ -51,6 +52,8 @@ public class BatteryTester extends SubsystemBase {
 
     // Previously requested power (to avoid time travel).
     private double m_p;
+    // Previously requested current.
+    private double m_i;
     // Previously commanded dutycycle (to avoid discretization error).
     private double m_dutycycle;
     // Feedback accumulates, so the controller task is easier.
@@ -58,20 +61,21 @@ public class BatteryTester extends SubsystemBase {
 
     public BatteryTester(LoggerFactory parent) {
         LoggerFactory log = parent.type(this);
-        pdh = new PowerDistribution(1, ModuleType.kRev);
-        controllers = List.of(
+        m_pdh = new PowerDistribution(1, ModuleType.kRev);
+        m_controllers = List.of(
                 new VictorSP(0),
                 new VictorSP(1),
                 new VictorSP(2),
                 new VictorSP(3),
                 new VictorSP(4));
-        feedback = new PIDFeedback(log, 0.00025, 0, 0.000001, false, 0.1, 1);
-        lightbulb = new LightBulb();
-        battery = new EternalBattery();
-        simBattery = new StatefulBattery();
-        circuit = new CircuitUtil(lightbulb, simBattery);
+        m_feedback = new PIDFeedback(log, 0.00025, 0, 0.000001, false, 0.1, 1);
+        m_lightbulb = new LightBulb();
+        m_battery = new EternalBattery();
+        m_simBattery = new StatefulBattery();
+        m_circuit = new CircuitUtil(m_lightbulb, m_simBattery);
         m_log_power = log.doubleLogger(Level.DEBUG, "power (W)");
         m_log_desired_power = log.doubleLogger(Level.DEBUG, "desired power (W)");
+        m_log_desired_current = log.doubleLogger(Level.DEBUG, "desired current (A)");
         m_log_ff = log.doubleLogger(Level.DEBUG, "ff");
         m_log_fb = log.doubleLogger(Level.DEBUG, "fb");
         m_log_t = log.doubleLogger(Level.DEBUG, "temperature (K)");
@@ -84,19 +88,23 @@ public class BatteryTester extends SubsystemBase {
         m_log_soc = log.doubleLogger(Level.DEBUG, "soc");
     }
 
+    public void close() {
+        m_controllers.forEach(VictorSP::close);
+    }
+
     /** Set bulb power (watts). */
     public void setPower(double p) {
         m_log_desired_power.log(() -> p);
         // It also works without feedforward.
         // double ff = 0;
-        double ff = ff(p);
+        double ff = ffPower(p);
         m_log_ff.log(() -> ff);
         // Feedback compares looks at the past; feedforward handles the present.
         double measurement = operatingPoint().p();
         double setpoint = m_p;
-        double fb = feedback.calculate(
+        double fb = m_feedback.calculate(
                 new ModelR1(measurement),
-                new ModelR1(m_p));
+                new ModelR1(setpoint));
         if (DEBUG) {
             System.out.printf("CurrentSource: measurement %f setpoint %f fb %f\n",
                     measurement, setpoint, fb);
@@ -105,42 +113,62 @@ public class BatteryTester extends SubsystemBase {
         m_log_fb.log(() -> fb);
         m_fb += fb;
         m_dutycycle = MathUtil.clamp(ff + m_fb, 0, 1);
-        controllers.stream().forEach(x -> x.set(m_dutycycle));
+        m_controllers.stream().forEach(x -> x.set(m_dutycycle));
+    }
+
+    /** Set battery current (amps). */
+    public void setCurrent(double i) {
+        m_log_desired_current.log(() -> i);
+        double ff = ffCurrent(i);
+        m_log_ff.log(() -> ff);
+        double measurement = operatingPoint().inputI();
+        double setpoint = m_i;
+        double fb = m_feedback.calculate(
+                new ModelR1(measurement),
+                new ModelR1(setpoint));
+        m_i = i;
+        m_log_fb.log(() -> fb);
+        m_fb += fb;
+        m_dutycycle = MathUtil.clamp(ff + m_fb, 0, 1);
+        m_controllers.stream().forEach(x -> x.set(m_dutycycle));
     }
 
     public void off() {
         setPower(0);
-        feedback.reset();
+        setCurrent(0);
+        m_feedback.reset();
         m_dutycycle = 0;
         m_fb = 0;
-        controllers.stream().forEach(VictorSP::stopMotor);
+        m_controllers.stream().forEach(VictorSP::stopMotor);
     }
 
-    /** Operating point = control output. */
-    public record Op(double v, double i) {
+    /** Operating point of the battery */
+    public record Op(double inputV, double inputI) {
         double p() {
-            return v * i;
+            return inputV * inputI;
         }
     }
 
+    /** Battery operating point. */
     public Op operatingPoint() {
         if (RobotBase.isReal()) {
             return inputOp();
         }
-        return outputOp();
+        return simOp();
     }
 
+    /** Works with a real PDH. */
     private Op inputOp() {
-        // Only works with a real PDH.
         // battery voltage
         double v = batteryVoltage();
         // battery current
-        double i = pdh.getTotalCurrent();
+        double i = m_pdh.getTotalCurrent();
         return new Op(v, i);
     }
 
-    private Op outputOp() {
-        CircuitUtil.Op op = circuit.operatingPoint(m_dutycycle);
+    /** Uses simulated battery. */
+    private Op simOp() {
+        CircuitUtil.Op op = m_circuit.operatingPointForDutyCycle(m_dutycycle);
         // bulb voltage
         // double v = m_dutycycle * batteryVoltage();
         // battery voltage
@@ -154,7 +182,7 @@ public class BatteryTester extends SubsystemBase {
 
     public double temperature() {
         Op op = operatingPoint();
-        return lightbulb.temperature(op.p());
+        return m_lightbulb.temperature(op.p());
     }
 
     /**
@@ -162,11 +190,21 @@ public class BatteryTester extends SubsystemBase {
      * 
      * @param p desired output power, watts
      */
-    private double ff(double p) {
-        LightBulb.Op op = lightbulb.operatingPoint(p);
-        // Battery voltage, including the sag from the required current.
-        double vBatt = battery.V(op.i());
-        return MathUtil.clamp(op.v() / vBatt, 0, 1);
+    double ffPower(double p) {
+        LightBulb.Op lbop = m_lightbulb.operatingPoint(p);
+        Battery.Op bop = m_battery.operatingPoint(p);
+        return MathUtil.clamp(lbop.v() / bop.v(), 0, 1);
+    }
+
+    /**
+     * Feedforward duty cycle
+     * 
+     * @param inputI desired battery current, amperes
+     */
+    double ffCurrent(double inputI) {
+        double inputV = m_battery.V(inputI);
+        double inputP = inputI * inputV;
+        return ffPower(inputP);
     }
 
     public double batteryVoltage() {
@@ -176,11 +214,11 @@ public class BatteryTester extends SubsystemBase {
     @Override
     public void periodic() {
         if (RobotBase.isSimulation()) {
-            CircuitUtil.Op op = circuit.operatingPoint(m_dutycycle);
+            CircuitUtil.Op op = m_circuit.operatingPointForDutyCycle(m_dutycycle);
             m_log_sim_battery_voltage.log(() -> op.inputV());
             RoboRioSim.setVInVoltage(op.inputV());
-            simBattery.discharge(op.inputI(), TimedRobot100.LOOP_PERIOD_S);
-            m_log_soc.log(simBattery::SOC);
+            m_simBattery.discharge(op.inputI(), TimedRobot100.LOOP_PERIOD_S);
+            m_log_soc.log(m_simBattery::SOC);
         }
         Op op = operatingPoint();
         m_log_power.log(() -> op.p());
@@ -188,9 +226,9 @@ public class BatteryTester extends SubsystemBase {
         m_log_dutycycle.log(() -> {
             return m_dutycycle;
         });
-        m_log_output_voltage.log(() -> outputOp().v());
-        m_log_output_current.log(() -> outputOp().i());
-        m_log_output_power.log(() -> outputOp().p());
+        m_log_output_voltage.log(() -> simOp().inputV());
+        m_log_output_current.log(() -> simOp().inputI());
+        m_log_output_power.log(() -> simOp().p());
         m_log_battery_voltage.log(this::batteryVoltage);
     }
 

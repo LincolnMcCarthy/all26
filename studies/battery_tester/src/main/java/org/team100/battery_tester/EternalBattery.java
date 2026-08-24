@@ -5,7 +5,7 @@ package org.team100.battery_tester;
  * 
  * This model is intended for feedforward; it doesn't need to be correct.
  */
-public class EternalBattery extends BatteryBase {
+public class EternalBattery extends Battery {
     @Override
     double V0() {
         return 12.6;

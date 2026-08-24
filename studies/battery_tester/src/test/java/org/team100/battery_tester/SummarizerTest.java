@@ -109,7 +109,6 @@ public class SummarizerTest {
         }
         // should summarize every 1 sec
         assertEquals(300, r.m_result.size());
-        r.header();
         r.dump();
     }
 
@@ -122,7 +121,6 @@ public class SummarizerTest {
             r.add(t0 + t, 100, 12, 1200);
         }
         assertEquals(50, r.m_result.size());
-        r.header();
         r.dump();
     }
 
@@ -135,7 +133,6 @@ public class SummarizerTest {
             r.add(t0 + t, 100, 12, 1200);
         }
         assertEquals(10, r.m_result.size());
-        r.header();
         r.dump();
     }
 
@@ -143,7 +140,6 @@ public class SummarizerTest {
     void test7() {
         // dump with no data => just the header.
         Summarizer r = new Summarizer(5);
-        r.header();
         r.dump();
     }
 

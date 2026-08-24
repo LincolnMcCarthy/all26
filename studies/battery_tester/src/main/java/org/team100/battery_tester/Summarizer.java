@@ -30,17 +30,30 @@ public class Summarizer {
         }
     }
 
-    /** Print the output table header. */
-    public void header() {
+    public void dump() {
         System.out.flush();
-        System.out.println("t, i, v, p, q");
+        header();
+        rows();
         System.out.flush();
     }
 
+    public void summary() {
+        Summary last = m_result.peekLast();
+        if (last == null) {
+            System.out.println("NO RESULT");
+        } else {
+            System.out.printf("CHARGE (COULOMBS)      %10.3f\n", last.qSum);
+            System.out.printf("DURATION (SECONDS)     %10.3f\n", last.tMax);
+        }
+    }
+
+    /** Print the output table header. */
+    private void header() {
+        System.out.println("t, i, v, p, q");
+    }
+
     /** Dump the contents of the buffer to stdout as a CSV. */
-    public void dump() {
-        System.out.flush();
+    private void rows() {
         m_result.stream().forEach(System.out::println);
-        System.out.flush();
     }
 }

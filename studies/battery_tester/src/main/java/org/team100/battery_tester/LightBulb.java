@@ -97,7 +97,7 @@ public class LightBulb {
         rho = makeR();
     }
 
-    /** Operating point for the given power (watts). */
+    /** Operating point of the bulbs for the given power (watts). */
     public Op operatingPoint(double p) {
         // Temperature required to radiate the required powper
         double t = temperature(p);
@@ -129,6 +129,7 @@ public class LightBulb {
                 double i = v / r;
                 if (DEBUG)
                     System.out.printf("LightBulb.IforV: i %f p %f\n", i, p);
+                // System.out.printf("LightBulb.IforV %d\n", j);
                 return i;
             }
         }
