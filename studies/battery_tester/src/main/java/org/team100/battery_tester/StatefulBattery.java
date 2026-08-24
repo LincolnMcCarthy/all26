@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
@@ -22,7 +22,7 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
  * https://en.wikipedia.org/wiki/Peukert's_law
  * https://www.power-sonic.com/product/ps-12180/
  */
-public class StatefulBattery extends BatteryBase {
+public class StatefulBattery extends Battery {
     private static final boolean DEBUG = false;
     /** Open Circuit Voltage as a function of State of Charge. */
     final InterpolatingDoubleTreeMap ocv;

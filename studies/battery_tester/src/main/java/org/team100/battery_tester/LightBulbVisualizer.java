@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 import java.util.function.DoubleSupplier;
 

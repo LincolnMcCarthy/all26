@@ -1,4 +1,4 @@
-package frc.robot;
+package org.team100.battery_tester;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.util.Color8Bit;
