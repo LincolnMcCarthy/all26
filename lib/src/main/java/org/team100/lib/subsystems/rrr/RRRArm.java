@@ -18,8 +18,8 @@ import org.team100.lib.motor.sim.SimulatedBareMotor;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
-import org.team100.lib.state.ModelR1;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateR1;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.rn.PositionSubsystemRn;
 import org.team100.lib.subsystems.rrr.commands.MoveWithProfile;
 import org.team100.lib.subsystems.rrr.commands.MoveWithSpline;
@@ -29,12 +29,13 @@ import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
  * Planar RRR arm, for training.
  */
-public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, PositionSubsystemRn {
+public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, PositionSubsystemRn<N3> {
     private final LoggerFactory m_log;
     final RRRKinematicsPoE m_kinematics;
     final RRRDynamicsNewtonEuler m_dynamics;
@@ -170,18 +171,18 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
     }
 
     @Override
-    public ModelSE2 getState() {
-        return new ModelSE2(pose(), velocity());
+    public StateSE2 getState() {
+        return new StateSE2(pose(), velocity());
     }
 
     @Override
-    public List<ModelR1> getStateRn() {
+    public List<StateR1> getStateRn() {
         RRRConfig q = getConfig();
         RRRVelocity qdot = getVelocity();
         return List.of(
-                new ModelR1(q.q1(), qdot.q1dot()),
-                new ModelR1(q.q2(), qdot.q2dot()),
-                new ModelR1(q.q3(), qdot.q3dot()));
+                new StateR1(q.q1(), qdot.q1dot()),
+                new StateR1(q.q2(), qdot.q2dot()),
+                new StateR1(q.q3(), qdot.q3dot()));
     }
 
     @Override

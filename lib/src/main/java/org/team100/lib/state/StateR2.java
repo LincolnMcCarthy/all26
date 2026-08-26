@@ -5,29 +5,29 @@ import org.team100.lib.geometry.r2.VelocityR2;
 import edu.wpi.first.math.geometry.Translation2d;
 
 /** Represents planar position only. */
-public class ModelR2 {
-    private final ModelR1 m_x;
-    private final ModelR1 m_y;
+public class StateR2 {
+    private final StateR1 m_x;
+    private final StateR1 m_y;
 
-    public ModelR2(ModelR1 x, ModelR1 y) {
+    public StateR2(StateR1 x, StateR1 y) {
         m_x = x;
         m_y = y;
     }
 
-    public ModelR2(Translation2d x, VelocityR2 v) {
+    public StateR2(Translation2d x, VelocityR2 v) {
         this(
-                new ModelR1(x.getX(), v.x()),
-                new ModelR1(x.getY(), v.y()));
+                new StateR1(x.getX(), v.x()),
+                new StateR1(x.getY(), v.y()));
     }
 
     /** Motionless with the specified pose */
-    public ModelR2(Translation2d x) {
+    public StateR2(Translation2d x) {
         this(x, VelocityR2.ZERO);
     }
 
     /** Motionless at the origin */
-    public ModelR2() {
-        this(new ModelR1(), new ModelR1());
+    public StateR2() {
+        this(new StateR1(), new StateR1());
     }
 
     public ControlR2 control() {
@@ -35,13 +35,13 @@ public class ModelR2 {
     }
 
     /** Component-wise difference (not geodesic) */
-    public ModelR2 minus(ModelR2 other) {
-        return new ModelR2(x().minus(other.x()), y().minus(other.y()));
+    public StateR2 minus(StateR2 other) {
+        return new StateR2(x().minus(other.x()), y().minus(other.y()));
     }
 
     /** Component-wise sum (not geodesic) */
-    public ModelR2 plus(ModelR2 other) {
-        return new ModelR2(x().plus(other.x()), y().plus(other.y()));
+    public StateR2 plus(StateR2 other) {
+        return new StateR2(x().plus(other.x()), y().plus(other.y()));
     }
 
     /**
@@ -50,12 +50,12 @@ public class ModelR2 {
      * 
      * This does not describe geodesic paths in SE(2). For that, see Twist2d.
      */
-    public ModelR2 evolve(double dt) {
-        return new ModelR2(m_x.evolve(dt), m_y.evolve(dt));
+    public StateR2 evolve(double dt) {
+        return new StateR2(m_x.evolve(dt), m_y.evolve(dt));
     }
 
     /** All dimensions position and velocity are within (the same) tolerance */
-    public boolean near(ModelR2 other, double tolerance) {
+    public boolean near(StateR2 other, double tolerance) {
         return x().near(other.x(), tolerance)
                 && y().near(other.y(), tolerance);
     }
@@ -69,11 +69,11 @@ public class ModelR2 {
         return new VelocityR2(m_x.v(), m_y.v());
     }
 
-    public ModelR1 x() {
+    public StateR1 x() {
         return m_x;
     }
 
-    public ModelR1 y() {
+    public StateR1 y() {
         return m_y;
     }
 

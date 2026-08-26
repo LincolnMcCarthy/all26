@@ -129,7 +129,6 @@ public class RRRKinematicsPoETest {
 
     @Test
     void test4c() {
-        // TODO: ???
         RRRKinematicsPoE k = new RRRKinematicsPoE(1, 1, 1);
         // extended (singular)
         RRRConfig q = new RRRConfig(0, 0, 0);
@@ -153,7 +152,6 @@ public class RRRKinematicsPoETest {
 
     @Test
     void test5b() {
-        // TODO: ???
         RRRKinematicsPoE k = new RRRKinematicsPoE(1, 1, 1);
         RRRConfig q = new RRRConfig(Math.PI / 2, -Math.PI / 2, Math.PI / 2);
         //
@@ -166,7 +164,6 @@ public class RRRKinematicsPoETest {
 
     @Test
     void test5c() {
-        // TODO: ???
         RRRKinematicsPoE k = new RRRKinematicsPoE(1, 1, 1);
         // extended
         RRRConfig q = new RRRConfig(0, 0, 0);

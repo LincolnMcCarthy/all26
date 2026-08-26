@@ -7,8 +7,8 @@ import org.team100.lib.kinematics.urdf.URDFJoint.Limit;
 
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N5;
 
 /**
@@ -59,7 +59,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 base_link,
                                 base_pan_link,
                                 // rot z zero used to be -pi/2
-                                new Pose3d(0, 0, 0.06731, new Rotation3d(0, 0, 0)),
+                                new Transform3d(0, 0, 0.06731, new Rotation3d(0, 0, 0)),
                                 VecBuilder.fill(0, 0, 1)),
                         new URDFJoint(
                                 "shoulder_tilt",
@@ -67,7 +67,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 new Limit(1000.0, -Math.PI, 0, 0.5),
                                 base_pan_link,
                                 upper_arm_link,
-                                new Pose3d(),
+                                new Transform3d(),
                                 // rotation was -y
                                 VecBuilder.fill(0, 1, 0)),
                         new URDFJoint(
@@ -77,7 +77,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 upper_arm_link,
                                 lower_arm_link,
                                 // rot y zero used to be pi
-                                new Pose3d(0.14605, 0, 0, new Rotation3d(0, 0, 0)),
+                                new Transform3d(0.14605, 0, 0, new Rotation3d(0, 0, 0)),
                                 // rot was -y
                                 VecBuilder.fill(0, 1, 0)),
                         new URDFJoint(
@@ -87,7 +87,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 lower_arm_link,
                                 link3,
                                 // rot y zero used to be pi/2
-                                new Pose3d(0.187325, 0, 0, new Rotation3d(0, 0, 0)),
+                                new Transform3d(0.187325, 0, 0, new Rotation3d(0, 0, 0)),
                                 // rot was -y
                                 VecBuilder.fill(0, 1, 0)),
                         new URDFJoint(
@@ -98,7 +98,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 gripper,
                                 // rot x zero used to be -pi/2
                                 // this is longer than the original i think because of the twist axis
-                                new Pose3d(0.061, 0, 0, new Rotation3d(0, 0, 0)),
+                                new Transform3d(0.061, 0, 0, new Rotation3d(0, 0, 0)),
                                 VecBuilder.fill(1, 0, 0)),
                         new URDFJoint(
                                 "center_point",
@@ -108,7 +108,7 @@ public class URDFAL5D extends URDFRobot<N5> {
                                 tool_center_point,
                                 // 55mm is the distance to the *end* of the end effector, not the target grip
                                 // point
-                                new Pose3d(0.055, 0, 0, new Rotation3d()),
+                                new Transform3d(0.055, 0, 0, new Rotation3d()),
                                 null)));
     }
 }

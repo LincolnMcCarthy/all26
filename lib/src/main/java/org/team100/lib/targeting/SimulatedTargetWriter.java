@@ -13,7 +13,7 @@ import org.team100.lib.localization.SwerveHistory;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -39,7 +39,7 @@ public class SimulatedTargetWriter {
     private final Map<Camera, StructArrayPublisher<Target>> m_publishers;
     private final DoubleLogger m_log_poseTimestamp;
     private final List<Camera> m_cameras;
-    private final DoubleFunction<ModelSE2> m_history;
+    private final DoubleFunction<StateSE2> m_history;
 
     /** For now, a fixed list of targets */
     private final Translation2d[] m_targets;
@@ -49,7 +49,7 @@ public class SimulatedTargetWriter {
     public SimulatedTargetWriter(
             LoggerFactory parent,
             List<Camera> cameras,
-            DoubleFunction<ModelSE2> history,
+            DoubleFunction<StateSE2> history,
             Translation2d[] targets) {
         LoggerFactory log = parent.type(this);
         m_log_poseTimestamp = log.doubleLogger(Level.TRACE, "pose timestamp (s)");
