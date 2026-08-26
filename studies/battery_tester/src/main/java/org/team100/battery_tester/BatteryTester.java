@@ -8,7 +8,7 @@ import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -103,8 +103,8 @@ public class BatteryTester extends SubsystemBase implements AutoCloseable {
         double measurement = operatingPoint().p();
         double setpoint = m_p;
         double fb = m_feedback.calculate(
-                new ModelR1(measurement),
-                new ModelR1(setpoint));
+                new StateR1(measurement),
+                new StateR1(setpoint));
         if (DEBUG) {
             System.out.printf("CurrentSource: measurement %f setpoint %f fb %f\n",
                     measurement, setpoint, fb);
@@ -124,8 +124,8 @@ public class BatteryTester extends SubsystemBase implements AutoCloseable {
         double measurement = operatingPoint().inputI();
         double setpoint = m_i;
         double fb = m_feedback.calculate(
-                new ModelR1(measurement),
-                new ModelR1(setpoint));
+                new StateR1(measurement),
+                new StateR1(setpoint));
         m_i = i;
         m_log_fb.log(() -> fb);
         m_fb += fb;
