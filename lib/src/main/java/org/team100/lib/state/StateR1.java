@@ -12,18 +12,16 @@ import edu.wpi.first.math.interpolation.Interpolatable;
  * The usual state-space representation would be X = (x,v) and Xdot = (v,a).
  * Units are meters, radians, and seconds.
  * 
- * TODO: rename this to StateR1
- * 
  * @param x position
  * @param v velocity
  */
-public record ModelR1(double x, double v) implements Interpolatable<ModelR1> {
+public record StateR1(double x, double v) implements Interpolatable<StateR1> {
 
-    public ModelR1(double x) {
+    public StateR1(double x) {
         this(x, 0);
     }
 
-    public ModelR1() {
+    public StateR1() {
         this(0, 0);
     }
 
@@ -35,29 +33,29 @@ public record ModelR1(double x, double v) implements Interpolatable<ModelR1> {
         return new ControlR1(x, v, 0);
     }
 
-    public ModelR1 minus(ModelR1 other) {
-        return new ModelR1(x() - other.x(), v() - other.v());
+    public StateR1 minus(StateR1 other) {
+        return new StateR1(x() - other.x(), v() - other.v());
     }
 
-    public ModelR1 plus(ModelR1 other) {
-        return new ModelR1(x() + other.x(), v() + other.v());
+    public StateR1 plus(StateR1 other) {
+        return new StateR1(x() + other.x(), v() + other.v());
     }
 
-    public ModelR1 mult(double scalar) {
-        return new ModelR1(x * scalar, v * scalar);
+    public StateR1 mult(double scalar) {
+        return new StateR1(x * scalar, v * scalar);
     }
 
     /** Use the velocity to evolve the position. */
-    public ModelR1 evolve(double dt) {
+    public StateR1 evolve(double dt) {
         double dx = v * dt;
-        return new ModelR1(x + dx, v);
+        return new StateR1(x + dx, v);
     }
 
     /**
      * True if not null and position and velocity are both within (the same)
      * tolerance
      */
-    public boolean near(ModelR1 other, double tolerance) {
+    public boolean near(StateR1 other, double tolerance) {
         return other != null
                 && MathUtil.isNear(x, other.x, tolerance)
                 && MathUtil.isNear(v, other.v, tolerance);
@@ -67,15 +65,15 @@ public record ModelR1(double x, double v) implements Interpolatable<ModelR1> {
      * True if not null, position is within xtolerance, velocity is within
      * vtolerance.
      */
-    public boolean near(ModelR1 other, double xTolerance, double vTolerance) {
+    public boolean near(StateR1 other, double xTolerance, double vTolerance) {
         return other != null
                 && MathUtil.isNear(x, other.x, xTolerance)
                 && MathUtil.isNear(v, other.v, vTolerance);
     }
 
     @Override
-    public ModelR1 interpolate(ModelR1 endValue, double t) {
-        return new ModelR1(
+    public StateR1 interpolate(StateR1 endValue, double t) {
+        return new StateR1(
                 MathUtil.interpolate(x, endValue.x, t),
                 MathUtil.interpolate(v, endValue.v, t));
 
@@ -83,13 +81,13 @@ public record ModelR1(double x, double v) implements Interpolatable<ModelR1> {
 
     @Override
     public String toString() {
-        return String.format("ModelR1(X %11.8f V %11.8f)", x, v);
+        return String.format("StateR1(X %11.8f V %11.8f)", x, v);
     }
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof ModelR1) {
-            ModelR1 rhs = (ModelR1) other;
+        if (other instanceof StateR1) {
+            StateR1 rhs = (StateR1) other;
             return this.x == rhs.x && this.v == rhs.v;
         } else {
             return false;

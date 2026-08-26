@@ -7,7 +7,7 @@ import org.team100.lib.geometry.rr.RRConfig;
 import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 import org.team100.lib.subsystems.rr.RRArm;
 import org.team100.lib.util.StrUtil;
 
@@ -40,7 +40,7 @@ public class MoveWithProfile extends MoveAndHold {
 
     private ControlR1 m_setpoint;
     // for now this is always 1.
-    private ModelR1 m_profileGoal;
+    private StateR1 m_profileGoal;
 
     public MoveWithProfile(RRArm arm, ProfileR1 profile, Translation2d goal) {
         m_arm = arm;
@@ -68,7 +68,7 @@ public class MoveWithProfile extends MoveAndHold {
                     "infeasible goal: " + StrUtil.transStr(m_goal));
         m_setpoint = new ControlR1();
         // scale the profile to the norm
-        m_profileGoal = new ModelR1(distance, 0);
+        m_profileGoal = new StateR1(distance, 0);
     }
 
     @Override

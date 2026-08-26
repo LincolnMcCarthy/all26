@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.team100.lib.camera.Camera;
 import org.team100.lib.camera.Offset;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.hal.HAL;
@@ -44,7 +44,7 @@ public class SimulatedTagDetectorTest {
         SimulatedTagDetector sim = new SimulatedTagDetector(
                 cameras,
                 layout,
-                x -> new ModelSE2(new Pose2d(2.6576, 4.0259, Rotation2d.kZero)));
+                x -> new StateSE2(new Pose2d(2.6576, 4.0259, Rotation2d.kZero)));
         // sim uses alliance from driver station
         DriverStationSim.setAllianceStationId(AllianceStationID.Red1);
         DriverStationSim.notifyNewData();

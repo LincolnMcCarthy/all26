@@ -2,6 +2,8 @@ package org.team100.lib.reference.rn;
 
 import org.team100.lib.subsystems.rn.PositionSubsystemRn;
 
+import edu.wpi.first.math.Num;
+
 /**
  * Actuates a positional N-DOF subsystem.
  * 
@@ -11,13 +13,13 @@ import org.team100.lib.subsystems.rn.PositionSubsystemRn;
  * TODO: add "toGo"
  * 
  */
-public class PositionReferenceControllerRn {
-    private final PositionSubsystemRn m_subsystem;
-    private final ReferenceRn m_reference;
+public class PositionReferenceControllerRn<N extends Num> {
+    private final PositionSubsystemRn<N> m_subsystem;
+    private final ReferenceRn<N> m_reference;
 
     public PositionReferenceControllerRn(
-            PositionSubsystemRn subsystem,
-            ReferenceRn reference) {
+            PositionSubsystemRn<N> subsystem,
+            ReferenceRn<N> reference) {
         m_subsystem = subsystem;
         m_reference = reference;
         m_reference.init();

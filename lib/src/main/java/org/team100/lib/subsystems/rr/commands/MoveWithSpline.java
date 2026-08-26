@@ -39,13 +39,14 @@ import edu.wpi.first.math.numbers.N2;
  */
 public class MoveWithSpline extends MoveAndHold {
     private static final boolean DEBUG = false;
+    @SuppressWarnings("unused")
     private final LoggerFactory m_log;
     private final RRArm m_arm;
     private final VelocityR2 m_x0dot;
     private final Translation2d m_x1;
     private final VelocityR2 m_x1dot;
     /** Non-null when the command is running, otherwise null. */
-    private PositionReferenceControllerRn m_referenceController;
+    private PositionReferenceControllerRn<N2> m_referenceController;
 
     public MoveWithSpline(
             LoggerFactory parent,
@@ -90,7 +91,7 @@ public class MoveWithSpline extends MoveAndHold {
             System.out.printf("duration %f\n", duration);
         SplineReferenceRn<N2> reference = new SplineReferenceRn<>(
                 spline, duration);
-        m_referenceController = new PositionReferenceControllerRn(
+        m_referenceController = new PositionReferenceControllerRn<>(
                 m_arm, reference);
     }
 

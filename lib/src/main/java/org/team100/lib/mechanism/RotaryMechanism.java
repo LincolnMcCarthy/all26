@@ -9,7 +9,7 @@ import org.team100.lib.music.Player;
 import org.team100.lib.sensor.position.absolute.ProxyRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.RotaryPositionSensor;
 import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -203,8 +203,8 @@ public class RotaryMechanism implements Player {
                 torqueNm / m_gearRatio);
     }
 
-    public ModelR1 getUnwrappedMeasurement() {
-        return new ModelR1(getUnwrappedPositionRad(), getVelocityRad_S());
+    public StateR1 getUnwrappedMeasurement() {
+        return new StateR1(getUnwrappedPositionRad(), getVelocityRad_S());
     }
 
     /**
