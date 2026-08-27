@@ -35,7 +35,7 @@ public class DiscusBare extends SubsystemBase {
     public DiscusBare(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory logger = parent.type(this);
         switch (Identity.instance) {
-            case TEAM100_2018 -> {
+            case TEAM100_2018 , SWERVE_TWO-> {
                 Friction friction = new Friction(0.14, 0.14, 0, 0); 
                 PIDConstants pid = PIDConstants.makePositionPID(0.0);
                 m_motor = new Falcon500Motor(
@@ -76,7 +76,7 @@ public class DiscusBare extends SubsystemBase {
 
     public Command voltage(DoubleSupplier p) {
         return run(() -> setVoltage(
-                VOLT_SCALE * p.getAsDouble())); //VOLT_SCALE *
+                p.getAsDouble())); 
     }
 
     @Override
