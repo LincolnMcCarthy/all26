@@ -4,16 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.coherence.Takt;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.geometry.WaypointSE2;
-import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.Logging;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.path.se2.PathSE2Factory;
+import org.team100.lib.state.VelocityControlSE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,7 +27,6 @@ public class Prewarmer2025 {
     public static void init(Machinery2025 machinery) {
         System.out.println("\n*** PREWARM START");
 
-        final LoggerFactory logger = Logging.instance().rootLogger.name("Prewarmer");
         double startS = Takt.actual();
 
         // Exercise the trajectory planner.
@@ -41,14 +39,14 @@ public class Prewarmer2025 {
                 new Pose2d(new Translation2d(1, 0), Rotation2d.kZero),
                 new DirectionSE2(1, 0, 0),
                 1));
-        List<TimingConstraint> constraints = new TimingConstraintFactory(machinery.m_swerveKinodynamics).medium(logger);
+        List<TimingConstraint> constraints = new TimingConstraintFactory(machinery.m_swerveKinodynamics).medium();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
         planner.restToRest(waypoints);
 
         // Exercise the drive motors.
-        machinery.m_drive.setVelocity(new VelocitySE2(0, 0, 0));
+        machinery.m_drive.set(new VelocityControlSE2(0, 0, 0));
 
         // Exercise some mechanism commands.
         Command c = machinery.m_mech.homeToL4();

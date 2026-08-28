@@ -6,12 +6,15 @@ import java.util.function.Supplier;
 import org.team100.lib.config.DriverSkill;
 import org.team100.lib.experiments.Experiment;
 import org.team100.lib.experiments.Experiments;
+import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.geometry.GeometryUtil;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.hid.Velocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.VelocitySE2Logger;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.swerve.SwerveDriveSubsystem;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.limiter.SwerveLimiter;
@@ -38,6 +41,8 @@ public class DriveFieldRelative extends Command {
     // LOGGERS
     private final VelocitySE2Logger m_log_scaled;
 
+    private VelocitySE2 m_v;
+
     public DriveFieldRelative(
             LoggerFactory parent,
             SwerveKinodynamics swerveKinodynamics,
@@ -52,7 +57,7 @@ public class DriveFieldRelative extends Command {
         m_limiter = limiter;
         m_log_scaled = log.VelocitySE2Logger(Level.TRACE, "scaled");
         m_swerveKinodynamics = swerveKinodynamics;
-
+        m_v = VelocitySE2.ZERO;
         addRequirements(m_drive);
     }
 
@@ -79,7 +84,12 @@ public class DriveFieldRelative extends Command {
         if (Experiments.instance.enabled(Experiment.UseSwerveLimiter)) {
             scaled = m_limiter.apply(scaled);
         }
-        m_drive.setVelocity(scaled);
+        // Compute field-relative accel from backwards finite difference.
+        VelocitySE2 v = scaled;
+        // Because this is field-relative, there is no centrifugal force.
+        AccelerationSE2 a = v.accel(m_v, TimedRobot100.LOOP_PERIOD_S);
+        m_v = v;
+        m_drive.set(new VelocityControlSE2(v, a));
     }
 
 }

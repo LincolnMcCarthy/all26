@@ -3,6 +3,9 @@ package org.team100.lib.dynamics.pr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+import org.team100.lib.geometry.pr.PRAcceleration;
+import org.team100.lib.geometry.pr.PRConfig;
+import org.team100.lib.geometry.pr.PRVelocity;
 
 public class PRDynamicsTest {
     private static final double DELTA = 1e-3;
@@ -11,7 +14,7 @@ public class PRDynamicsTest {
     void test0() {
         PRDynamics d = new PRDynamics(1, 1, 1, 1);
         // configuration is facing upwards
-        PRTorque t = d.torque(
+        PREffort t = d.effort(
                 new PRConfig(0, 0),
                 new PRVelocity(0, 0),
                 new PRAcceleration(0, 0));
@@ -27,7 +30,7 @@ public class PRDynamicsTest {
         PRDynamics d = new PRDynamics(1, 1, 1, 1);
         // configuration is arm to the side
         // motionless
-        PRTorque t = d.torque(
+        PREffort t = d.effort(
                 new PRConfig(0, Math.PI / 2),
                 new PRVelocity(0, 0),
                 new PRAcceleration(0, 0));
@@ -42,7 +45,7 @@ public class PRDynamicsTest {
         PRDynamics d = new PRDynamics(1, 1, 1, 1);
         // configuration is arm to the side
         // elevator accelerating up
-        PRTorque t = d.torque(
+        PREffort t = d.effort(
                 new PRConfig(0, Math.PI / 2),
                 new PRVelocity(0, 0),
                 new PRAcceleration(1, 0));

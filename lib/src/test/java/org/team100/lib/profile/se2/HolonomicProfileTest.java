@@ -4,12 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.coherence.Takt;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.logging.TestLoggerFactory;
-import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.state.ControlSE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.testing.Timeless;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -18,14 +15,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 class HolonomicProfileTest implements Timeless {
     private static final boolean DEBUG = false;
     private static final double DELTA = 0.001;
-    private final LoggerFactory logger = new TestLoggerFactory(new TestPrimitiveLogger());
 
     @Test
     void testSolve() {
-        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(logger, 1, 1, 0.01, 1, 1, 0.01);
-        ModelSE2 i = new ModelSE2(
+        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(1, 1, 0.01, 1, 1, 0.01);
+        StateSE2 i = new StateSE2(
                 new Pose2d(0, 0, Rotation2d.kZero), new VelocitySE2(1, 0, 0));
-        ModelSE2 g = new ModelSE2(
+        StateSE2 g = new StateSE2(
                 new Pose2d(0, 2, Rotation2d.kZero), new VelocitySE2(0, 0, 0));
         hp.solve(i, g);
         // scale factors
@@ -44,9 +40,9 @@ class HolonomicProfileTest implements Timeless {
      */
     @Test
     void test2d() {
-        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(logger, 1, 1, 0.01, 1, 1, 0.01);
-        ModelSE2 i = new ModelSE2();
-        ModelSE2 g = new ModelSE2(new Pose2d(1, 5, Rotation2d.kZero));
+        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(1, 1, 0.01, 1, 1, 0.01);
+        StateSE2 i = new StateSE2();
+        StateSE2 g = new StateSE2(new Pose2d(1, 5, Rotation2d.kZero));
         hp.solve(i, g);
         ControlSE2 s = i.control();
         for (double t = 0; t < 10; t += 0.02) {
@@ -63,8 +59,8 @@ class HolonomicProfileTest implements Timeless {
     @Test
     void test2dExp() {
         HolonomicProfile hp = HolonomicProfileFactory.currentLimitedExponential(1, 1, 2, 1, 1, 2);
-        ModelSE2 i = new ModelSE2();
-        ModelSE2 g = new ModelSE2(new Pose2d(1, 5, Rotation2d.kZero));
+        StateSE2 i = new StateSE2();
+        StateSE2 g = new StateSE2(new Pose2d(1, 5, Rotation2d.kZero));
         hp.solve(i, g);
         ControlSE2 s = i.control();
         for (double t = 0; t < 10; t += 0.02) {
@@ -76,9 +72,9 @@ class HolonomicProfileTest implements Timeless {
 
     @Test
     void test2dWithEntrySpeed() {
-        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(logger, 1, 1, 0.01, 1, 1, 0.01);
-        ModelSE2 i = new ModelSE2(new Pose2d(), new VelocitySE2(1, 0, 0));
-        ModelSE2 g = new ModelSE2(new Pose2d(0, 1, Rotation2d.kZero));
+        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(1, 1, 0.01, 1, 1, 0.01);
+        StateSE2 i = new StateSE2(new Pose2d(), new VelocitySE2(1, 0, 0));
+        StateSE2 g = new StateSE2(new Pose2d(0, 1, Rotation2d.kZero));
         hp.solve(i, g);
         ControlSE2 s = i.control();
         for (double t = 0; t < 10; t += 0.02) {
@@ -104,9 +100,9 @@ class HolonomicProfileTest implements Timeless {
     // disable to speed up tests
     // @Test
     void testSolvePerformance() {
-        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(logger, 1, 1, 0.01, 1, 1, 0.01);
-        ModelSE2 i = new ModelSE2(new Pose2d(), new VelocitySE2(1, 0, 0));
-        ModelSE2 g = new ModelSE2(new Pose2d(0, 1, Rotation2d.kZero));
+        HolonomicProfile hp = HolonomicProfileFactory.trapezoidal(1, 1, 0.01, 1, 1, 0.01);
+        StateSE2 i = new StateSE2(new Pose2d(), new VelocitySE2(1, 0, 0));
+        StateSE2 g = new StateSE2(new Pose2d(0, 1, Rotation2d.kZero));
         int N = 10000;
         double t0 = Takt.actual();
         for (int ii = 0; ii < N; ++ii) {

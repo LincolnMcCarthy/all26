@@ -11,18 +11,18 @@ import java.util.function.Function;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.controller.se2.ControllerSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.se2.commands.DriveWithTrajectoryFunction;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.constraint.VelocityLimitRegionConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
+import org.team100.lib.trajectory.se2.constraint.VelocityLimitRegionConstraint;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -45,21 +45,19 @@ public class CenterPreloadedAuton implements AnnotatedCommand {
         log = parent.name(name());
         this.controller = controller;
         this.machinery = machinery;
-        constraints = new TimingConstraintFactory(kinodynamics).auto(log.type(this));
+        constraints = new TimingConstraintFactory(kinodynamics).auto();
         // In meters/second
         double maxBumpVelocity = 2;
         List<TimingConstraint> new_constraints = new ArrayList<>(constraints);
 
-        // create a new VelocityRegionContstraint `slow_bump_zone`
-        // the "name" values here separate the "Mutables" inside.
         VelocityLimitRegionConstraint slow_bump_zone = new VelocityLimitRegionConstraint(
-                log.name("bumpzone"), BumpZones.BLUE_BUMP_LEFT, maxBumpVelocity);
+                BumpZones.BLUE_BUMP_LEFT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone2 = new VelocityLimitRegionConstraint(
-                log.name("bumpzone2"), BumpZones.BLUE_BUMP_RIGHT, maxBumpVelocity);
+                BumpZones.BLUE_BUMP_RIGHT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone3 = new VelocityLimitRegionConstraint(
-                log.name("bumpzone3"), BumpZones.RED_BUMP_LEFT, maxBumpVelocity);
+                BumpZones.RED_BUMP_LEFT, maxBumpVelocity);
         VelocityLimitRegionConstraint slow_bump_zone4 = new VelocityLimitRegionConstraint(
-                log.name("bumpzone4"), BumpZones.RED_BUMP_RIGHT, maxBumpVelocity);
+                BumpZones.RED_BUMP_RIGHT, maxBumpVelocity);
         new_constraints.add(slow_bump_zone);
         new_constraints.add(slow_bump_zone2);
         new_constraints.add(slow_bump_zone3);

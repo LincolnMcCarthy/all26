@@ -3,9 +3,9 @@ package org.team100.lib.targeting;
 import java.util.Optional;
 import java.util.function.DoubleFunction;
 
-import org.team100.lib.geometry.GlobalVelocityR2;
-import org.team100.lib.geometry.StateR2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.geometry.r2.VelocityR2;
+import org.team100.lib.geometry.r2.StateR2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.targeting.TimeOfFlightRecursion.Looper.LoopSolution;
 import org.team100.lib.util.StrUtil;
 
@@ -45,7 +45,7 @@ public class TimeOfFlightRecursion implements Solver {
 
     /** This is a separate class to make it easier to test. */
     static class Looper {
-        static record LoopSolution(
+         record LoopSolution(
                 FiringParameters params, Translation2d targetPositionAtTOF) {
         }
 
@@ -53,12 +53,12 @@ public class TimeOfFlightRecursion implements Solver {
         /** Target position relative to robot. */
         private final Translation2d m_T0;
         /** Target velocity relative to robot. */
-        private final GlobalVelocityR2 m_vT;
+        private final VelocityR2 m_vT;
 
         public Looper(
                 DoubleFunction<Optional<FiringParameters>> rangeToParams,
                 Translation2d T0,
-                GlobalVelocityR2 vT) {
+                VelocityR2 vT) {
             m_rangeToParams = rangeToParams;
             m_T0 = T0;
             m_vT = vT;
@@ -91,15 +91,15 @@ public class TimeOfFlightRecursion implements Solver {
         }
     }
 
-    private static void complain(GlobalVelocityR2 vT, Translation2d T0) {
+    private static void complain(VelocityR2 vT, Translation2d T0) {
         System.out.printf("vT (%f, %f) T0 (%f, %f)\n",
                 vT.x(), vT.y(), T0.getX(), T0.getY());
     }
 
     @Override
-    public Optional<Solution> solve(ModelSE2 state, StateR2 target) {
+    public Optional<Solution> solve(StateSE2 state, StateR2 target) {
         final Translation2d robotPosition = state.translation();
-        final GlobalVelocityR2 robotVelocity = state.velocityR2();
+        final VelocityR2 robotVelocity = state.velocityR2();
 
         // Target relative to robot
         Translation2d T0 = target.position().minus(robotPosition);
@@ -110,7 +110,7 @@ public class TimeOfFlightRecursion implements Solver {
         }
         double rangeM = T0.getNorm();
         // Target velocity relative to robot
-        GlobalVelocityR2 vT = target.velocity().minus(robotVelocity);
+        VelocityR2 vT = target.velocity().minus(robotVelocity);
 
         Looper looper = new Looper(m_rangeToParams, T0, vT);
 

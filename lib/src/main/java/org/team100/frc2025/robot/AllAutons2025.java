@@ -10,13 +10,13 @@ import org.team100.lib.controller.se2.ControllerFactorySE2;
 import org.team100.lib.controller.se2.FullStateControllerSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.profile.se2.HolonomicProfileFactory;
 import org.team100.lib.profile.se2.ProfileSE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -40,7 +40,7 @@ public class AllAutons2025 {
         final FullStateControllerSE2 controller = ControllerFactorySE2
                 .auto2025LooseTolerance(autoLog);
         List<TimingConstraint> constraints = new TimingConstraintFactory(machinery.m_swerveKinodynamics)
-                .medium(autoLog);
+                .medium();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         final TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);

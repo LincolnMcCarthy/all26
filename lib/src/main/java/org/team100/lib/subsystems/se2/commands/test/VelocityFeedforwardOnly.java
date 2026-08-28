@@ -1,11 +1,11 @@
 package org.team100.lib.subsystems.se2.commands.test;
 
 import org.team100.lib.commands.MoveAndHold;
-import org.team100.lib.geometry.VelocitySE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.profile.se2.ProfileSE2;
 import org.team100.lib.reference.se2.ProfileReferenceSE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.se2.VelocitySubsystemSE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -40,16 +40,16 @@ public class VelocityFeedforwardOnly extends MoveAndHold {
     @Override
     public void initialize() {
         m_reference = new ProfileReferenceSE2(m_log, m_profile, "feedforward only");
-        m_reference.setGoal(new ModelSE2(m_goal));
+        m_reference.setGoal(new StateSE2(m_goal));
         m_reference.initialize(m_drive.getState());
     }
 
     @Override
     public void execute() {
-        VelocitySE2 velocity = m_reference.next().velocity();
+        VelocityControlSE2 velocity = m_reference.next().velocityControl();
         if (DEBUG)
             System.out.printf("velocity %s\n", velocity);
-        m_drive.setVelocity(velocity);
+        m_drive.set(velocity);
     }
 
     @Override
@@ -65,8 +65,8 @@ public class VelocityFeedforwardOnly extends MoveAndHold {
 
     @Override
     public double toGo() {
-        ModelSE2 goal = m_reference.goal();
-        ModelSE2 measurement = m_drive.getState();
+        StateSE2 goal = m_reference.goal();
+        StateSE2 measurement = m_drive.getState();
         return goal.minus(measurement).translation().getNorm();
     }
 }

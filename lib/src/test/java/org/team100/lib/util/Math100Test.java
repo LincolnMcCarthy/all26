@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.AccelerationSE2;
-import org.team100.lib.geometry.StateSE2;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.state.StateSE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -81,11 +81,11 @@ class Math100Test {
                 new VelocitySE2(1, 0, 0));
         AccelerationSE2 a = new AccelerationSE2(
                 Math100.accel(
-                        s0.vel().x(), s1.vel().x(), s1.pose().getX() - s0.pose().getX()),
+                        s0.velocity().x(), s1.velocity().x(), s1.pose().getX() - s0.pose().getX()),
                 Math100.accel(
-                        s0.vel().y(), s1.vel().y(), s1.pose().getY() - s0.pose().getY()),
+                        s0.velocity().y(), s1.velocity().y(), s1.pose().getY() - s0.pose().getY()),
                 Math100.accel(
-                        s0.vel().theta(), s1.vel().theta(),
+                        s0.velocity().theta(), s1.velocity().theta(),
                         s1.pose().getRotation().minus(s0.pose().getRotation()).getRadians()));
         // 1 meter at 1 m/s, a=0.5 m/s, t= 2
         assertEquals(0.5, a.x(), DELTA);
@@ -104,11 +104,11 @@ class Math100Test {
                 new VelocitySE2(-1, 0, 0)); // <<< negative velocity
         AccelerationSE2 a = new AccelerationSE2(
                 Math100.accel(
-                        s0.vel().x(), s1.vel().x(), s1.pose().getX() - s0.pose().getX()),
+                        s0.velocity().x(), s1.velocity().x(), s1.pose().getX() - s0.pose().getX()),
                 Math100.accel(
-                        s0.vel().y(), s1.vel().y(), s1.pose().getY() - s0.pose().getY()),
+                        s0.velocity().y(), s1.velocity().y(), s1.pose().getY() - s0.pose().getY()),
                 Math100.accel(
-                        s0.vel().theta(), s1.vel().theta(),
+                        s0.velocity().theta(), s1.velocity().theta(),
                         s1.pose().getRotation().minus(s0.pose().getRotation()).getRadians()));
         // 1 meter at 1 m/s, a=0.5 m/s, t= 2
         // this acceleration is for negative time, i.e. from s1 to s0, decelerating.

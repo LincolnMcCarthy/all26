@@ -1,18 +1,20 @@
 package org.team100.lib.controller.se2;
 
-import org.team100.lib.geometry.DeltaSE2;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.DeltaSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.logging.LoggerFactory.VelocityControlSE2Logger;
 import org.team100.lib.logging.LoggerFactory.VelocitySE2Logger;
 import org.team100.lib.state.ControlSE2;
+import org.team100.lib.state.VelocityControlSE2;
 
 /**
  * Velocity feedforward and proportional feedback on position and velocity.
  */
 public class FullStateControllerSE2 extends ControllerSE2Base {
 
-    private final VelocitySE2Logger m_log_u_FF;
+    private final VelocityControlSE2Logger m_log_u_FF;
     private final VelocitySE2Logger m_log_u_FB;
     private final VelocitySE2Logger m_log_u_VFB;
 
@@ -34,7 +36,7 @@ public class FullStateControllerSE2 extends ControllerSE2Base {
         super(parent, xTolerance, thetaTolerance, xDotTolerance, omegaTolerance);
         LoggerFactory log = parent.type(this);
 
-        m_log_u_FF = log.VelocitySE2Logger(Level.TRACE, "feedforward");
+        m_log_u_FF = log.velocityControlSE2Logger(Level.TRACE, "feedforward");
         m_log_u_FB = log.VelocitySE2Logger(Level.TRACE, "position feedback");
         m_log_u_VFB = log.VelocitySE2Logger(Level.TRACE, "velocity feedback");
 
@@ -45,12 +47,12 @@ public class FullStateControllerSE2 extends ControllerSE2Base {
     }
 
     @Override
-    public VelocitySE2 calculate100(
+    public VelocityControlSE2 calculate100(
             DeltaSE2 positionError,
             VelocitySE2 velocityError,
             ControlSE2 nextReference) {
-        VelocitySE2 u_FF = feedforward(nextReference);
-        VelocitySE2 u_FB = fullFeedback(positionError, velocityError);
+        VelocityControlSE2 u_FF = feedforward(nextReference);
+        VelocityControlSE2 u_FB = fullFeedback(positionError, velocityError);
         return u_FF.plus(u_FB);
     }
 
@@ -58,15 +60,15 @@ public class FullStateControllerSE2 extends ControllerSE2Base {
     //
     // package-private for testing
 
-    VelocitySE2 feedforward(ControlSE2 nextReference) {
-        m_log_u_FF.log(() -> nextReference.velocity());
-        return nextReference.velocity();
+    VelocityControlSE2 feedforward(ControlSE2 nextReference) {
+        m_log_u_FF.log(() -> nextReference.velocityControl());
+        return nextReference.velocityControl();
     }
 
-    VelocitySE2 fullFeedback(DeltaSE2 positionError, VelocitySE2 velocityError) {
+    VelocityControlSE2 fullFeedback(DeltaSE2 positionError, VelocitySE2 velocityError) {
         VelocitySE2 u_XFB = positionFeedback(positionError);
         VelocitySE2 u_VFB = velocityFeedback(velocityError);
-        return u_XFB.plus(u_VFB);
+        return new VelocityControlSE2(u_XFB.plus(u_VFB));
     }
 
     /**

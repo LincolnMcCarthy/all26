@@ -8,29 +8,29 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.reference.se2.TrajectoryReferenceSE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.spline.se2.SplineSE2;
+import org.team100.lib.spline.se2.SplineSE2Factory;
+import org.team100.lib.state.StateSE2;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.se2.MockSubsystemSE2;
 import org.team100.lib.subsystems.se2.commands.helper.VelocityReferenceControllerSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.testing.Timeless;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.examples.TrajectoryExamples;
-import org.team100.lib.trajectory.path.PathSE2;
-import org.team100.lib.trajectory.path.PathSE2Factory;
-import org.team100.lib.trajectory.spline.SplineSE2;
-import org.team100.lib.trajectory.spline.SplineSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
+import org.team100.lib.trajectory.se2.examples.TrajectoryExamples;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -44,8 +44,8 @@ public class ReferenceControllerSE2Test implements Timeless {
 
     @Test
     void testTrajectoryStart() {
-        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
-        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood(logger);
+        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
+        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
@@ -59,7 +59,7 @@ public class ReferenceControllerSE2Test implements Timeless {
         ControllerSE2 controller = ControllerFactorySE2.test(logger);
 
         // initially at rest
-        MockSubsystemSE2 drive = new MockSubsystemSE2(new ModelSE2());
+        MockSubsystemSE2 drive = new MockSubsystemSE2(new StateSE2());
 
         TrajectoryReferenceSE2 reference = new TrajectoryReferenceSE2(logger, t);
         VelocityReferenceControllerSE2 c = new VelocityReferenceControllerSE2(
@@ -79,29 +79,29 @@ public class ReferenceControllerSE2Test implements Timeless {
 
         stepTime();
         c.execute();
-        assertEquals(0.139, drive.m_setpoint.x(), DELTA);
-        assertEquals(0, drive.m_setpoint.y(), DELTA);
-        assertEquals(0, drive.m_setpoint.theta(), DELTA);
+        assertEquals(0.139, drive.m_setpoint.x().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.y().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.theta().v(), DELTA);
 
         // more normal driving
         stepTime();
         c.execute();
-        assertEquals(0.179, drive.m_setpoint.x(), DELTA);
-        assertEquals(0, drive.m_setpoint.y(), DELTA);
-        assertEquals(0, drive.m_setpoint.theta(), DELTA);
+        assertEquals(0.179, drive.m_setpoint.x().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.y().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.theta().v(), DELTA);
 
         // etc
         stepTime();
         c.execute();
-        assertEquals(0.221, drive.m_setpoint.x(), DELTA);
-        assertEquals(0, drive.m_setpoint.y(), DELTA);
-        assertEquals(0, drive.m_setpoint.theta(), DELTA);
+        assertEquals(0.221, drive.m_setpoint.x().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.y().v(), DELTA);
+        assertEquals(0, drive.m_setpoint.theta().v(), DELTA);
     }
 
     @Test
     void testTrajectoryDone() {
-        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
-        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood(logger);
+        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
+        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
@@ -115,7 +115,7 @@ public class ReferenceControllerSE2Test implements Timeless {
         ControllerSE2 controller = ControllerFactorySE2.test(logger);
 
         // initially at rest
-        MockSubsystemSE2 drive = new MockSubsystemSE2(new ModelSE2());
+        MockSubsystemSE2 drive = new MockSubsystemSE2(new StateSE2());
 
         TrajectoryReferenceSE2 reference = new TrajectoryReferenceSE2(logger, t);
         VelocityReferenceControllerSE2 c = new VelocityReferenceControllerSE2(
@@ -129,7 +129,7 @@ public class ReferenceControllerSE2Test implements Timeless {
             if (DEBUG)
                 System.out.printf("%s\n", drive.m_setpoint);
             // we have magically reached the end (immediately)
-            drive.m_state = new ModelSE2(new Pose2d(1, 0, Rotation2d.kZero));
+            drive.m_state = new StateSE2(new Pose2d(1, 0, Rotation2d.kZero));
         }
         assertTrue(c.isDone());
 
@@ -175,35 +175,36 @@ public class ReferenceControllerSE2Test implements Timeless {
                 0.01, 0.02,
                 0.01, 0.02);
 
-        MockSubsystemSE2 drive = new MockSubsystemSE2(new ModelSE2());
+        MockSubsystemSE2 drive = new MockSubsystemSE2(new StateSE2());
         TrajectoryReferenceSE2 reference = new TrajectoryReferenceSE2(logger, trajectory);
         VelocityReferenceControllerSE2 referenceController = new VelocityReferenceControllerSE2(
                 logger, drive, swerveController, reference);
 
         Pose2d pose = trajectory.sample(0).point().point().waypoint().pose();
-        VelocitySE2 velocity = VelocitySE2.ZERO;
+        VelocityControlSE2 velocity = VelocityControlSE2.ZERO;
 
-        double mDt = 0.02;
+        double dt = 0.02;
         int i = 0;
         while (!referenceController.isDone()) {
             if (++i > 500)
                 break;
             stepTime();
-            drive.m_state = new ModelSE2(pose, velocity);
+            drive.m_state = new StateSE2(pose, velocity.velocity());
             referenceController.execute();
             velocity = drive.m_recentSetpoint;
             pose = new Pose2d(
-                    pose.getX() + velocity.x() * mDt,
-                    pose.getY() + velocity.y() * mDt,
-                    new Rotation2d(pose.getRotation().getRadians() + velocity.theta() * mDt));
+                    pose.getX() + velocity.x().v() * dt + velocity.x().a() * dt * dt / 2,
+                    pose.getY() + velocity.y().v() * dt + velocity.y().a() * dt * dt / 2,
+                    new Rotation2d(pose.getRotation().getRadians() + velocity.theta().v() * dt
+                            + velocity.theta().a() * dt * dt / 2));
             if (DEBUG)
                 System.out.printf("pose %s vel %s\n", pose, velocity);
         }
 
         // this should be exactly right but it's not.
-        assertEquals(195, pose.getTranslation().getX(), 1);
-        assertEquals(13, pose.getTranslation().getY(), 0.4);
-        assertEquals(0, pose.getRotation().getRadians(), 0.1);
+        assertEquals(196, pose.getTranslation().getX(), 0.001);
+        assertEquals(13, pose.getTranslation().getY(), 0.001);
+        assertEquals(0, pose.getRotation().getRadians(), 0.001);
     }
 
 }

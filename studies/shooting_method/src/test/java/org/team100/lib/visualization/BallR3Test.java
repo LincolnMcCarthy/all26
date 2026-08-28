@@ -22,9 +22,16 @@ public class BallR3Test {
 
     @Test
     void testBall() {
-        LoggerFactory field = new TestLoggerFactory(new TestPrimitiveLogger());
+        LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());
         Drag d = new Drag(0.5, 0.025, 0.1, 0.1, 0.1);
-        BallR3 b = new BallR3(field, d, () -> robot, () -> azimuth, () -> elevation, 10, 1);
+        BallR3 b = new BallR3(
+                log, log,
+                d,
+                () -> robot,
+                () -> azimuth,
+                () -> elevation,
+                () -> 10,
+                1);
         assertNull(b.m_location);
         elevation = new Rotation2d(Math.PI / 4);
         b.launch();

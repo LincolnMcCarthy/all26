@@ -62,20 +62,19 @@
         "markdown.preview.scrollEditorWithPreview": false,
         "markdown.preview.scrollPreviewWithEditor": false,
         "terminal.integrated.scrollback": 100000,
-        "vsintellicode.java.completionsEnabled": true,
-        "workbench.colorCustomizations": {
-            "debugConsole.infoForeground": "#ffffff",
-            "tab.activeBackground":"#5f5f00",
-            "editor.background":"#000000",
-            "editorCursor.foreground":"#ffffff"
-        },
-        "workbench.colorTheme": "Default Dark+",
+        "workbench.colorTheme": "Solarized Light",
         "workbench.editor.revealIfOpen": true,
         "workbench.tree.enableStickyScroll": false,
-        "editor.cursorWidth":2,
+        "editor.cursorWidth": 2,
         "editor.multiCursorLimit": 1,
         "java.import.maven.disableTestClasspathFlag": false,
         "java.import.projectSelection": "automatic",
-        "debug.console.maximumLines": 20000
+        "debug.console.maximumLines": 20000,
+        "workbench.colorCustomizations": {
+            "editor.findMatchBackground": "#e6ff00",
+            "terminal.selectionBackground": "#e6ff00",
+            "tab.activeBackground": "#ffffaa",
+            "tab.unfocusedActiveBackground": "#ffffff"
+        }
     }
 }

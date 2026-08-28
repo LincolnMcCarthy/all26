@@ -1,9 +1,10 @@
 package org.team100.frc2026.subsystems;
 
+import org.team100.frc2026.robot.CurrentLimits;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -16,12 +17,10 @@ import org.team100.lib.profile.r1.VelocityProfileR1;
 import org.team100.lib.reference.r1.VelocityProfileReferenceR1;
 import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.servo.OutboardLinearVelocityServo;
-import org.team100.lib.tuning.Mutable;
 import org.team100.lib.util.CanId;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.team100.frc2026.robot.CurrentLimits;
 
 public class Intake extends SubsystemBase {
     private static final CanId CAN_ID_1 = new CanId(20);
@@ -29,7 +28,7 @@ public class Intake extends SubsystemBase {
     private static final double TOLERANCE_M_S = 1;
     private static final double GEAR_RATIO = 2;
     private static final double WHEEL_DIAMETER_M = 0.05;
-    private final Mutable NORMAL_SPEED;
+    private static final double NORMAL_SPEED = 10;
 
     private final OutboardLinearVelocityServo m_servo1;
     private final OutboardLinearVelocityServo m_servo2;
@@ -38,8 +37,8 @@ public class Intake extends SubsystemBase {
         LoggerFactory log = parent.type(this);
         LoggerFactory log1 = log.name("motor1");
         LoggerFactory log2 = log.name("motor2");
-        // tuned 3/12/26
-        NORMAL_SPEED = new Mutable(log, "Intake Speed", 10);
+        // equivalent linear dynamics for the actual drum inertia.
+        PDynamics dynamics = PDynamics.drum(0.001, 0.025);
         // VelocityProfileR1 profile = new CurrentLimitedExponentialVelocityProfileR1(
         // 10, 10, 20, 30);
         VelocityProfileR1 profile = new AccelLimitedVelocityProfileR1(
@@ -51,17 +50,16 @@ public class Intake extends SubsystemBase {
         switch (Identity.instance) {
             case TEST_BOARD_B0, COMP_BOT -> {
 
-                SimpleDynamics ff = new SimpleDynamics(log, 0.0, 0.0);
                 // friction test 3/12/26
-                Friction friction = new Friction(log, 0.5, 0.5, 0.0, 0.5);
+                Friction friction = new Friction(0.5, 0.5, 0.0, 0.5);
                 // tuned 3/12/26
-                PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.08);
+                PIDConstants pid = PIDConstants.makeVelocityPID(0.08);
                 m1 = new KrakenX44Motor(
                         log1, currentLog, CAN_ID_1, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.INTAKE, ff, friction, pid);
+                        CurrentLimits.INTAKE, friction, pid);
                 m2 = new KrakenX44Motor(
                         log2, currentLog, CAN_ID_2, NeutralMode100.COAST, MotorPhase.REVERSE,
-                        CurrentLimits.INTAKE, ff, friction, pid);
+                        CurrentLimits.INTAKE, friction, pid);
             }
             default -> {
                 m1 = new SimulatedBareMotor(log1, 600);
@@ -69,9 +67,9 @@ public class Intake extends SubsystemBase {
             }
         }
         m_servo1 = OutboardLinearVelocityServo.make(
-                log1, m1, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
+                log1, m1, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
         m_servo2 = OutboardLinearVelocityServo.make(
-                log2, m2, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
+                log2, m2, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
     }
 
     /**
@@ -81,7 +79,7 @@ public class Intake extends SubsystemBase {
     public Command intake() {
         return startRun(
                 this::reset,
-                () -> setVelocityProfiled(NORMAL_SPEED.getAsDouble()))
+                () -> setVelocityProfiled(NORMAL_SPEED))
                 .finallyDo(this::stopMotor)
                 .withName("Intake Normal Speed");
     }

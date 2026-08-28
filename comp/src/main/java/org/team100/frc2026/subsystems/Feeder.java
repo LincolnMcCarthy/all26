@@ -4,7 +4,7 @@ import org.team100.frc2026.robot.CurrentLimits;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -29,7 +29,6 @@ public class Feeder extends SubsystemBase {
     private static final double TOLERANCE_M_S = 1.0;
     private static final double GEAR_RATIO = 3.0;
     private static final double WHEEL_DIAMETER_M = 0.05;
-    // TODO: TUNE
     private static final double NORMAL_SPEED = 10.0;
 
     private final OutboardLinearVelocityServo m_servo1;
@@ -42,6 +41,8 @@ public class Feeder extends SubsystemBase {
         LoggerFactory log1 = log.name("Feeder1");
         LoggerFactory log2 = log.name("Feeder2");
         m_Shooter = shooter;
+        // equivalent linear dynamics for the actual drum inertia.
+        PDynamics dynamics = PDynamics.drum(0.001, 0.025);
         VelocityProfileR1 profile = new AccelLimitedVelocityProfileR1(40);
         VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
                 log, () -> profile, 1);
@@ -49,19 +50,17 @@ public class Feeder extends SubsystemBase {
         final BareMotor m2;
         switch (Identity.instance) {
             case TEST_BOARD_B0 -> {
-
-                SimpleDynamics dynamics = new SimpleDynamics(log, 0.00, 0.00);
                 // friction test 3/12/26
-                Friction friction = new Friction(log, 0.9, 0.9, 0.0, 0.5);
+                Friction friction = new Friction(0.9, 0.9, 0.0, 0.5);
                 // tuned 3/12/26
-                PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.05);
+                PIDConstants pid = PIDConstants.makeVelocityPID(0.05);
 
                 m1 = new KrakenX44Motor(
                         log1, currentLog, canID1, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.FEEDER, dynamics, friction, pid);
+                        CurrentLimits.FEEDER, friction, pid);
                 m2 = new KrakenX44Motor(
                         log2, currentLog, canID2, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.FEEDER, dynamics, friction, pid);
+                        CurrentLimits.FEEDER, friction, pid);
             }
             default -> {
                 m1 = new SimulatedBareMotor(log1, 600);
@@ -69,9 +68,9 @@ public class Feeder extends SubsystemBase {
             }
         }
         m_servo1 = OutboardLinearVelocityServo.make(
-                log1, m1, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
+                log1, m1, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
         m_servo2 = OutboardLinearVelocityServo.make(
-                log2, m2, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
+                log2, m2, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
     }
 
     @Override

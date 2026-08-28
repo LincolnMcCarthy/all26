@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -19,9 +18,8 @@ class CombinedRotaryPositionSensorTest implements Timeless {
 
     @Test
     void testZeroing() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor motor = new MockBareMotor(ff, friction);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor motor = new MockBareMotor(friction);
 
         // this is the "correct" value
         MockRotaryPositionSensor sensor = new MockRotaryPositionSensor();

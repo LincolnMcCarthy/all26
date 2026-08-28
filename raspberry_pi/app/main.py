@@ -9,33 +9,50 @@ use the script called "runapp.py" in the raspberry_pi directory
 
 # pylint: disable=R0914
 
+import time
 from threading import Event, Thread
 
 from app.camera.camera_factory import CameraFactory
 from app.camera.camera_protocol import Camera
-from app.camera.interpreter_factory import InterpreterFactory
-from app.camera.interpreter_protocol import Interpreter
+from app.interpreter.interpreter_factory import InterpreterFactory
+from app.interpreter.interpreter_protocol import Interpreter
 from app.camera.camera_loop import CameraLoop
 from app.config.identity import Identity
-from app.dashboard.display import Display
+from app.dashboard.display_protocol import Display
 from app.dashboard.display_factory import DisplayFactory
 from app.network.network_protocol import Network
 from app.network.real_network import RealNetwork
-
+from app.util.timestamps import Timestamps
 
 def main() -> None:
+    print("blarg")
+    time.sleep(5)
+    print("blarg")
+    print("\n*** main.py loop starting", flush=True)
     identity: Identity = Identity.get()
-    done: Event = Event() # to shut down all threads
+    done: Event = Event()  # to shut down all threads
+    thread: Thread | None = None
     try:
         camera: Camera = CameraFactory.get(identity)
-        display: Display = DisplayFactory.get(identity, camera)
+        # main display for annotated images
+        display1: Display = DisplayFactory.get(identity, camera, "display1", 0.25)
+        # secondary display
+        display2: Display = DisplayFactory.get(identity, camera, "display2", 1.0)
         network: Network = RealNetwork(identity, done)
+        timestamps = Timestamps(network)
         interpreter: Interpreter = InterpreterFactory.get(
-            identity, camera, display, network
+            identity, camera, display1, display2, network, timestamps
         )
         camera_loop: CameraLoop = CameraLoop(camera, interpreter, done)
-        Thread(target=camera_loop.run).start()
-        done.wait()
+        thread = Thread(target=camera_loop.run)
+        print("\n*** Starting the main loop", flush=True)
+        thread.start()
+        # looper.run will return when done, so wait for that.
+        thread.join()
+        print("\n*** Looper has exited", flush=True)
 
     finally:
         done.set()  # exit all threads cleanly
+        # if the loop is hung, we don't want to wait for it,
+        # so just wait a little bit of time instead.
+        time.sleep(1)

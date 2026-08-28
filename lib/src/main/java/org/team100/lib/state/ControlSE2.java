@@ -1,12 +1,8 @@
 package org.team100.lib.state;
 
-import org.team100.lib.geometry.AccelerationSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
-import org.team100.lib.trajectory.TrajectorySE2Point;
-import org.team100.lib.trajectory.path.PathSE2Point;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,6 +21,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
  * 
  * Do not try to use zero as an initial location; always initialize with the
  * current location.
+ * 
+ * Be careful of the context: this specifies control relative to some
+ * coordinate system, often the global (field) one, but not always.
  * 
  * Note: the metric used here is not the SE(2) geodesic, it treats the XY plane
  * and rotation dimensions independently.
@@ -55,7 +54,7 @@ public class ControlSE2 {
     }
 
     public ControlSE2(Pose2d x) {
-        this(x, new VelocitySE2(0, 0, 0));
+        this(x, VelocitySE2.ZERO);
     }
 
     public ControlSE2(Rotation2d x) {
@@ -66,8 +65,8 @@ public class ControlSE2 {
         return new ControlSE2(new ControlR1(), new ControlR1(), new ControlR1());
     }
 
-    public ModelSE2 model() {
-        return new ModelSE2(m_x.model(), m_y.model(), m_theta.model());
+    public StateSE2 model() {
+        return new StateSE2(m_x.model(), m_y.model(), m_theta.model());
     }
 
     /** Component-wise difference (not geodesic) */
@@ -103,6 +102,13 @@ public class ControlSE2 {
         return new VelocitySE2(m_x.v(), m_y.v(), m_theta.v());
     }
 
+    public VelocityControlSE2 velocityControl() {
+        return new VelocityControlSE2(
+                m_x.velocityControl(),
+                m_y.velocityControl(),
+                m_theta.velocityControl());
+    }
+
     /** Robot-relative speeds */
     public ChassisSpeeds chassisSpeeds() {
         return SwerveKinodynamics.toInstantaneousChassisSpeeds(velocity(), rotation());
@@ -124,55 +130,8 @@ public class ControlSE2 {
         return m_theta;
     }
 
-    /**
-     * Trajectory point => ControlSE2.
-     * Correctly computes centripetal acceleration.
-     */
-    public static ControlSE2 fromTrajectorySE2Point(TrajectorySE2Point p) {
-        return ControlSE2.fromMovingPathSE2Point(p.point(), p.velocity(), p.accel());
-    }
-
-    /**
-     * Point and pathwise velocity and accel => ControlSE2.
-     * Correctly computes centripetal acceleration.
-     */
-    public static ControlSE2 fromMovingPathSE2Point(
-            PathSE2Point point, double velocityM_s, double accelM_s_s) {
-
-        WaypointSE2 waypoint = point.waypoint();
-        Pose2d pose = waypoint.pose();
-        DirectionSE2 direction = waypoint.course();
-
-        double xx = pose.getTranslation().getX();
-        double yx = pose.getTranslation().getY();
-        double thetax = pose.getRotation().getRadians();
-
-        Rotation2d course = direction.toRotation();
-        double xv = course.getCos() * velocityM_s;
-        double yv = course.getSin() * velocityM_s;
-        double thetav = direction.headingRate() * velocityM_s;
-
-        double xa = course.getCos() * accelM_s_s;
-        double ya = course.getSin() * accelM_s_s;
-        double thetaa = direction.headingRate() * accelM_s_s;
-
-        // centripetal accel = v^2/r = v^2 * curvature
-        // this works because the acceleration vector is always normal
-        // to the course vector, and in 2d, with signed curvature, that
-        // determines the vector.
-        double curvRad_M = point.k();
-        double centripetalAccelM_s_s = velocityM_s * velocityM_s * curvRad_M;
-        double xCa = -1.0 * course.getSin() * centripetalAccelM_s_s;
-        double yCa = course.getCos() * centripetalAccelM_s_s;
-
-        return new ControlSE2(
-                new ControlR1(xx, xv, xa + xCa),
-                new ControlR1(yx, yv, ya + yCa),
-                new ControlR1(thetax, thetav, thetaa));
-    }
-
     public String toString() {
-        return "SwerveControl(" + m_x + ", " + m_y + ", " + m_theta + ")";
+        return "ControlSE2(" + m_x + ", " + m_y + ", " + m_theta + ")";
     }
 
 }

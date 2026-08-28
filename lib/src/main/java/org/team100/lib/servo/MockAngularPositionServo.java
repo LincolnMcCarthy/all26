@@ -1,6 +1,6 @@
 package org.team100.lib.servo;
 
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 
 public class MockAngularPositionServo implements AngularPositionServo {
     double m_setpoint;
@@ -18,11 +18,11 @@ public class MockAngularPositionServo implements AngularPositionServo {
     }
 
     @Override
-    public void setPositionProfiled(double goalRad, double torqueNm) {
+    public void setPositionProfiled(double goalRad) {
     }
 
     @Override
-    public void setPositionDirect(double goalRad, double velocityRad_S, double torqueNm) {
+    public void setPositionDirect(double goalRad, double velocityRad_S) {
         m_setpoint = goalRad;
     }
 
@@ -37,8 +37,13 @@ public class MockAngularPositionServo implements AngularPositionServo {
     }
 
     @Override
-    public ModelR1 getUnwrappedGoal() {
+    public StateR1 getUnwrappedGoal() {
         return null;
+    }
+
+    @Override
+    public boolean validSetpoint() {
+        return true;
     }
 
     @Override
@@ -73,11 +78,11 @@ public class MockAngularPositionServo implements AngularPositionServo {
     }
 
     @Override
-    public void actuateWithProfile(double unwrappedGoalX, double torqueNm) {
+    public void actuateWithProfile(double unwrappedGoalX) {
     }
 
     @Override
-    public void actuateDirect(double unwrappedSetpoint, double torqueNm) {
+    public void actuateDirect(double unwrappedSetpoint) {
     }
 
     @Override

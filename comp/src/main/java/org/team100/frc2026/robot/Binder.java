@@ -3,13 +3,13 @@ package org.team100.frc2026.robot;
 import static edu.wpi.first.wpilibj2.command.Commands.parallel;
 import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 import static edu.wpi.first.wpilibj2.command.Commands.waitUntil;
-import static org.team100.frc2026.util.TriggerUtil.onTrue;
-import static org.team100.frc2026.util.TriggerUtil.whileTrue;
+import static org.team100.lib.util.TriggerUtil.onTrue;
+import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.controller.r1.AzimuthController;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.FullStateFeedback;
-import org.team100.lib.hid.DriverXboxControl;
+import org.team100.lib.hid.InterLinkDX;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.subsystems.swerve.commands.manual.DriveFieldRelative;
@@ -37,7 +37,8 @@ public class Binder {
         ///
         /// CONTROLLER
         ///
-        DriverXboxControl driver = new DriverXboxControl(0);
+        //DriverXboxControl driver = new DriverXboxControl(0);
+        InterLinkDX driver = new InterLinkDX(0);
 
         ////////////////////////////////////////////////////
         ///

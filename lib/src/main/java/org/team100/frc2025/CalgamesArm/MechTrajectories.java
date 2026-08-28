@@ -4,19 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.team100.lib.commands.MoveAndHold;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
+import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.subsystems.prr.AnalyticalJacobian;
-import org.team100.lib.subsystems.prr.ElevatorArmWristKinematics;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.se2.commands.GoToPosePosition;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.path.PathSE2Factory;
-import org.team100.lib.trajectory.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TorqueConstraint;
-import org.team100.lib.trajectory.constraint.YawRateConstraint;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TorqueConstraint;
+import org.team100.lib.trajectory.se2.constraint.YawRateConstraint;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -30,15 +29,14 @@ public class MechTrajectories extends Command {
     public MechTrajectories(
             LoggerFactory parent,
             CalgamesMech mech,
-            ElevatorArmWristKinematics k,
-            AnalyticalJacobian j) {
+            PRRKinematics k) {
         m_log = parent.type(this);
         m_subsystem = mech;
         List<TimingConstraint> c = new ArrayList<>();
 
         // These are known to work, but suboptimal.
-        c.add(new ConstantConstraint(m_log, 10, 5));
-        c.add(new YawRateConstraint(m_log, 10, 5));
+        c.add(new ConstantConstraint(10, 5));
+        c.add(new YawRateConstraint(10, 5));
         // This is new
         c.add(new TorqueConstraint(20));
 

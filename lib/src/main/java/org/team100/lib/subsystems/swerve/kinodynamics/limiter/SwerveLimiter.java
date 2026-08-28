@@ -2,7 +2,7 @@ package org.team100.lib.subsystems.swerve.kinodynamics.limiter;
 
 import java.util.function.DoubleSupplier;
 
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
@@ -49,7 +49,8 @@ public class SwerveLimiter {
      * Find a feasible setpoint in the direction of the target, and remember it for
      * next time.
      */
-    public VelocitySE2 apply(VelocitySE2 nextReference) {
+    public VelocitySE2 apply(VelocitySE2 control) {
+        VelocitySE2 nextReference = control;
         m_log_next.log(() -> nextReference);
         m_log_normIn.log(nextReference::norm);
         if (DEBUG) {

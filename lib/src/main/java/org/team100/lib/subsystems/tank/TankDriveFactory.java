@@ -4,7 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.differential.DifferentialDriveDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
@@ -14,12 +14,12 @@ import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.rev.Neo550CANSparkMotor;
 import org.team100.lib.motor.rev.NeoCANSparkMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
-import org.team100.lib.reference.r1.NoVelocityReferenceR1;
-import org.team100.lib.servo.OutboardLinearVelocityServo;
 import org.team100.lib.util.CanId;
 
 public class TankDriveFactory {
 
+    // a good value of dynamics might be SE2Dynamics(15, 0.5)
+    // 15kg mass, 0.5 kg m^2 inertia?
     public static TankDrive make(
             LoggerFactory fieldLogger,
             LoggerFactory parent,
@@ -30,24 +30,24 @@ public class TankDriveFactory {
             double trackWidthM,
             double maxSpeedM_S,
             double gearRatio,
-            double wheelDiaM) {
+            double wheelDiaM,
+            DifferentialDriveDynamics dynamics) {
         LoggerFactory log = parent.name("Tank Drive");
         LoggerFactory logL = log.name("left");
         LoggerFactory logR = log.name("right");
 
-        SimpleDynamics ff = new SimpleDynamics(log, 0.00, 0.00);
-        Friction friction = new Friction(log, 0.2, 0.2, 0.0, 0.5);
-        PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.005);
+        Friction friction = new Friction(0.2, 0.2, 0.0, 0.5);
+        PIDConstants pid = PIDConstants.makeVelocityPID(0.005);
 
         // ensure the simulated motor can go fast enough.
         double freeSpeedRad_S = maxSpeedM_S * gearRatio / (0.5 * wheelDiaM);
 
         BareMotor motorL = getMotor(
                 logL, currentLog, freeSpeedRad_S, canL,
-                MotorPhase.FORWARD, limit, ff, friction, pid);
+                MotorPhase.FORWARD, limit, friction, pid);
         BareMotor motorR = getMotor(
                 logR, currentLog, freeSpeedRad_S, canR,
-                MotorPhase.REVERSE, limit, ff, friction, pid);
+                MotorPhase.REVERSE, limit, friction, pid);
 
         LinearMechanism mechL = new LinearMechanism(
                 logL, motorL, motorL.encoder(),
@@ -61,12 +61,7 @@ public class TankDriveFactory {
                 Double.POSITIVE_INFINITY);
 
         return new TankDrive(
-                log,
-                fieldLogger,
-                trackWidthM,
-                maxSpeedM_S,
-                new OutboardLinearVelocityServo(logL, mechL, new NoVelocityReferenceR1(), 1),
-                new OutboardLinearVelocityServo(logR, mechR, new NoVelocityReferenceR1(), 1));
+                log, fieldLogger, dynamics, trackWidthM, maxSpeedM_S, mechL, mechR);
     }
 
     /**
@@ -81,17 +76,16 @@ public class TankDriveFactory {
             CanId can,
             MotorPhase phase,
             CurrentLimit limit,
-            SimpleDynamics ff,
             Friction friction,
             PIDConstants pid) {
         return switch (Identity.instance) {
             case BLANK -> new SimulatedBareMotor(log, freeSpeedRad_S);
             case DEMO_BOT -> new Neo550CANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, ff, friction, pid, 2, 4);
+                    limit, friction, pid, 2, 4);
             default -> new NeoCANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, ff, friction, pid, 2, 4);
+                    limit, friction, pid, 2, 4);
         };
     }
 }

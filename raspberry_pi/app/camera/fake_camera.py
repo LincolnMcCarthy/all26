@@ -1,12 +1,11 @@
 # pylint: disable=E1101,R0903,R1732
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, override
 import cv2
 import numpy as np
 from cv2.typing import MatLike
 from numpy.typing import NDArray
-from typing_extensions import override
 from app.camera.camera_protocol import Camera
 from app.camera.fake_request import FakeRequest
 from app.camera.size import Size
@@ -21,35 +20,82 @@ class FakeCamera(Camera):
         filename: str,
         size: Optional[tuple[int, int]] = None,
         k1: float = 0.0,
-        inv_k1: float = 0.0,
     ) -> None:
         """
+        filename: in this directory.
         size: if no size is supplied, the native size is used.
         k1: quadratic distortion term for undistortion
-        inv_k1: inverse distortion, used to distort the image
-        note: if k1 magnitude is more than about 7, undistort barfs.
         """
-        p = Path(__file__).with_name(filename)
+        print("\n*** Camera: RealCamera", flush=True)
+        p = Path(__file__).parent / filename
         pathstr: str = str(p)
-        file = cv2.imread(pathstr)
+        # force the file to be read as three-channel BGR
+        file = cv2.imread(pathstr, cv2.IMREAD_COLOR)
         if file is None:
-            raise ValueError("no file")
-        self.img: MatLike = file
+            raise ValueError("no file: " + pathstr)
+        # img is 3 channel BGR
+        self._img: MatLike = file
         if size is not None:
-            self.img = cv2.resize(self.img, size)
-        self.h: int = self.img.shape[0]
-        self.w: int = self.img.shape[1]
-        self.c: int = self.img.shape[2]
+            self._img = cv2.resize(self._img, size)
+        self.h: int = self._img.shape[0]
+        self.w: int = self._img.shape[1]
+        self.c: int = self._img.shape[2]
         self.frame_time = Timer.time_ns()
         self.k1 = k1
-        # use undistort to distort the image, using the inverse
-        mtx: NDArray[np.float32] = self.get_intrinsic()
 
-        dist = np.array([inv_k1, 0, 0, 0])
+        # Here we want to *distort* the image, so the the "undistort" below inverts the distortion.
+        self._img: MatLike = self.redistort(self._img)
+        self._mono: MatLike = cv2.cvtColor(self._img, cv2.COLOR_RGB2GRAY)
+        """mono img for testing"""
 
-        self.img = cv2.undistort(self.img, mtx, dist)
         # uncomment to see the distorted thing
-        cv2.imwrite("blarg.jpg", self.img)
+        # cv2.imwrite("debug.jpg", self.img)
+
+    def redistort(self, undistorted_img: MatLike) -> MatLike:
+        """Use "remap" to invert the undistortion function.
+
+        undistortPoints() takes distorted points as input and yields true points.
+
+        So we make a matrix of points, each of which is its own location.
+
+        When we give undistortPoints() each location, it treats it as if it were from the
+        distorted image, and so yields a location corresponding to the true image.
+        This is, therefore, a "forward" map.
+
+        remap() takes each point in the *destination* matrix, and applies the map to find
+        the point in the *source* matrix that should be used. This is an "inverse" map.
+
+        So using the "undistort" map with "remap" will invert it, becoming "distort."
+
+        Instead, we could apply the analytic distortion model to the input image, but
+        that would require interpolation in the destination (to fill the holes),
+        and that seems harder.
+        """
+
+        # Each value is its location.
+        grid: NDArray[np.float32] = np.indices((self.h, self.w), dtype=np.float32)
+        grid_y: NDArray[np.float32] = grid[0]
+        grid_x: NDArray[np.float32] = grid[1]
+
+        # Flatten row-major.
+        x_flat: NDArray[np.float32] = grid_x.ravel()
+        y_flat: NDArray[np.float32] = grid_y.ravel()
+
+        # Statck to make a 2d array where each row is a pair, like MatofPoint2f.
+        points: MatLike = np.stack([x_flat, y_flat], axis=-1).reshape(-1, 1, 2)
+
+        # Make the undistortion map.
+        distort_map: MatLike = cv2.undistortPoints(
+            points, self.get_intrinsic(), self.get_dist(), P=self.get_intrinsic()
+        )
+        distort_map = distort_map.reshape(self.h, self.w, 2)
+
+        # Separate the x and y because that's what remap wants.
+        map_x = distort_map[:, :, 0]
+        map_y = distort_map[:, :, 1]
+
+        # Apply the map.
+        return cv2.remap(undistorted_img, map_x, map_y, interpolation=cv2.INTER_LINEAR)
 
     @override
     def capture_request(self) -> FakeRequest:
@@ -57,7 +103,7 @@ class FakeCamera(Camera):
         total_time_ms = (capture_start - self.frame_time) / 1000000
         self.frame_time = capture_start
         fps = 1000 / total_time_ms
-        return FakeRequest(self.img, fps)
+        return FakeRequest(self._img, fps)
 
     @override
     def stop(self) -> None:

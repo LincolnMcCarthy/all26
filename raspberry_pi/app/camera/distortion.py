@@ -10,6 +10,7 @@ class Distortion:
     This should be measured using mrcal.
 
     We've had good results using the four-parameter model: [k1, k2, p1, p2].
+    
 
     Using the 3.2mm lens and GS camera:
     * k1 is quadratic radial, should be around -0.3
@@ -38,6 +39,10 @@ class Distortion:
                 self._dist = np.array(
                     [-0.2961790762, 0.09865662084, -0.0001707410996, 0.0002482554604]
                 )
+            case Identity.FUNNEL:
+                self._dist = np.array(
+                    [-0.03226, 0.01730, 0.00105, 0.00284]
+                )   
             #
             # TODO: clean up the entries below
             #
@@ -61,7 +66,7 @@ class Distortion:
                 self._dist = np.array(
                     [-0.2883685917, 0.08640059653, -0.0003167335742, 0.0004112607248]
                 )
-         
+
                 self._valid = False
                 print("###########################################")
                 print("#                                         #")

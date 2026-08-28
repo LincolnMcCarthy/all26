@@ -29,6 +29,7 @@ import org.team100.lib.uncertainty.VariableR1;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * A real swerve subsystem populated with simulated motors and encoders,
@@ -54,7 +55,7 @@ public class RealisticFixture {
         logger = new TestLoggerFactory(new TestPrimitiveLogger());
         TotalCurrentLog currentLog = new TotalCurrentLog(logger);
         fieldLogger = new TestLoggerFactory(new TestPrimitiveLogger());
-        swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
         collection = SwerveModuleCollection.get(
                 logger, currentLog, new CurrentLimit(10, 20), new CurrentLimit(10, 20), swerveKinodynamics);
         gyro = new SimulatedGyro(logger, swerveKinodynamics, collection, 0);
@@ -79,8 +80,9 @@ public class RealisticFixture {
         final AprilTagFieldLayoutWithCorrectOrientation layout = new AprilTagFieldLayoutWithCorrectOrientation();
 
         AprilTagRobotLocalizer localizer = new AprilTagRobotLocalizer(
-                logger, fieldLogger, layout, history, visionUpdater);
-        estimate = new FreshSwerveEstimate(localizer, odometryUpdater, history);
+                logger, fieldLogger, layout, history, visionUpdater,DriverStation::getAlliance);
+        estimate = new FreshSwerveEstimate(
+                localizer::update, odometryUpdater::update, history);
 
         limiter = new SwerveLimiter(logger, swerveKinodynamics, () -> 12);
 

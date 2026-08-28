@@ -1,8 +1,9 @@
 package org.team100.lib.subsystems.test;
 
 import org.team100.lib.geometry.GeometryUtil;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.state.StateSE2;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.se2.VelocitySubsystemSE2;
 
 import edu.wpi.first.math.Vector;
@@ -38,26 +39,30 @@ public class OffsetDrivetrain implements VelocitySubsystemSE2 {
     }
 
     @Override
-    public ModelSE2 getState() {
-        return new ModelSE2(toolpointPose(), toolpointVelocity());
+    public StateSE2 getState() {
+        return new StateSE2(toolpointPose(), toolpointVelocity());
     }
 
     /**
      * Set delegate velocity from toolpoint velocity and offset.
      * r is from toolpoint to delegate, so invert offset.
      * 
+     * TODO: the accel component is wrong. fix it.
+     * 
      * @param nextV toolpoint velocity for the next timestep
      */
     @Override
-    public void setVelocity(VelocitySE2 nextV) {
+    public void set(VelocityControlSE2 nextV) {
         // the component of the rotation part that tries to move the
         // delegate in x and y
         // respecting 100% of this velocity will keep the toolpoint
         // where it wants to go (if the delegate responds perfectly)
-        VelocitySE2 tangentialVelocity = OffsetUtil.tangentialVelocity(
-                OffsetUtil.omega(nextV), r(m_offset.unaryMinus()));
+        VelocityControlSE2 tangentialVelocity = new VelocityControlSE2(
+                OffsetUtil.tangentialVelocity(
+                        OffsetUtil.omega(nextV.velocity()),
+                        r(m_offset.unaryMinus())));
 
-        m_delegate.setVelocity(nextV.plus(tangentialVelocity));
+        m_delegate.set(nextV.plus(tangentialVelocity));
     }
 
     @Override

@@ -4,7 +4,6 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -32,9 +31,8 @@ public class ClimberIntake extends SubsystemBase {
                         log, currentLog,
                         canID, NeutralMode100.COAST, MotorPhase.REVERSE,
                         new CurrentLimit(20, 20),
-                        new SimpleDynamics(log, 0.004, 0.002),
-                        new Friction(log, 0.26, 0.26, 0.006, 0.5),
-                        PIDConstants.zero(log));
+                        new Friction(0.26, 0.26, 0.006, 0.5),
+                        PIDConstants.zero());
             }
             default -> {
                 m_motor = new LazySimulatedBareMotor(

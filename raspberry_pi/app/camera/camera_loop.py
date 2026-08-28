@@ -2,10 +2,10 @@
 
 from threading import Event
 
-from typing_extensions import override
+from typing import override
 
 from app.camera.camera_protocol import Camera
-from app.camera.interpreter_protocol import Interpreter
+from app.interpreter.interpreter_protocol import Interpreter
 from app.framework.looper import Looper
 
 
@@ -26,7 +26,7 @@ class CameraLoop(Looper):
     def execute(self) -> None:
         req = self._camera.capture_request()
         try:
-            self._interpreter.analyze(req)
+            self._interpreter.interpret(req)
         finally:
             req.release()
 

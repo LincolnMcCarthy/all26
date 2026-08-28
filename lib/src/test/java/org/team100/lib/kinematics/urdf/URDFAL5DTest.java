@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.subsystems.lynxmotion_arm.LynxArmConfig;
+import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.testing.TestUtil;
 
 import edu.wpi.first.math.VecBuilder;
@@ -179,12 +179,12 @@ public class URDFAL5DTest {
         Pose3d end = new Pose3d(0.2, 0.0, 0.1, new Rotation3d(0, 0, 0));
         Vector<N5> q0 = VecBuilder.fill(0.1, 0.1, 0.1, 0.1, 0.1);
         Map<String, Double> qMap = m.inverse(
-                q0, 2, "center_point", end);
+                q0, "center_point", end);
         TestUtil.verify(Map.of(
                 "base_pan", 0.000,
-                "shoulder_tilt", -2.162,
-                "elbow_tilt", 2.654,
-                "wrist_tilt", -0.492,
+                "shoulder_tilt", -2.157,
+                "elbow_tilt", 2.652,
+                "wrist_tilt", -0.495,
                 "wrist_rotate", 0.000), qMap);
     }
 
@@ -200,7 +200,7 @@ public class URDFAL5DTest {
         Pose3d goal = new Pose3d(
                 new Translation3d(0.19991979, 0.0011040928, 0.19832649),
                 new Rotation3d(3.3019369e-18, 0.79406969, 7.6530612e-19));
-        m.inverse(c.toVec(), 2, "center_point", goal);
+        m.inverse(c.toVec(), "center_point", goal);
     }
 
 }

@@ -4,7 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100.Slip;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
@@ -13,12 +13,8 @@ import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.rev.NeoCANSparkMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
-import org.team100.lib.reference.r1.NoVelocityReferenceR1;
-import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.sensor.gyro.ReduxGyro;
-import org.team100.lib.servo.OutboardLinearVelocityServo;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100.Slip;
 import org.team100.lib.util.CanId;
 
 public class MecanumDriveFactory {
@@ -33,6 +29,8 @@ public class MecanumDriveFactory {
             CanId canFR,
             CanId canRL,
             CanId canRR,
+            double m,
+            double I,
             double trackWidthM,
             double wheelbaseM,
             Slip slip,
@@ -44,25 +42,24 @@ public class MecanumDriveFactory {
         LoggerFactory logRL = log.name("rearLeft");
         LoggerFactory logRR = log.name("rearRight");
 
-        PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.01);
-        SimpleDynamics ff = new SimpleDynamics(log, 0.01, 0.01);
-        Friction friction = new Friction(log, 0.5, 0.5, 0.0, 0.5);
+        PIDConstants pid = PIDConstants.makeVelocityPID(0.01);
+        Friction friction = new Friction(0.5, 0.5, 0.0, 0.5);
 
         Gyro gyro = gyro(log, gyroId);
         slip = slip(slip);
 
         BareMotor motorFL = getMotor(
                 logFL, currentLog, canFL, MotorPhase.REVERSE,
-                limit, ff, friction, pid);
+                limit, friction, pid);
         BareMotor motorFR = getMotor(
                 logFR, currentLog, canFR, MotorPhase.FORWARD,
-                limit, ff, friction, pid);
+                limit, friction, pid);
         BareMotor motorRL = getMotor(
                 logRL, currentLog, canRL, MotorPhase.REVERSE,
-                limit, ff, friction, pid);
+                limit, friction, pid);
         BareMotor motorRR = getMotor(
                 logRR, currentLog, canRR, MotorPhase.FORWARD,
-                limit, ff, friction, pid);
+                limit, friction, pid);
 
         LinearMechanism mechFL = new LinearMechanism(
                 logFL, motorFL, motorFL.encoder(), gearRatio, wheelDiaM,
@@ -77,14 +74,9 @@ public class MecanumDriveFactory {
                 logRR, motorRR, motorRR.encoder(), gearRatio, wheelDiaM,
                 Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 
-        VelocityReferenceR1 ref = new NoVelocityReferenceR1();
-
         return new MecanumDrive100(
-                log, fieldLogger, gyro, trackWidthM, wheelbaseM, slip,
-                new OutboardLinearVelocityServo(logFL, mechFL, ref, 1),
-                new OutboardLinearVelocityServo(logFR, mechFR, ref, 1),
-                new OutboardLinearVelocityServo(logRL, mechRL, ref, 1),
-                new OutboardLinearVelocityServo(logRR, mechRR, ref, 1));
+                log, fieldLogger, m, I, gyro, trackWidthM, wheelbaseM, slip,
+                mechFL, mechFR, mechRL, mechRR);
     }
 
     /**
@@ -94,12 +86,12 @@ public class MecanumDriveFactory {
      */
     public static BareMotor getMotor(
             LoggerFactory log, TotalCurrentLog currentLog, CanId can, MotorPhase phase,
-            CurrentLimit limit, SimpleDynamics ff, Friction friction, PIDConstants pid) {
+            CurrentLimit limit, Friction friction, PIDConstants pid) {
         return switch (Identity.instance) {
             case BLANK -> new SimulatedBareMotor(log, 600);
             default -> new NeoCANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, ff, friction, pid, 2, 4);
+                    limit, friction, pid, 2, 4);
         };
     }
 

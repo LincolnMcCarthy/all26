@@ -1,10 +1,3 @@
-"""Represents the Raspberry Pi identity, used to select configuration.
-
-Don't put anything in this class about the actual configuration, use a different class for that.
-
-Keep this synchronized with java team100.config.Camera.
-"""
-
 # pylint: disable=C0103
 
 from enum import Enum, unique
@@ -28,6 +21,13 @@ except FileNotFoundError:
 
 @unique
 class Identity(Enum):
+    """Represents the Raspberry Pi identity, used to select configuration.
+
+    Don't put anything in this class about the actual configuration, use a different class for that.
+
+    Keep this synchronized with java team100.config.Camera.
+    """
+
     #
     # Camera-bot 2026
     #
@@ -51,6 +51,9 @@ class Identity(Enum):
     # Comp bot 2025
     FUNNEL = "1e5acbaa5a7f9d10"  # 30
 
+    # Calgames Partner
+    COLOR_DETECT_1 = "e1714bf12b94e414" #35
+
     # Comp bot 2026
     CLIMB_LEFT = "82c4c3fe4f941e96"  # 34
     CLIMB_RIGHT = "364f07fb090a3bf7"  # 31
@@ -63,6 +66,8 @@ class Identity(Enum):
     DEV = "test"
     FLIPPED = "flipme"  # example for per-identity config
     JOELS_TEST = "9b297e919a0634e6"
+    SIM0 = "sim0"
+    """For testing."""
     UNKNOWN = "unknown"
 
     @classmethod
@@ -71,8 +76,9 @@ class Identity(Enum):
 
     @staticmethod
     def get() -> "Identity":
+        """Returns UNKNOWN if serial is not recognized, and in tests."""
         serial = _serial
         print(f"\n*** Coprocessor serial: {serial}")
         identity: Identity = Identity(serial)
-        print(f"\n*** Coprocessor identity: {identity.name}")
+        print(f"\n*** Coprocessor identity: {identity.name}", flush=True)
         return identity

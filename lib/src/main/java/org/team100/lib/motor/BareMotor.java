@@ -27,17 +27,36 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
     void setDutyCycle(double output);
 
     /**
+     * For tuning friction.
+     */
+    void setVoltage(double volts);
+
+    /**
      * Velocity feedback with friction, velocity, acceleration, and holding torque.
      * 
-     * Could be open-loop (e.g. "kV") or closed-loop.
+     * There are two kinds of implementations, closed-loop and open-loop.
+     * 
+     * Closed-loop implementations use the velocity term as the controller target,
+     * and also for feedforward based on back-EMF.  Since back-EMF is intrinsic,
+     * this feedforward is correct.
+     * 
+     * Previously, the closed-loop implementations used a multiplicative
+     * feedforward for acceleration, which is the wrong place to do it, since
+     * it properly depends on extrinsics (e.g. mechanism mass).  This argument
+     * is gone, and the extrinsics modeled "upstream."
+     * 
+     * The torque is used by closed-loop implementations using motor
+     * intrisics, the torque constant and resistance (see getTorqueFFVolts()),
+     * so this is correect as well.
+     * 
+     * Open-loop implementations just scale velocity to voltage or duty cycle
+     * somehow, ignore  the other terms, and don't expect to be very accurate.
      * 
      * @param velocityRad_S motor shaft speed, rad/s.
-     * @param accelRad_S2   rad/s^2. TODO: remove this field
      * @param torqueNm      Nm, for gravity compensation or acceleration.
      */
     void setVelocity(
             double velocityRad_S,
-            double accelRad_S2,
             double torqueNm);
 
     /**
@@ -77,18 +96,24 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
      * 
      * Should actuate immediately.
      * 
-     * Make sure you don't double-count factors of torque/accel.
+     * See setVelocity() for discussion of field uses in subclasses.
      * 
+     * In the positional case, the open-loop implementations often don't
+     * do anything at all.
+     * 
+     * Closed-loop implementations are closed on position, use velocity
+     * for (correct, intrinsic) back-EMF feedforward, use torque for
+     * (correct, intrinsic) R/kT feedforward.
+     * 
+     * Previously, incorrectly, there was a multiplier for kA.
      * 
      * @param positionRad   radians.
      * @param velocityRad_S rad/s.
-     * @param accelRad_S2   rad/s^2. TODO: remove this field
      * @param torqueNm      Nm, for gravity compensation or acceleration.
      */
     void setUnwrappedPosition(
             double positionRad,
             double velocityRad_S,
-            double accelRad_S2,
             double torqueNm);
 
     /**
@@ -128,6 +153,7 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
      */
     default double kE() {
         return 60 * 12 / (kFreeSpeedRPM() * 2 * Math.PI);
+        // return 0;
     }
 
     default double backEMFVoltage(double motorRad_S) {

@@ -3,6 +3,9 @@ package org.team100.lib.dynamics.prr;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
+import org.team100.lib.geometry.prr.PRRAcceleration;
+import org.team100.lib.geometry.prr.PRRConfig;
+import org.team100.lib.geometry.prr.PRRVelocity;
 
 public class PRRDynamicsTest {
     private static final double DELTA = 1e-3;
@@ -11,7 +14,7 @@ public class PRRDynamicsTest {
     void test0() {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // configuration is facing upwards
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, 0, 0),
                 new PRRVelocity(0, 0, 0),
                 new PRRAcceleration(0, 0, 0));
@@ -28,7 +31,7 @@ public class PRRDynamicsTest {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // configuration is arm to the side at the shoulder
         // motionless
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, Math.PI / 2, 0),
                 new PRRVelocity(0, 0, 0),
                 new PRRAcceleration(0, 0, 0));
@@ -47,7 +50,7 @@ public class PRRDynamicsTest {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // configuration is arm to the side at the shoulder
         // elevator accelerating up
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, Math.PI / 2, 0),
                 new PRRVelocity(0, 0, 0),
                 new PRRAcceleration(1, 0, 0));
@@ -63,7 +66,7 @@ public class PRRDynamicsTest {
     void test3() {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // bent at the wrist, motionless
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, 0, Math.PI / 2),
                 new PRRVelocity(0, 0, 0),
                 new PRRAcceleration(0, 0, 0));
@@ -80,7 +83,7 @@ public class PRRDynamicsTest {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // bent at the wrist, same as above, but moving at the shoulder,
         // this shows centrifugal force on arm and hand.
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, 0, Math.PI / 2),
                 new PRRVelocity(0, 1, 0),
                 new PRRAcceleration(0, 0, 0));
@@ -97,7 +100,7 @@ public class PRRDynamicsTest {
         PRRDynamics d = new PRRDynamics(1, 1, 1, 1, 0.5, 0.5, 1, 1);
         // bent at the wrist, same as above, but accel at the shoulder,
         // no motion.  not sure this is right.
-        PRRTorque t = d.torque(
+        PRREffort t = d.effort(
                 new PRRConfig(0, 0, Math.PI / 2),
                 new PRRVelocity(0, 0, 0),
                 new PRRAcceleration(0, 1, 0));

@@ -8,7 +8,6 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
@@ -26,6 +25,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MusicTone;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.units.measure.Angle;
@@ -37,7 +37,8 @@ import edu.wpi.first.units.measure.Voltage;
 /**
  * Superclass for TalonFX motors.
  * 
- * Relies on Cache and Takt, so you must put Cache.refresh() and Takt.update() in
+ * Relies on Cache and Takt, so you must put Cache.refresh() and Takt.update()
+ * in
  * Robot.robotPeriodic().
  */
 public abstract class Talon6Motor implements BareMotor {
@@ -46,7 +47,6 @@ public abstract class Talon6Motor implements BareMotor {
 
     private final TalonFX m_motor;
     private final PhoenixConfigurator m_configurator;
-    private final SimpleDynamics m_ff;
     private final Friction m_friction;
 
     // CACHES
@@ -71,20 +71,19 @@ public abstract class Talon6Motor implements BareMotor {
     //
     private final VelocityVoltage m_velocityVoltage;
     private final DutyCycleOut m_dutyCycleOut;
+    private final VoltageOut m_voltageOut;
     private final PositionVoltage m_positionVoltage;
     private final MusicTone m_music;
 
     // LOGGERS
     private final DoubleLogger m_log_desired_duty;
+    private final DoubleLogger m_log_desired_voltage;
     /** rad */
     private final DoubleLogger m_log_desired_position;
     /** rad/s */
     private final DoubleLogger m_log_desired_speed;
-    /** rad/s^2 */
-    private final DoubleLogger m_log_desired_accel;
     private final DoubleLogger m_log_friction_FF;
     private final DoubleLogger m_log_velocity_FF;
-    private final DoubleLogger m_log_accel_FF;
     private final DoubleLogger m_totalFeedForward;
     private final DoubleLogger m_log_torque_FF;
     /** rad */
@@ -106,7 +105,6 @@ public abstract class Talon6Motor implements BareMotor {
             NeutralMode100 neutral,
             MotorPhase motorPhase,
             CurrentLimit limit,
-            SimpleDynamics ff,
             Friction friction,
             PIDConstants pid) {
         currentLog.register(this);
@@ -116,6 +114,7 @@ public abstract class Talon6Motor implements BareMotor {
         //
         m_velocityVoltage = new VelocityVoltage(0);
         m_dutyCycleOut = new DutyCycleOut(0);
+        m_voltageOut = new VoltageOut(0);
         m_positionVoltage = new PositionVoltage(0);
         m_music = new MusicTone(0);
 
@@ -125,11 +124,11 @@ public abstract class Talon6Motor implements BareMotor {
         // https://github.com/Team254/FRC-2024-Public/blob/040f653744c9b18182be5f6bc51a7e505e346e59/src/main/java/com/team254/lib/ctre/swerve/SwerveModule.java#L210
         m_velocityVoltage.UpdateFreqHz = 0;
         m_dutyCycleOut.UpdateFreqHz = 0;
+        m_voltageOut.UpdateFreqHz = 0;
         m_positionVoltage.UpdateFreqHz = 0;
 
         m_log = parent.type(this);
         m_motor = new TalonFX(canId.id);
-        m_ff = ff;
         m_friction = friction;
 
         m_configurator = new PhoenixConfigurator(
@@ -187,12 +186,11 @@ public abstract class Talon6Motor implements BareMotor {
         m_temp = Cache.ofDouble(() -> motorDeviceTemp.getValueAsDouble());
 
         m_log_desired_duty = m_log.doubleLogger(Level.DEBUG, "desired duty cycle [-1,1]");
+        m_log_desired_voltage = m_log.doubleLogger(Level.DEBUG, "desired voltage (V)");
         m_log_desired_position = m_log.doubleLogger(Level.DEBUG, "desired position (rad)");
         m_log_desired_speed = m_log.doubleLogger(Level.DEBUG, "desired speed (rad_s)");
-        m_log_desired_accel = m_log.doubleLogger(Level.TRACE, "desired accel (rad_s2)");
         m_log_friction_FF = m_log.doubleLogger(Level.TRACE, "friction feedforward (V)");
         m_log_velocity_FF = m_log.doubleLogger(Level.TRACE, "velocity feedforward (V)");
-        m_log_accel_FF = m_log.doubleLogger(Level.TRACE, "accel feedforward (V)");
         m_log_torque_FF = m_log.doubleLogger(Level.TRACE, "torque feedforward (V)");
         m_totalFeedForward = m_log.doubleLogger(Level.TRACE, "total feedforward (V)");
 
@@ -211,9 +209,14 @@ public abstract class Talon6Motor implements BareMotor {
     /** Set duty cycle immediately. */
     @Override
     public void setDutyCycle(double output) {
-        warn(() -> m_motor.setControl(m_dutyCycleOut
-                .withOutput(output)));
+        warn(() -> m_motor.setControl(m_dutyCycleOut.withOutput(output)));
         m_log_desired_duty.log(() -> output);
+    }
+
+    @Override
+    public void setVoltage(double volts) {
+        warn(() -> m_motor.setControl(m_voltageOut.withOutput(volts)));
+        m_log_desired_voltage.log(() -> volts);
     }
 
     @Override
@@ -237,14 +240,16 @@ public abstract class Talon6Motor implements BareMotor {
      * friction, velocity, acceleration, and torque feedforwards.
      * 
      * Actuates immediately.
+     * 
+     * Previously there was an accel term. Accel should be handled using
+     * Subsystem-level dynamics.
      */
     @Override
-    public void setVelocity(double motorRad_S, double motorRad_S2, double torqueNm) {
+    public void setVelocity(double motorRad_S, double torqueNm) {
         double backEMFVolts = backEMFVoltage(motorRad_S);
         double frictionFFVolts = m_friction.frictionFFVolts(motorRad_S);
-        double accelFFVolts = m_ff.accelFFVolts(motorRad_S, motorRad_S2);
         double torqueFFVolts = getTorqueFFVolts(torqueNm);
-        double FFVolts = backEMFVolts + frictionFFVolts + accelFFVolts + torqueFFVolts;
+        double FFVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
 
         // CTRE control unit is rev/s.
         warn(() -> m_motor.setControl(
@@ -254,10 +259,8 @@ public abstract class Talon6Motor implements BareMotor {
                         .withFeedForward(FFVolts)));
 
         m_log_desired_speed.log(() -> motorRad_S);
-        m_log_desired_accel.log(() -> motorRad_S2);
         m_log_friction_FF.log(() -> frictionFFVolts);
         m_log_velocity_FF.log(() -> backEMFVolts);
-        m_log_accel_FF.log(() -> accelFFVolts);
         m_log_torque_FF.log(() -> torqueFFVolts);
         m_totalFeedForward.log(() -> FFVolts);
     }
@@ -274,18 +277,19 @@ public abstract class Talon6Motor implements BareMotor {
      * Actuates immediately.
      * 
      * Motor revolutions wind up, so setting 0 rad and 2pi rad are different.
+     * 
+     * Previously there was an accel term. Accel should be handled using
+     * Subsystem-level dynamics.
      */
     @Override
     public void setUnwrappedPosition(
             double motorRad,
             double motorRad_S,
-            double motorRad_S2,
             double torqueNm) {
         double backEMFVolts = backEMFVoltage(motorRad_S);
         double frictionFFVolts = m_friction.frictionFFVolts(motorRad_S);
-        double accelFFVolts = m_ff.accelFFVolts(motorRad_S, motorRad_S2);
         double torqueFFVolts = getTorqueFFVolts(torqueNm);
-        double FFVolts = backEMFVolts + frictionFFVolts + accelFFVolts + torqueFFVolts;
+        double FFVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
 
         // CTRE control unit is rev.
         warn(() -> m_motor.setControl(
@@ -296,11 +300,9 @@ public abstract class Talon6Motor implements BareMotor {
 
         m_log_desired_position.log(() -> motorRad);
         m_log_desired_speed.log(() -> motorRad_S);
-        m_log_desired_accel.log(() -> motorRad_S2);
         m_log_friction_FF.log(() -> frictionFFVolts);
         m_log_velocity_FF.log(() -> backEMFVolts);
         m_log_torque_FF.log(() -> torqueFFVolts);
-        m_log_accel_FF.log(() -> accelFFVolts);
         m_totalFeedForward.log(() -> FFVolts);
     }
 
@@ -330,21 +332,6 @@ public abstract class Talon6Motor implements BareMotor {
     public void close() {
         m_motor.close();
     }
-
-    /**
-     * Sets integrated sensor position to zero.
-     * 
-     * Note this takes **FOREVER**, like tens of milliseconds, so you can only do it
-     * at startup.
-     * 
-     * TODO: I think this is unnecessary, so I'm commenting it out.
-     */
-    // public void resetEncoderPosition() {
-    // System.out.println("WARNING: Setting CTRE encoder position is very slow!");
-    // warn(() -> m_motor.setPosition(0, 1));
-    // m_position.reset();
-    // m_velocity.reset();
-    // }
 
     /**
      * Set integrated sensor position in radians.

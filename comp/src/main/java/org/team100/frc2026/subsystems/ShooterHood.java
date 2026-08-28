@@ -7,13 +7,13 @@ import org.team100.frc2026.robot.CurrentLimits;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
-//import org.team100.lib.motor.ctre.KrakenX44Motor;
 import org.team100.lib.motor.rev.NeoVortexCANSparkMotor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
 import org.team100.lib.profile.r1.TrapezoidProfileR1;
@@ -21,8 +21,7 @@ import org.team100.lib.reference.r1.ProfileReferenceR1;
 import org.team100.lib.reference.r1.ReferenceR1;
 import org.team100.lib.servo.AngularPositionServo;
 import org.team100.lib.servo.OutboardAngularPositionServo;
-import org.team100.lib.state.ModelR1;
-import org.team100.lib.tuning.Mutable;
+import org.team100.lib.state.StateR1;
 import org.team100.lib.util.CanId;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * Shooter hood must be at the minimum position at startup.
  */
 public class ShooterHood extends SubsystemBase {
+    private static final double TUNING_SETTING = 0;
     private static final CanId CAN_ID = new CanId(13);
     // from Yotaro 3/12/26
     private static final double GEAR_RATIO = 270;
@@ -41,7 +41,6 @@ public class ShooterHood extends SubsystemBase {
 
     private final Supplier<OptionalDouble> m_angle;
     private final AngularPositionServo m_servo;
-    private final Mutable m_tuningSetting;
 
     /**
      * @param parent log
@@ -50,23 +49,24 @@ public class ShooterHood extends SubsystemBase {
     public ShooterHood(LoggerFactory parent, TotalCurrentLog currentLog, Supplier<OptionalDouble> angle) {
         LoggerFactory log = parent.type(this);
         m_angle = angle;
-        m_tuningSetting = new Mutable(log, "for tuning", 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(log, 8, 16, 0.05);
+        // mass is zero for now because dynamics gravity direction doesn't match.
+        // TODO: make the coordinates here match.
+        RDynamics dynamics = new RDynamicsAnalytic(0.000, 0.000, 0.007, 0.001);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(8, 16, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
 
         final BareMotor motor;
         switch (Identity.instance) {
             case TEST_BOARD_B0 -> {
 
-                SimpleDynamics ff = new SimpleDynamics(log, 0.00, 0.00);
-                Friction friction = new Friction(log, 0.350, 0.350, 0.0, 0.5);
+                Friction friction = new Friction(0.350, 0.350, 0.0, 0.5);
                 // tuned 3/12/26
-                PIDConstants pid = PIDConstants.makePositionPID(log, 1.0);
+                PIDConstants pid = PIDConstants.makePositionPID(1.0);
 
                 motor = new NeoVortexCANSparkMotor(
                         log, currentLog, CAN_ID, NeutralMode100.COAST, MotorPhase.REVERSE,
-                        CurrentLimits.SHOOTER_HOOD, ff, friction, pid, 0, 0);
+                        CurrentLimits.SHOOTER_HOOD, friction, pid, 0, 0);
 
             }
             default -> {
@@ -75,7 +75,7 @@ public class ShooterHood extends SubsystemBase {
         }
 
         m_servo = OutboardAngularPositionServo.make(
-                log, motor, ref, GEAR_RATIO,
+                log, motor, dynamics, ref, GEAR_RATIO,
                 MIN_POSITION_RAD, MIN_POSITION_RAD, MAX_POSITION_RAD);
     }
 
@@ -131,8 +131,7 @@ public class ShooterHood extends SubsystemBase {
     public Command tune() {
         return startRun(
                 this::reset,
-                () -> actuateWithProfile(
-                        m_tuningSetting.getAsDouble()))
+                () -> actuateWithProfile(TUNING_SETTING))
                 .withName("Tune Hood");
     }
 
@@ -164,7 +163,7 @@ public class ShooterHood extends SubsystemBase {
         return startRun(
                 this::reset,
                 () -> {
-                    m_servo.actuateWithProfile(rad, 0);
+                    m_servo.actuateWithProfile(rad);
                 })
                 .withName("set position");
     }
@@ -177,7 +176,7 @@ public class ShooterHood extends SubsystemBase {
     }
 
     /** For testing. */
-    ModelR1 getUnwrappedGoal() {
+    StateR1 getUnwrappedGoal() {
         return m_servo.getUnwrappedGoal();
     }
 
@@ -191,13 +190,13 @@ public class ShooterHood extends SubsystemBase {
 
     /** Use a profile to set the position. */
     private void actuateWithProfile(double value) {
-        m_servo.actuateWithProfile(value, 0);
+        m_servo.actuateWithProfile(value);
     }
 
     /** Do not use a profile. */
     @SuppressWarnings("unused")
     private void actuateDirect(double value) {
-        m_servo.actuateDirect(value, 0);
+        m_servo.actuateDirect(value);
     }
 
     private void autoPositionWork() {

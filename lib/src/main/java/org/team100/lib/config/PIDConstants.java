@@ -3,9 +3,6 @@ package org.team100.lib.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.tuning.Mutable;
-
 /**
  * PID Units here use SI units:
  * 
@@ -27,17 +24,15 @@ import org.team100.lib.tuning.Mutable;
 public class PIDConstants {
     private final List<Runnable> m_listeners = new ArrayList<>();
 
-    // private final double m_positionP;
     /** volt/rad */
-    private final Mutable m_positionP;
+    private final double m_positionP;
     /** volt/rad-sec */
     private final double m_positionI;
     /** volt-sec/rad */
     private final double m_positionD;
 
-    // private final double m_velocityP;
     /** volt-sec/rad */
-    private final Mutable m_velocityP;
+    private final double m_velocityP;
     /** volt/rad */
     private final double m_velocityI;
     /** volt-sec^2/rad */
@@ -47,8 +42,13 @@ public class PIDConstants {
      * @param p Volt/rad
      */
     public static PIDConstants makePositionPID(
-            LoggerFactory log, double p) {
-        return new PIDConstants(log, p, 0, 0, 0, 0, 0);
+            double p) {
+        return new PIDConstants(p, 0, 0, 0, 0, 0);
+    }
+
+    public static PIDConstants makePositionPID(
+            double p, double i, double d) {
+        return new PIDConstants(p, i, d, 0, 0, 0);
     }
 
     /**
@@ -62,18 +62,23 @@ public class PIDConstants {
      * @param p Volt-sec/rad
      */
     public static PIDConstants makeVelocityPID(
-            LoggerFactory log, double p) {
-        return new PIDConstants(log, 0, 0, 0, p, 0, 0);
+            double p) {
+        return new PIDConstants(0, 0, 0, p, 0, 0);
+    }
+
+    public static PIDConstants makeVelocityPID(
+            double p, double i, double d) {
+        return new PIDConstants(0, 0, 0, p, i, d);
     }
 
     /** Zero is for when you're not using the motor's PID controller */
-    public static PIDConstants zero(LoggerFactory log) {
-        return new PIDConstants(log, 0, 0, 0, 0, 0, 0);
+    public static PIDConstants zero() {
+        return new PIDConstants(0, 0, 0, 0, 0, 0);
     }
 
     /** volt/rad */
     public double getPositionPV_Rad() {
-        return m_positionP.getAsDouble();
+        return m_positionP;
     }
 
     /** volt/rad-sec */
@@ -88,7 +93,7 @@ public class PIDConstants {
 
     /** volt-sec/rad */
     public double getVelocityPVS_Rad() {
-        return m_velocityP.getAsDouble();
+        return m_velocityP;
     }
 
     /** volt/rad */
@@ -107,22 +112,15 @@ public class PIDConstants {
 
     //////////////////////////////////////////////////////
 
-    public PIDConstants(LoggerFactory parent,
+    public PIDConstants(
             double positionP, double positionI, double positionD,
             double velocityP, double velocityI, double velocityD) {
-        LoggerFactory log = parent.type(this);
-        // m_positionP = positionP;
-        m_positionP = new Mutable(log, "position P", positionP, this::onChange);
+        m_positionP = positionP;
         m_positionI = positionI;
         m_positionD = positionD;
 
-        // m_velocityP = velocityP;
-        m_velocityP = new Mutable(log, "velocity P", velocityP, this::onChange);
+        m_velocityP = velocityP;
         m_velocityI = velocityI;
         m_velocityD = velocityD;
-    }
-
-    private void onChange(double ignored) {
-        m_listeners.stream().forEach(r -> r.run());
     }
 }

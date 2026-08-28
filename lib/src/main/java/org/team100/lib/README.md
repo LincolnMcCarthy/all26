@@ -6,6 +6,8 @@ If you're trying to learn about the library, you should start with the README in
 
 __Packages__
 
+* [camera](camera/README.md)
+  * Configuration for cameras used for localization and targeting.
 * [coherence](coherence/README.md)
   * A discrete clock and cache intended to manage observations (so they all represent the same instant) and anything else that depends on time (e.g. steps along a profile).
 * [commands](commands/README.md)
@@ -65,8 +67,6 @@ for finding the zero of a function.
   * A fundamental robot navigation task is to identify targets to drive to.  The `lib.targeting` package turns camera observations into field-relative targets.
 * [trajectory](trajectory/README.md)
   * A trajectory is a path based on splines, with a precalculated schedule meeting timing constraints.  Trajectories are good for paths that require curves around known obstacles.  Simple trajectories are not *that* time-consuming to create, so can be used on-the-fly in some cases.
-* [tuning](tuning/README.md)
-  * Adjust constants on the fly.
 * [util](util/README.md)
   * Small things that didn't fit anywhere else
 * [visualization](visualization/README.md)

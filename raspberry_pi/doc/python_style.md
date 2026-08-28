@@ -1,5 +1,13 @@
 # Python Style
 
+## Formatting
+
+We use the `black` formatter.  Don't try to do your own
+formatting, just use the formatter.
+
+Install the "Black Formatter" extension in vscode, which binds to __ctrl-shift-I__ on Linux, and __shift-alt-F__ on Windows.
+
+
 ## Imports
 Python offers two import styles:
 
@@ -17,15 +25,15 @@ https://google.github.io/styleguide/pyguide.html
 https://stackoverflow.com/questions/47319423/import-a-module-from-both-within-same-package-and-from-outside-the-package-in-py
 
 
-# \_\_init\_\_.py
+## \_\_init\_\_.py
 
 It seems not necessary to sprinkle \_\_init\_\_.py files in the app code, but it does seem necessary to do so in the test code, so that unittest.TestLoader, and vscode's extension, can find the tests.
 
-# Packages
+## Packages
 
 As much as possible, the sub-packages within the "app" top-level package should mirror the packages used in the RoboRIO Java code.  So, for example, the RoboRIO "Identity" concept lives in the "config" package, so it does here too.
 
-# Protocols
+## Protocols
 
 This project makes extensive use of python Protocols, which are like Java interfaces.
 

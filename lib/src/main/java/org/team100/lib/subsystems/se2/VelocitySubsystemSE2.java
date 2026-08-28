@@ -1,6 +1,6 @@
 package org.team100.lib.subsystems.se2;
 
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.state.VelocityControlSE2;
 
 /**
  * A planar subsystem controlled by velocity.
@@ -11,9 +11,13 @@ import org.team100.lib.geometry.VelocitySE2;
 public interface VelocitySubsystemSE2 extends SubsystemSE2 {
 
     /**
-     * No scaling or filtering.
+     * Velocity and acceleration in SE2.
      * 
-     * @param nextV for the next timestep.
+     * Subsystems are expected to compute the (generalized)
+     * force required to meet this setpoint, using the dynamics
+     * of the mechanism.
+     * 
+     * @param setpoint for the next timestep.
      */
-    void setVelocity(VelocitySE2 nextV);
+    void set(VelocityControlSE2 setpoint);
 }

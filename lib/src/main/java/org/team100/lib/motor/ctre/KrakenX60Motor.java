@@ -3,7 +3,6 @@ package org.team100.lib.motor.ctre;
 import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.MotorPhase;
@@ -24,10 +23,9 @@ public class KrakenX60Motor extends Talon6Motor {
             NeutralMode100 neutral,
             MotorPhase phase,
             CurrentLimit limit,
-            SimpleDynamics ff,
             Friction friction,
             PIDConstants pid) {
-        super(parent, currentLog, canId, neutral, phase, limit, ff, friction, pid);
+        super(parent, currentLog, canId, neutral, phase, limit, friction, pid);
     }
 
     @Override

@@ -1,9 +1,10 @@
 package org.team100.lib.controller.se2;
 
-import org.team100.lib.geometry.DeltaSE2;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.DeltaSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.state.ControlSE2;
+import org.team100.lib.state.VelocityControlSE2;
 
 /**
  * A controller that doesn't do anything except calculate the errors, so that
@@ -21,11 +22,11 @@ public class NullControllerSE2 extends ControllerSE2Base {
     }
 
     @Override
-    public VelocitySE2 calculate100(
+    public VelocityControlSE2 calculate100(
             DeltaSE2 positionError,
             VelocitySE2 velocityError,
             ControlSE2 nextReference) {
-        return VelocitySE2.ZERO;
+        return VelocityControlSE2.ZERO;
     }
 
 }

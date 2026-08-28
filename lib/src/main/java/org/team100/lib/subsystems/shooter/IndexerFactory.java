@@ -4,7 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
@@ -49,6 +49,7 @@ public class IndexerFactory {
     private final double gearRatio;
     private final double wheelDiaM;
     private final boolean profiled;
+    private final PDynamics m_dynamics;
 
     public IndexerFactory(
             LoggerFactory parent,
@@ -60,9 +61,8 @@ public class IndexerFactory {
             CanId canId,
             double gearRatio,
             double wheelDiaM,
-            boolean profiled
-
-    ) {
+            boolean profiled,
+            PDynamics dynamics) {
         this.log = parent.name("Indexer");
         this.channel = channel;
         this.currentLog = currentLog;
@@ -73,6 +73,7 @@ public class IndexerFactory {
         this.gearRatio = gearRatio;
         this.wheelDiaM = wheelDiaM;
         this.profiled = profiled;
+        m_dynamics = dynamics;
     }
 
     public ShooterIndexer get(IndexerType type) {
@@ -95,16 +96,15 @@ public class IndexerFactory {
             throw new IllegalArgumentException();
         if (fullDutyCycle == 0)
             throw new IllegalArgumentException();
-        SimpleDynamics ff = new SimpleDynamics(log, 0.001, 0.001);
-        Friction friction = new Friction(log, 0.02, 0.02, 0.0, 0.5);
+        Friction friction = new Friction(0.02, 0.02, 0.0, 0.5);
         // duty cycle, no feedback.
-        PIDConstants pid = PIDConstants.zero(log);
+        PIDConstants pid = PIDConstants.zero();
         // for simulation
         double maxSpeedM_S = 10;
         double freeSpeedRad_S = maxSpeedM_S * gearRatio / (0.5 * wheelDiaM);
         BareMotor motor = getMotor(
                 limit, log, currentLog, freeSpeedRad_S, canId,
-                MotorPhase.FORWARD, ff, friction, pid);
+                MotorPhase.FORWARD, friction, pid);
         return new DutyCycleIndexer(log, fullDutyCycle, motor);
     }
 
@@ -114,11 +114,11 @@ public class IndexerFactory {
         LinearMechanism mech = getPositionMech(
                 log, currentLog, limit, canId, gearRatio, wheelDiaM);
         TrapezoidProfileR1 profile = new TrapezoidProfileR1(
-                log, VELOCITY, ACCEL, 0.02);
+                VELOCITY, ACCEL, 0.02);
         ProfileReferenceR1 ref = new ProfileReferenceR1(
                 log, () -> profile, 0.02, 0.02);
         OutboardLinearPositionServo servo = new OutboardLinearPositionServo(
-                log, mech, ref, 0.02, 0.02);
+                log, mech, m_dynamics, ref, 0.02, 0.02);
         return new PositionIndexer(log, servo, profiled);
     }
 
@@ -134,7 +134,7 @@ public class IndexerFactory {
         VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
                 log, () -> profile, 1);
         OutboardLinearVelocityServo servo = new OutboardLinearVelocityServo(
-                log, mech, ref, 1);
+                log, mech, m_dynamics, ref, 1);
         return new VelocityIndexer(log, fullVelocityM_S, servo, profiled);
     }
 
@@ -145,15 +145,14 @@ public class IndexerFactory {
             CanId canId,
             double gearRatio,
             double wheelDiaM) {
-        SimpleDynamics ff = new SimpleDynamics(log, 0.001, 0.001);
-        Friction friction = new Friction(log, 0.02, 0.02, 0.00, 0.5);
-        PIDConstants pid = PIDConstants.makePositionPID(log, 0.5);
+        Friction friction = new Friction(0.02, 0.02, 0.00, 0.5);
+        PIDConstants pid = PIDConstants.makePositionPID(0.5);
         // for simulation
         double maxSpeedM_S = 10;
         double freeSpeedRad_S = maxSpeedM_S * gearRatio / (0.5 * wheelDiaM);
         BareMotor motor = getMotor(
                 limit, log, currentLog, freeSpeedRad_S, canId,
-                MotorPhase.REVERSE, ff, friction, pid);
+                MotorPhase.REVERSE, friction, pid);
         LinearMechanism mech = new LinearMechanism(
                 log, motor, motor.encoder(), gearRatio, wheelDiaM,
                 Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -167,15 +166,14 @@ public class IndexerFactory {
             CanId canId,
             double gearRatio,
             double wheelDiaM) {
-        SimpleDynamics ff = new SimpleDynamics(log, 0.001, 0.001);
-        Friction friction = new Friction(log, 0.02, 0.02, 0.0, 0.5);
-        PIDConstants pid = PIDConstants.makeVelocityPID(log, 0.005);
+        Friction friction = new Friction(0.02, 0.02, 0.0, 0.5);
+        PIDConstants pid = PIDConstants.makeVelocityPID(0.005);
         // for simulation
         double maxSpeedM_S = 10;
         double freeSpeedRad_S = maxSpeedM_S * gearRatio / (0.5 * wheelDiaM);
         BareMotor motor = getMotor(
                 limit, log, currentLog, freeSpeedRad_S, canId,
-                MotorPhase.REVERSE, ff, friction, pid);
+                MotorPhase.REVERSE, friction, pid);
         LinearMechanism mech = new LinearMechanism(
                 log, motor, motor.encoder(), gearRatio, wheelDiaM,
                 Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -192,7 +190,6 @@ public class IndexerFactory {
             double freeSpeedRad_S,
             CanId canId,
             MotorPhase phase,
-            SimpleDynamics ff,
             Friction friction,
             PIDConstants pid) {
         return switch (Identity.instance) {
@@ -200,10 +197,10 @@ public class IndexerFactory {
                 new SimulatedBareMotor(log, freeSpeedRad_S);
             case DEMO_BOT -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, ff, friction, pid, 2, 4);
+                    limit, friction, pid, 2, 4);
             default -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, ff, friction, pid, 2, 4);
+                    limit, friction, pid, 2, 4);
         };
     }
 

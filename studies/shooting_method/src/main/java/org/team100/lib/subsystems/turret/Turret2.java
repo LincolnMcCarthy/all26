@@ -5,6 +5,7 @@ import java.util.function.DoubleFunction;
 import java.util.function.Supplier;
 
 import org.team100.lib.controller.r1.PIDFeedback;
+import org.team100.lib.dynamics.r.RDynamics;
 import org.team100.lib.geometry.GlobalVelocityR2;
 import org.team100.lib.geometry.StateR2;
 import org.team100.lib.logging.Level;
@@ -104,8 +105,9 @@ public class Turret2 extends SubsystemBase {
                 log, encoder, GEAR_RATIO);
         RotaryMechanism mech = new RotaryMechanism(
                 log, motor, sensor, GEAR_RATIO, MIN_POSITION, MAX_POSITION);
+        RDynamics dyn = new RDynamics(0, 0, 0);
         AngularPositionServo pivot = new OnboardAngularPositionServo(
-                log, mech, ref, feedback);
+                log, mech, dyn, ref, feedback);
         pivot.reset();
         return pivot;
     }
@@ -120,8 +122,9 @@ public class Turret2 extends SubsystemBase {
                 log, encoder, GEAR_RATIO);
         RotaryMechanism mech = new RotaryMechanism(
                 log, motor, sensor, GEAR_RATIO, 0, Math.PI / 2);
+        RDynamics dyn = new RDynamics(0, 0, 0);
         AngularPositionServo pivot = new OnboardAngularPositionServo(
-                log, mech, ref, feedback);
+                log, mech, dyn, ref, feedback);
         pivot.reset();
         return pivot;
     }
@@ -151,8 +154,8 @@ public class Turret2 extends SubsystemBase {
         }
         Rotation2d absoluteBearing = soln.get().azimuth();
         Rotation2d relativeBearing = absoluteBearing.minus(m_state.get().rotation());
-        m_pivot.setPositionProfiled(relativeBearing.getRadians(), 0);
-        m_elevation.setPositionProfiled(soln.get().parameters().elevation(), 0);
+        m_pivot.setPositionProfiled(relativeBearing.getRadians());
+        m_elevation.setPositionProfiled(soln.get().parameters().elevation());
     }
 
     private Optional<Solution> getSolution() {

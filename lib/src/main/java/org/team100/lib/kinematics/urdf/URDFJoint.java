@@ -1,29 +1,59 @@
 package org.team100.lib.kinematics.urdf;
 
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 
+/**
+ * See https://wiki.ros.org/urdf/XML/joint
+ * 
+ * The revolute/continuous and prismatic types use a scalar parameter, so they
+ * are handled below.
+ * 
+ * Floating and planar types require a vector parameter, which the solver
+ * currently doesn't know how to do.
+ * 
+ * So if you want floating or planar, use multiple revolute/prismatic joints
+ * with zero origin.
+ * 
+ * 
+ * @param origin Joint origin in the parent link frame. Put another way, this is
+ *               the transform representing the parent link.
+ * @param axis   Axis of rotation or sliding.
+ */
 public record URDFJoint(
         String name,
         JointType type,
         Limit limit,
         URDFLink parent,
         URDFLink child,
-        Pose3d origin,
+        Transform3d origin,
         Vector<N3> axis) {
+    private static final boolean DEBUG = false;
+
+    /**
+     * @param effort
+     * @param lower
+     * @param upper
+     * @param velocity
+     */
     public record Limit(double effort, double lower, double upper, double velocity) {
     }
 
     public enum JointType {
+        /** hinge with limits */
         revolute,
+        /** hinge without limits */
         continuous,
+        /** linear sliding with limits */
         prismatic,
+        /** not moving */
         fixed,
+        /** free in all 6 dimensions */
         floating,
+        /** free in a plane perpendicular to the axis */
         planar
     }
 
@@ -41,10 +71,6 @@ public record URDFJoint(
      * the joint transform (rotation or translation).
      */
     Transform3d transform(Double q) {
-        // First, translate along the link, in the parent frame.
-        Transform3d linkTransform = new Transform3d(Pose3d.kZero, origin());
-
-        // Then, rotate or translate as appropriate.
         Transform3d jointTransform = switch (type()) {
             case revolute, continuous -> new Transform3d(0, 0, 0, new Rotation3d(axis(), q));
             case prismatic -> new Transform3d(new Translation3d(axis().times(q)), Rotation3d.kZero);
@@ -52,6 +78,14 @@ public record URDFJoint(
             default -> throw new UnsupportedOperationException();
         };
 
-        return linkTransform.plus(jointTransform);
+        if (DEBUG) {
+            System.out.printf("linkTransform %s\n",
+                    origin());
+            System.out.printf("jointTransform %s\n",
+                    jointTransform);
+        }
+        // First, translate along the link, in the parent frame.
+        // Then, rotate or translate as appropriate.
+        return origin().plus(jointTransform);
     }
 }

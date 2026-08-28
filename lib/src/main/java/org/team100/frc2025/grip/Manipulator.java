@@ -6,7 +6,6 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.BooleanLogger;
@@ -62,23 +61,20 @@ public class Manipulator extends SubsystemBase implements Music {
                         NeutralMode100.COAST,
                         MotorPhase.FORWARD,
                         new CurrentLimit(40, 40),
-                        new SimpleDynamics(leftMotorLog, 0.000, 0.000),
-                        new Friction(leftMotorLog, 0.900, 0.900, 0.0, 0.5),
-                        PIDConstants.zero(leftMotorLog));
+                        new Friction(0.900, 0.900, 0.0, 0.5),
+                        PIDConstants.zero());
                 KrakenX60Motor rightMotor = new KrakenX60Motor(
                         rightMotorLog, currentLog, new CanId(20), NeutralMode100.COAST,
                         MotorPhase.REVERSE,
                         new CurrentLimit(40, 40),
-                        new SimpleDynamics(rightMotorLog, 0.000, 0.000),
-                        new Friction(rightMotorLog, 0.900, 0.900, 0.0, 0.5),
-                        PIDConstants.zero(rightMotorLog));
+                        new Friction(0.900, 0.900, 0.0, 0.5),
+                        PIDConstants.zero());
                 KrakenX60Motor algaeMotor = new KrakenX60Motor(
                         algaeMotorLog, currentLog, new CanId(21), NeutralMode100.COAST,
                         MotorPhase.FORWARD,
                         new CurrentLimit(120, 120),
-                        new SimpleDynamics(algaeMotorLog, 0.000, 0.000),
-                        new Friction(algaeMotorLog, 0.900, 0.900, 0.0, 0.5),
-                        PIDConstants.zero(algaeMotorLog));
+                        new Friction(0.900, 0.900, 0.0, 0.5),
+                        PIDConstants.zero());
                 algaeMotor.setTorqueLimit(4);
                 m_algaeMotor = algaeMotor;
                 m_rightLaser = new LaserCan100(new CanId(17));

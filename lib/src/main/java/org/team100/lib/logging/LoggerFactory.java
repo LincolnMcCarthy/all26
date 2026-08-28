@@ -7,28 +7,29 @@ import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-import org.team100.lib.geometry.AccelerationSE2;
-import org.team100.lib.geometry.DeltaSE2;
-import org.team100.lib.geometry.GlobalVelocityR2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.dynamics.prr.PRREffort;
+import org.team100.lib.geometry.prr.PRRAcceleration;
+import org.team100.lib.geometry.prr.PRRConfig;
+import org.team100.lib.geometry.prr.PRRVelocity;
+import org.team100.lib.geometry.r2.VelocityR2;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.DeltaSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
 import org.team100.lib.localization.Blip;
 import org.team100.lib.localization.SwerveState;
 import org.team100.lib.logging.primitive.PrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Point;
 import org.team100.lib.reference.r1.SetpointsR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
-import org.team100.lib.state.ModelR1;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateR1;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.state.VelocityControlR1;
-import org.team100.lib.subsystems.prr.EAWConfig;
-import org.team100.lib.subsystems.prr.JointAccelerations;
-import org.team100.lib.subsystems.prr.JointForce;
-import org.team100.lib.subsystems.prr.JointVelocities;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePosition100;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePositions;
-import org.team100.lib.trajectory.TrajectorySE2Entry;
-import org.team100.lib.trajectory.path.PathSE2Point;
+import org.team100.lib.trajectory.se2.TrajectorySE2Entry;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.VariableR1;
 
@@ -637,28 +638,28 @@ public class LoggerFactory {
         return new VelocitySE2Logger(level, leaf);
     }
 
-    public class GlobalVelocityR2Logger {
+    public class VelocityR2Logger {
         private final Level m_level;
         private final DoubleLogger m_xLogger;
         private final DoubleLogger m_yLogger;
 
-        GlobalVelocityR2Logger(Level level, String leaf) {
+        VelocityR2Logger(Level level, String leaf) {
             m_level = level;
             m_xLogger = doubleLogger(level, join(leaf, "x m_s"));
             m_yLogger = doubleLogger(level, join(leaf, "y m_s"));
         }
 
-        public void log(Supplier<GlobalVelocityR2> vals) {
+        public void log(Supplier<VelocityR2> vals) {
             if (!allow(m_level))
                 return;
-            GlobalVelocityR2 val = vals.get();
+            VelocityR2 val = vals.get();
             m_xLogger.log(val::x);
             m_yLogger.log(val::y);
         }
     }
 
-    public GlobalVelocityR2Logger globalVelocityR2Logger(Level level, String leaf) {
-        return new GlobalVelocityR2Logger(level, leaf);
+    public VelocityR2Logger VelocityR2Logger(Level level, String leaf) {
+        return new VelocityR2Logger(level, leaf);
     }
 
     public class AccelerationSE2Logger {
@@ -688,21 +689,21 @@ public class LoggerFactory {
         return new AccelerationSE2Logger(level, leaf);
     }
 
-    public class ModelR1Logger {
+    public class StateR1Logger {
         private final Level m_level;
         private final DoubleLogger m_xLogger;
         private final DoubleLogger m_vLogger;
 
-        ModelR1Logger(Level level, String leaf) {
+        StateR1Logger(Level level, String leaf) {
             m_level = level;
             m_xLogger = doubleLogger(level, join(leaf, "x"));
             m_vLogger = doubleLogger(level, join(leaf, "v"));
         }
 
-        public void log(Supplier<ModelR1> vals) {
+        public void log(Supplier<StateR1> vals) {
             if (!allow(m_level))
                 return;
-            ModelR1 val = vals.get();
+            StateR1 val = vals.get();
             m_xLogger.log(() -> val.x());
             m_vLogger.log(val::v);
         }
@@ -814,35 +815,62 @@ public class LoggerFactory {
         return new ControlSE2Logger(level, leaf);
     }
 
-    public ModelR1Logger ModelR1Logger(Level level, String leaf) {
-        return new ModelR1Logger(level, leaf);
-    }
-
-    public class ModelSE2Logger {
+    public class VelocityControlSE2Logger {
         private final Level m_level;
-        private final ModelR1Logger m_xLogger;
-        private final ModelR1Logger m_yLogger;
-        private final ModelR1Logger m_thetaLogger;
+        private final VelocityControlR1Logger m_xLogger;
+        private final VelocityControlR1Logger m_yLogger;
+        private final VelocityControlR1Logger m_thetaLogger;
 
-        ModelSE2Logger(Level level, String leaf) {
+        VelocityControlSE2Logger(Level level, String leaf) {
             m_level = level;
-            m_xLogger = ModelR1Logger(level, join(leaf, "x"));
-            m_yLogger = ModelR1Logger(level, join(leaf, "y"));
-            m_thetaLogger = ModelR1Logger(level, join(leaf, "theta"));
+            m_xLogger = VelocityControlR1Logger(level, join(leaf, "x"));
+            m_yLogger = VelocityControlR1Logger(level, join(leaf, "y"));
+            m_thetaLogger = VelocityControlR1Logger(level, join(leaf, "theta"));
         }
 
-        public void log(Supplier<ModelSE2> vals) {
+        public void log(Supplier<VelocityControlSE2> vals) {
             if (!allow(m_level))
                 return;
-            ModelSE2 val = vals.get();
+            VelocityControlSE2 val = vals.get();
             m_xLogger.log(val::x);
             m_yLogger.log(val::y);
             m_thetaLogger.log(val::theta);
         }
     }
 
-    public ModelSE2Logger modelSE2Logger(Level level, String leaf) {
-        return new ModelSE2Logger(level, leaf);
+    public VelocityControlSE2Logger velocityControlSE2Logger(Level level, String leaf) {
+        return new VelocityControlSE2Logger(level, leaf);
+    }
+
+    public StateR1Logger StateR1Logger(Level level, String leaf) {
+        return new StateR1Logger(level, leaf);
+    }
+
+    public class StateSE2Logger {
+        private final Level m_level;
+        private final StateR1Logger m_xLogger;
+        private final StateR1Logger m_yLogger;
+        private final StateR1Logger m_thetaLogger;
+
+        StateSE2Logger(Level level, String leaf) {
+            m_level = level;
+            m_xLogger = StateR1Logger(level, join(leaf, "x"));
+            m_yLogger = StateR1Logger(level, join(leaf, "y"));
+            m_thetaLogger = StateR1Logger(level, join(leaf, "theta"));
+        }
+
+        public void log(Supplier<StateSE2> vals) {
+            if (!allow(m_level))
+                return;
+            StateSE2 val = vals.get();
+            m_xLogger.log(val::x);
+            m_yLogger.log(val::y);
+            m_thetaLogger.log(val::theta);
+        }
+    }
+
+    public StateSE2Logger StateSE2Logger(Level level, String leaf) {
+        return new StateSE2Logger(level, leaf);
     }
 
     public class SwerveModulePosition100Logger {
@@ -969,13 +997,13 @@ public class LoggerFactory {
             m_wrist = doubleLogger(level, join(leaf, "wrist"));
         }
 
-        public void log(Supplier<EAWConfig> vals) {
+        public void log(Supplier<PRRConfig> vals) {
             if (!allow(m_level))
                 return;
-            EAWConfig val = vals.get();
-            m_elevator.log(val::shoulderHeight);
-            m_shoulder.log(val::shoulderAngle);
-            m_wrist.log(val::wristAngle);
+            PRRConfig val = vals.get();
+            m_elevator.log(val::q1);
+            m_shoulder.log(val::q2);
+            m_wrist.log(val::q3);
         }
     }
 
@@ -983,85 +1011,85 @@ public class LoggerFactory {
         return new ConfigLogger(level, leaf);
     }
 
-    public class JointVelocitiesLogger {
+    public class PRRVelocityLogger {
         private final Level m_level;
         private final DoubleLogger m_elevator;
         private final DoubleLogger m_shoulder;
         private final DoubleLogger m_wrist;
 
-        JointVelocitiesLogger(Level level, String leaf) {
+        PRRVelocityLogger(Level level, String leaf) {
             m_level = level;
             m_elevator = doubleLogger(level, join(leaf, "elevator"));
             m_shoulder = doubleLogger(level, join(leaf, "shoulder"));
             m_wrist = doubleLogger(level, join(leaf, "wrist"));
         }
 
-        public void log(Supplier<JointVelocities> vals) {
+        public void log(Supplier<PRRVelocity> vals) {
             if (!allow(m_level))
                 return;
-            JointVelocities val = vals.get();
-            m_elevator.log(val::elevator);
-            m_shoulder.log(val::shoulder);
-            m_wrist.log(val::wrist);
+            PRRVelocity val = vals.get();
+            m_elevator.log(val::q1dot);
+            m_shoulder.log(val::q2dot);
+            m_wrist.log(val::q3dot);
         }
     }
 
-    public JointVelocitiesLogger logJointVelocities(Level level, String leaf) {
-        return new JointVelocitiesLogger(level, leaf);
+    public PRRVelocityLogger logPRRVelocity(Level level, String leaf) {
+        return new PRRVelocityLogger(level, leaf);
     }
 
-    public class JointAccelerationsLogger {
+    public class PRRAccelerationLogger {
         private final Level m_level;
         private final DoubleLogger m_elevator;
         private final DoubleLogger m_shoulder;
         private final DoubleLogger m_wrist;
 
-        JointAccelerationsLogger(Level level, String leaf) {
+        PRRAccelerationLogger(Level level, String leaf) {
             m_level = level;
             m_elevator = doubleLogger(level, join(leaf, "elevator"));
             m_shoulder = doubleLogger(level, join(leaf, "shoulder"));
             m_wrist = doubleLogger(level, join(leaf, "wrist"));
         }
 
-        public void log(Supplier<JointAccelerations> vals) {
+        public void log(Supplier<PRRAcceleration> vals) {
             if (!allow(m_level))
                 return;
-            JointAccelerations val = vals.get();
-            m_elevator.log(val::elevator);
-            m_shoulder.log(val::shoulder);
-            m_wrist.log(val::wrist);
+            PRRAcceleration val = vals.get();
+            m_elevator.log(val::q1ddot);
+            m_shoulder.log(val::q2ddot);
+            m_wrist.log(val::q3ddot);
         }
     }
 
-    public JointAccelerationsLogger logJointAccelerations(Level level, String leaf) {
-        return new JointAccelerationsLogger(level, leaf);
+    public PRRAccelerationLogger logPRRAcceleration(Level level, String leaf) {
+        return new PRRAccelerationLogger(level, leaf);
     }
 
-    public class JointForceLogger {
+    public class PRREffortLogger {
         private final Level m_level;
         private final DoubleLogger m_elevator;
         private final DoubleLogger m_shoulder;
         private final DoubleLogger m_wrist;
 
-        JointForceLogger(Level level, String leaf) {
+        PRREffortLogger(Level level, String leaf) {
             m_level = level;
             m_elevator = doubleLogger(level, join(leaf, "elevator"));
             m_shoulder = doubleLogger(level, join(leaf, "shoulder"));
             m_wrist = doubleLogger(level, join(leaf, "wrist"));
         }
 
-        public void log(Supplier<JointForce> vals) {
+        public void log(Supplier<PRREffort> vals) {
             if (!allow(m_level))
                 return;
-            JointForce val = vals.get();
-            m_elevator.log(val::elevator);
-            m_shoulder.log(val::shoulder);
-            m_wrist.log(val::wrist);
+            PRREffort val = vals.get();
+            m_elevator.log(val::f1);
+            m_shoulder.log(val::t2);
+            m_wrist.log(val::t3);
         }
     }
 
-    public JointForceLogger logJointForce(Level level, String leaf) {
-        return new JointForceLogger(level, leaf);
+    public PRREffortLogger logPRREffort(Level level, String leaf) {
+        return new PRREffortLogger(level, leaf);
     }
 
     public class VariableR1Logger {
@@ -1116,7 +1144,7 @@ public class LoggerFactory {
 
     public class SwerveStateLogger {
         private final Level m_level;
-        private final ModelSE2Logger m_model;
+        private final StateSE2Logger m_model;
         private final IsotropicNoiseSE2Logger m_noise;
         private final SwerveModulePositionsLogger m_positions;
         private final Rotation2dLogger m_gyroYaw;
@@ -1124,7 +1152,7 @@ public class LoggerFactory {
 
         SwerveStateLogger(Level level, String leaf) {
             m_level = level;
-            m_model = modelSE2Logger(level, join(leaf, "model"));
+            m_model = StateSE2Logger(level, join(leaf, "model"));
             m_noise = isotropicNoiseSE2Logger(level, join(leaf, "noise"));
             m_positions = swerveModulePositionsLogger(level, join(leaf, "positions"));
             m_gyroYaw = rotation2dLogger(level, join(leaf, "gyro yaw (rad)"));

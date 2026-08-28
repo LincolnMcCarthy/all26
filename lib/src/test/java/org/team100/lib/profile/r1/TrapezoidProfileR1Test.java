@@ -8,11 +8,8 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.coherence.Takt;
-import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.logging.TestLoggerFactory;
-import org.team100.lib.logging.primitive.TestPrimitiveLogger;
 import org.team100.lib.state.ControlR1;
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 import org.team100.lib.testing.Timeless;
 
 /**
@@ -23,7 +20,6 @@ class TrapezoidProfileR1Test implements Timeless {
     private static final boolean DEBUG = false;
     private static final double TEN_MS = 0.01;
     private static final double DELTA = 0.001;
-    private final LoggerFactory logger = new TestLoggerFactory(new TestPrimitiveLogger());
 
     private void dump(double tt, ControlR1 sample) {
         if (DEBUG)
@@ -55,9 +51,9 @@ class TrapezoidProfileR1Test implements Timeless {
     void testSolve() {
         double maxVel = 2;
         double maxAccel = 10;
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, maxVel, maxAccel, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(maxVel, maxAccel, 0.01);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(3, 0);
+        final StateR1 end = new StateR1(3, 0);
         final double ETA_TOLERANCE = 0.02;
         double s = profile.solve(0.1, sample, end, 2.0, ETA_TOLERANCE);
         assertEquals(0.4375, s, DELTA);
@@ -69,9 +65,9 @@ class TrapezoidProfileR1Test implements Timeless {
     void testSolvePerformance() {
         double maxVel = 2;
         double maxAccel = 10;
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, maxVel, maxAccel, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(maxVel, maxAccel, 0.01);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(3, 0);
+        final StateR1 end = new StateR1(3, 0);
         final double ETA_TOLERANCE = 0.02;
 
         int N = 10000;
@@ -94,9 +90,9 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testSample() {
         // see Spline1dTest.testSample()
-        final ProfileR1 p = new TrapezoidProfileR1(logger, 2, 6, 0.01);
+        final ProfileR1 p = new TrapezoidProfileR1(2, 6, 0.01);
         ControlR1 setpoint = new ControlR1(0, 0);
-        final ModelR1 goal = new ModelR1(1, 0);
+        final StateR1 goal = new StateR1(1, 0);
         for (double t = 0; t < 1; t += 0.01) {
             setpoint = p.calculate(0.01, setpoint, goal);
             if (DEBUG) {
@@ -113,9 +109,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** I think we're writing followers incorrectly, here's how to do it. */
     @Test
     void discreteTime1() {
-        final ProfileR1 profile = new TrapezoidProfileR1(logger, 2, 1, 0.01);
-        final ModelR1 initial = new ModelR1(0, 0);
-        final ModelR1 goal = new ModelR1(1, 0);
+        final ProfileR1 profile = new TrapezoidProfileR1(2, 1, 0.01);
+        final StateR1 initial = new StateR1(0, 0);
+        final StateR1 goal = new StateR1(1, 0);
         final double k1 = 5.0;
         final double k2 = 1.0;
 
@@ -126,7 +122,7 @@ class TrapezoidProfileR1Test implements Timeless {
         double feedback = 0;
         ControlR1 setpointControl = new ControlR1();
 
-        ModelR1 setpointModel = initial;
+        StateR1 setpointModel = initial;
         if (DEBUG)
             System.out.printf(" t,      x,      v,      a,      y,      ydot,  fb,   eta\n");
 
@@ -175,11 +171,11 @@ class TrapezoidProfileR1Test implements Timeless {
     /** What if the entry velocity is above the cruise velocity? */
     @Test
     void testTooHighEntryVelocity() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(1, 1, 0.01);
         // initial state velocity is higher than profile cruise
         ControlR1 initial = new ControlR1(0, 2);
         // goal is achievable with constant max decel
-        ModelR1 goal = new ModelR1(2, 0);
+        StateR1 goal = new StateR1(2, 0);
         ControlR1 r = p.calculate(0.02, initial, goal);
         double eta = p.simulateForETA(0.2, initial, goal);
         assertEquals(2, eta, DELTA);
@@ -201,11 +197,11 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testTooHighEntryVelocityInReverse() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(1, 1, 0.01);
         // initial state velocity is higher than profile cruise
         ControlR1 initial = new ControlR1(0, -2);
         // goal is achievable with constant max decel
-        ModelR1 goal = new ModelR1(-2, 0);
+        StateR1 goal = new StateR1(-2, 0);
         ControlR1 r = p.calculate(0.02, initial, goal);
         double eta = p.simulateForETA(0.2, initial, goal);
         assertEquals(2, eta, DELTA);
@@ -227,11 +223,11 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testTooHighEntryVelocityCruising() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(1, 1, 0.01);
         // initial state velocity is higher than profile cruise
         ControlR1 initial = new ControlR1(0, 2);
         // goal is achievable with max decel 1s, cruise 1s, max decel 1s
-        ModelR1 goal = new ModelR1(3, 0);
+        StateR1 goal = new StateR1(3, 0);
         ControlR1 r = p.calculate(0.02, initial, goal);
         double eta = p.simulateForETA(0.2, initial, goal);
         // approximate
@@ -260,9 +256,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** If you're at the goal, the ETA is zero. */
     @Test
     void testETAAtGoal() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(0, 0); // same
+        StateR1 goal = new StateR1(0, 0); // same
         ControlR1 r = p2.calculate(0.02, initial, goal);
         // the next state is just the goal
         assertEquals(0, r.x(), DELTA);
@@ -274,9 +270,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Simple rest-to-rest case */
     @Test
     void testETARestToRest() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
+        StateR1 goal = new StateR1(1, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         double eta = p2.simulateForETA(0.2, initial, goal);
         assertEquals(0.0002, s.x(), DELTA);
@@ -295,8 +291,8 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testETASolve() {
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        StateR1 goal = new StateR1(1, 0);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(1, 1, 0.01);
         // this this is the default eta above, so s = 1.0.
         double s = p.solve(0.1, initial, goal, 2, DELTA);
         assertEquals(1.0, s, DELTA);
@@ -327,9 +323,9 @@ class TrapezoidProfileR1Test implements Timeless {
         // high max accel
         double maxA = 10;
         double tol = 0.01;
-        TrapezoidProfileR1 px = new TrapezoidProfileR1(logger, maxV, maxA, tol);
+        TrapezoidProfileR1 px = new TrapezoidProfileR1(maxV, maxA, tol);
         ControlR1 initial = new ControlR1(2.2, -4.5);
-        ModelR1 goal = new ModelR1(0, 0);
+        StateR1 goal = new StateR1(0, 0);
         double eta = px.simulateForETA(0.2, initial, goal);
         // the simulator times out at 10 sec
         assertTrue(Double.isInfinite(eta));
@@ -362,10 +358,10 @@ class TrapezoidProfileR1Test implements Timeless {
         // high max accel
         double maxA = 10;
         double tol = 0.01;
-        TrapezoidProfileR1 px = new TrapezoidProfileR1(logger, maxV, maxA, tol);
+        TrapezoidProfileR1 px = new TrapezoidProfileR1(maxV, maxA, tol);
         // heading away from the goal, this is a very slow u-turn
         ControlR1 initial = new ControlR1(5.0, 4.6);
-        ModelR1 goal = new ModelR1(0, 0);
+        StateR1 goal = new StateR1(0, 0);
         double eta = px.simulateForETA(0.2, initial, goal);
         assertTrue(Double.isInfinite(eta));
 
@@ -378,8 +374,8 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testETASolveStationary() {
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(0, 0);
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        StateR1 goal = new StateR1(0, 0);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(1, 1, 0.01);
         // this this is the default eta above, so s = 1.0.
         double s = p.solve(0.1, initial, goal, 2, DELTA);
         assertEquals(1.0, s, DELTA);
@@ -388,9 +384,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** ETA is not a trivial function of V and A */
     @Test
     void testETARestToRestScaled1() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 0.5, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(0.5, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
+        StateR1 goal = new StateR1(1, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         assertEquals(0.0, s.x(), DELTA);
         assertEquals(0.02, s.v(), DELTA);
@@ -403,9 +399,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** ETA is not a trivial function of V and A */
     @Test
     void testETARestToRestScaled2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 0.5, 0.5, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(0.5, 0.5, 0.01);
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
+        StateR1 goal = new StateR1(1, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         assertEquals(0.0, s.x(), DELTA);
         assertEquals(0.01, s.v(), DELTA);
@@ -418,9 +414,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** ETA is not a trivial function of V and A */
     @Test
     void testETARestToRestScaled3() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 0.25, 0.25, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(0.25, 0.25, 0.01);
         ControlR1 initial = new ControlR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
+        StateR1 goal = new StateR1(1, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         assertEquals(0.0, s.x(), DELTA);
         assertEquals(0.005, s.v(), DELTA);
@@ -433,9 +429,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Initially at max V, cruise and then slow to a stop */
     @Test
     void testETACruise() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 1); // cruising at maxV
-        ModelR1 goal = new ModelR1(1, 0); // want to go 1m, so cruise for 0.5m, 0.5s, then slow for 1s
+        StateR1 goal = new StateR1(1, 0); // want to go 1m, so cruise for 0.5m, 0.5s, then slow for 1s
         ControlR1 s = p2.calculate(0.02, initial, goal);
         // the next state should be a small step in the direction of the goal
         assertEquals(0.02, s.x(), DELTA);
@@ -452,9 +448,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Initially at max V, slow immediately */
     @Test
     void testETACruiseGMinus() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 1); // cruising at maxV
-        ModelR1 goal = new ModelR1(0.5, 0); // want to go 0.5m, so we're on G-
+        StateR1 goal = new StateR1(0.5, 0); // want to go 0.5m, so we're on G-
         ControlR1 s = p2.calculate(0.02, initial, goal);
         // still moving at roughly initial v
         assertEquals(0.02, s.x(), DELTA);
@@ -470,9 +466,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Initially at cruise, goal is the same position */
     @Test
     void testETAReverse() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, 1);
-        ModelR1 goal = new ModelR1(0, 0);
+        StateR1 goal = new StateR1(0, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         // initial velocity carries us forward
         assertEquals(0.02, s.x(), DELTA);
@@ -490,9 +486,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Same as above in the other direction */
     @Test
     void testETACruiseMinus() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, -1);
-        ModelR1 goal = new ModelR1(-1, 0);
+        StateR1 goal = new StateR1(-1, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         assertEquals(-0.02, s.x(), DELTA);
         assertEquals(-1, s.v(), DELTA);
@@ -505,9 +501,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Same as above in the other direction */
     @Test
     void testETACruiseMinusGPlus() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 1, 1, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(1, 1, 0.01);
         ControlR1 initial = new ControlR1(0, -1);
-        ModelR1 goal = new ModelR1(-0.5, 0);
+        StateR1 goal = new StateR1(-0.5, 0);
         ControlR1 s = p2.calculate(0.02, initial, goal);
         assertEquals(-0.02, s.x(), DELTA);
         assertEquals(-0.98, s.v(), DELTA);
@@ -524,9 +520,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Now we expose acceleration in the profile state, so make sure it's right. */
     @Test
     void testAccel1() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(0, 0);
-        ModelR1 goal = new ModelR1(1, 0);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(0, 0);
+        StateR1 goal = new StateR1(1, 0);
         ControlR1 s = p2.calculate(0.02, initial.control(), goal);
         // 0.5 * 2 * 0.02 * 0.02 = 0.0004
         assertEquals(0.0004, s.x(), 0.000001);
@@ -538,10 +534,10 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testAccel2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         // inverted
-        ModelR1 initial = new ModelR1(0, 0);
-        ModelR1 goal = new ModelR1(-1, 0);
+        StateR1 initial = new StateR1(0, 0);
+        StateR1 goal = new StateR1(-1, 0);
         ControlR1 s = p2.calculate(0.02, initial.control(), goal);
         // 0.5 * 2 * 0.02 * 0.02 = 0.0004
         assertEquals(-0.0004, s.x(), 0.000001);
@@ -553,10 +549,10 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testAccel3() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         // cruising
-        ModelR1 initial = new ModelR1(0, 3);
-        ModelR1 goal = new ModelR1(10, 0);
+        StateR1 initial = new StateR1(0, 3);
+        StateR1 goal = new StateR1(10, 0);
         ControlR1 s = p2.calculate(1, initial.control(), goal);
         // cruising at 3 for 1
         assertEquals(3, s.x(), 0.001);
@@ -568,20 +564,20 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testIntercepts() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger.name("one"), 5, 0.5, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(5, 0.5, 0.01);
         ControlR1 s = new ControlR1(1, 1);
         assertEquals(0, p.c_plus(s), DELTA);
         assertEquals(2, p.c_minus(s), DELTA);
 
         // more accel
-        p = new TrapezoidProfileR1(logger.name("two"), 5, 1, 0.01);
+        p = new TrapezoidProfileR1(5, 1, 0.01);
         s = new ControlR1(1, 1);
         // means less offset
         assertEquals(0.5, p.c_plus(s), DELTA);
         assertEquals(1.5, p.c_minus(s), DELTA);
 
         // negative velocity, result should be the same.
-        p = new TrapezoidProfileR1(logger.name("three"), 5, 1, 0.01);
+        p = new TrapezoidProfileR1(5, 1, 0.01);
         s = new ControlR1(1, -1);
         // means less offset
         assertEquals(0.5, p.c_plus(s), DELTA);
@@ -591,9 +587,9 @@ class TrapezoidProfileR1Test implements Timeless {
     // see studies/rrts TestRRTStar7
     @Test
     void testInterceptsFromRRT() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger.name("one"), 5, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(5, 1, 0.01);
 
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger.name("two"), 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
 
         assertEquals(0, p.c_minus(new ControlR1(0, 0)), 0.001);
         assertEquals(0, p.c_plus(new ControlR1(0, 0)), 0.001);
@@ -632,139 +628,139 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testQSwitch() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger.name("one"), 5, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(5, 1, 0.01);
 
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger.name("two"), 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
 
-        assertEquals(0.375, p2.qSwitchIplusGminus(new ControlR1(0, 0), new ModelR1(0.5, 1.0)), 0.001);
-        assertEquals(0.125, p2.qSwitchIminusGplus(new ControlR1(0, 0), new ModelR1(0.5, 1.0)), 0.001);
+        assertEquals(0.375, p2.qSwitchIplusGminus(new ControlR1(0, 0), new StateR1(0.5, 1.0)), 0.001);
+        assertEquals(0.125, p2.qSwitchIminusGplus(new ControlR1(0, 0), new StateR1(0.5, 1.0)), 0.001);
 
-        assertEquals(-0.5, p.qSwitchIplusGminus(new ControlR1(-3, 2), new ModelR1(2, 2)), 0.001);
-        assertEquals(0, p.qSwitchIplusGminus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
-        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(-1, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(-0.5, p.qSwitchIplusGminus(new ControlR1(-3, 2), new StateR1(2, 2)), 0.001);
+        assertEquals(0, p.qSwitchIplusGminus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
+        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(-1, 2), new StateR1(2, 2)), 0.001);
 
-        assertEquals(-0.5, p.qSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-3, -2)), 0.001);
-        assertEquals(0.0, p.qSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-2, -2)), 0.001);
-        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(-0.5, p.qSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-3, -2)), 0.001);
+        assertEquals(0.0, p.qSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-2, -2)), 0.001);
+        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-1, -2)), 0.001);
 
         // these are all a little different just to avoid zero as the answer
-        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(2, 2), new ModelR1(-1, 2)), 0.001);
-        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(-1, 2), new ModelR1(2, -2)), 0.001);
-        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(2, 2), new ModelR1(-1, 2)), 0.001);
-        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(-1, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(2, 2), new StateR1(-1, 2)), 0.001);
+        assertEquals(0.5, p.qSwitchIplusGminus(new ControlR1(-1, 2), new StateR1(2, -2)), 0.001);
+        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(2, 2), new StateR1(-1, 2)), 0.001);
+        assertEquals(0.5, p.qSwitchIminusGplus(new ControlR1(-1, 2), new StateR1(2, -2)), 0.001);
     }
 
     /** Verify some switching velocity cases */
     @Test
     void testQDotSwitch2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12)
-        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8)
-        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, 2), new ModelR1(1, 2)), 0.001);
+        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, 2), new StateR1(1, 2)), 0.001);
         // c(I)=-1.5, x=v^2/4, x=1.5, v=sqrt(6)
-        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, 2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, 2), new StateR1(0.5, 2)), 0.001);
         // the same point
-        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, 2), new ModelR1(0, 2)), 0.001);
+        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, 2), new StateR1(0, 2)), 0.001);
         // I+G- is negative-time here.
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, 2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, 2), new StateR1(-0.5, 2)), 0.001);
         // I+G- is negative-time here.
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, 2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, 2), new StateR1(-1, 2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
         // I-G+ is negative-time here
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, 2), new ModelR1(1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, 2), new StateR1(1, 2)), 0.001);
         // I-G+ is negative-time here
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new StateR1(0.5, 2)), 0.001);
         // the same point
-        assertEquals(2.0, p2.qDotSwitchIminusGplus(new ControlR1(0, 2), new ModelR1(0, 2)), 0.001);
+        assertEquals(2.0, p2.qDotSwitchIminusGplus(new ControlR1(0, 2), new StateR1(0, 2)), 0.001);
         // c(I)=-1.5, x=v^2/4, x=1.5, v=sqrt(6), negative arm
-        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, 2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, 2), new StateR1(-0.5, 2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8), negative arm
-        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, 2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, 2), new StateR1(-1, 2)), 0.001);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12) but the negative arm
-        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
 
     }
 
     @Test
     void testQDotSwitch2a() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12)
-        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8)
-        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, 2), new ModelR1(1, -2)), 0.001);
-        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, 2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, 2), new StateR1(1, -2)), 0.001);
+        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, 2), new StateR1(0.5, -2)), 0.001);
         // the path switches immediately
-        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, 2), new ModelR1(0, -2)), 0.001);
+        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, 2), new StateR1(0, -2)), 0.001);
         // only the negative-time solution exists
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, 2), new ModelR1(-0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, 2), new StateR1(-0.5, -2)), 0.001);
         // only the negative-time solution exists
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, 2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, 2), new StateR1(-1, -2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, 2), new ModelR1(-2, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, 2), new StateR1(-2, -2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
         // traverses G+ backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, 2), new ModelR1(1, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, 2), new StateR1(1, -2)), 0.001);
         // traverses G+ backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new StateR1(0.5, -2)), 0.001);
         // switching at the goal
-        assertEquals(-2.000, p2.qDotSwitchIminusGplus(new ControlR1(0, 2), new ModelR1(0, -2)), 0.001);
+        assertEquals(-2.000, p2.qDotSwitchIminusGplus(new ControlR1(0, 2), new StateR1(0, -2)), 0.001);
         // c(I)=-1.5, x=v^2/4, x=1.5, v=sqrt(6), negative arm
-        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, 2), new ModelR1(-0.5, -2)), 0.001);
+        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, 2), new StateR1(-0.5, -2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8), negative arm
-        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, 2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, 2), new StateR1(-1, -2)), 0.001);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12) but the negative arm
-        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, 2), new ModelR1(-2, -2)), 0.001);
+        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, 2), new StateR1(-2, -2)), 0.001);
 
     }
 
     @Test
     void testQDotSwitch2b() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12)
-        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, -2), new ModelR1(2, 2)), 0.001);
+        assertEquals(3.464, p2.qDotSwitchIplusGminus(new ControlR1(-2, -2), new StateR1(2, 2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8)
-        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, -2), new ModelR1(1, 2)), 0.001);
+        assertEquals(2.828, p2.qDotSwitchIplusGminus(new ControlR1(-1, -2), new StateR1(1, 2)), 0.001);
         // c(I)=-1.5, x=v^2/4, x=1.5, v=sqrt(6)
-        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, -2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(2.449, p2.qDotSwitchIplusGminus(new ControlR1(-0.5, -2), new StateR1(0.5, 2)), 0.001);
         // switches at G
-        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, -2), new ModelR1(0, 2)), 0.001);
+        assertEquals(2.000, p2.qDotSwitchIplusGminus(new ControlR1(0, -2), new StateR1(0, 2)), 0.001);
         // traverses G- backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, -2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(0.5, -2), new StateR1(-0.5, 2)), 0.001);
         // traverses G- backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, -2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(1, -2), new StateR1(-1, 2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, -2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIplusGminus(new ControlR1(2, -2), new StateR1(-2, 2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, -2), new ModelR1(2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-2, -2), new StateR1(2, 2)), 0.001);
         // traverses I- backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, -2), new ModelR1(1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-1, -2), new StateR1(1, 2)), 0.001);
         // traverses I- backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, -2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, -2), new StateR1(0.5, -2)), 0.001);
         // switches at I
-        assertEquals(-2.000, p2.qDotSwitchIminusGplus(new ControlR1(0, -2), new ModelR1(0, 2)), 0.001);
+        assertEquals(-2.000, p2.qDotSwitchIminusGplus(new ControlR1(0, -2), new StateR1(0, 2)), 0.001);
         // c(I)=-1.5, x=v^2/4, x=1.5, v=sqrt(6), negative arm
-        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, -2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(-2.449, p2.qDotSwitchIminusGplus(new ControlR1(0.5, -2), new StateR1(-0.5, 2)), 0.001);
         // c(I)=-2, x=v^2/4, x=2, v=sqrt(8), negative arm
-        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, -2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(-2.828, p2.qDotSwitchIminusGplus(new ControlR1(1, -2), new StateR1(-1, 2)), 0.001);
         // good path, c(I)=-3, x=v^2/4, x=3, v=sqrt(12) but the negative arm
-        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(-3.464, p2.qDotSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-2, 2)), 0.001);
     }
 
     @Test
     void testOneLongT() {
         // if we supply a very long dt, we should end up at the goal
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(0, 0);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(0, 0);
         // goal is far, requires (brief) cruising
-        ModelR1 goal = new ModelR1(5, 0);
+        StateR1 goal = new StateR1(5, 0);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.00001);
@@ -774,10 +770,10 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testOneLongTReverse() {
         // if we supply a very long dt, we should end up at the goal
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(0, 0);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(0, 0);
         // goal is far, requires (brief) cruising
-        ModelR1 goal = new ModelR1(-5, 0);
+        StateR1 goal = new StateR1(-5, 0);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.00001);
@@ -787,12 +783,12 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testManyLongT() {
         // if we supply a very long dt, we should end up at the goal
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         Random random = new Random();
         for (int i = 0; i < 10000; ++i) {
             // random states in the square between (-2,-2) and (2,2)
-            ModelR1 initial = new ModelR1(4.0 * random.nextDouble() - 2.0, 4.0 * random.nextDouble() - 2.0);
-            ModelR1 goal = new ModelR1(4.0 * random.nextDouble() - 2.0, 4.0 * random.nextDouble() - 2.0);
+            StateR1 initial = new StateR1(4.0 * random.nextDouble() - 2.0, 4.0 * random.nextDouble() - 2.0);
+            StateR1 goal = new StateR1(4.0 * random.nextDouble() - 2.0, 4.0 * random.nextDouble() - 2.0);
             ControlR1 s = p2.calculate(10, initial.control(), goal);
             // it always gets exactly to the goal
             assertEquals(goal.x(), s.x(), 0.00001);
@@ -802,9 +798,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void reciprocal() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(-1, 1);
-        ModelR1 goal = new ModelR1(-1, -1);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(-1, 1);
+        StateR1 goal = new StateR1(-1, -1);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         assertEquals(goal.x(), s.x(), 0.000001);
         assertEquals(goal.v(), s.v(), 0.000001);
@@ -812,11 +808,11 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void endEarly() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         // in this case, t1 for I+G- is 0, and i think I-G+ is doing the wrong thing.
         // the delta v is 1, accel is 2, so this is a 0.5s solution.
         ControlR1 initial = new ControlR1(-1, 2);
-        ModelR1 goal = new ModelR1(-0.25, 1);
+        StateR1 goal = new StateR1(-0.25, 1);
 
         // in this case the I-G+ path switching point is the reciprocal, which isn't
         // what we want,
@@ -841,10 +837,10 @@ class TrapezoidProfileR1Test implements Timeless {
     // like above but with reciprocal starting point
     @Test
     void endEarly2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
 
         ControlR1 initial = new ControlR1(-1, -2);
-        ModelR1 goal = new ModelR1(-0.25, 1);
+        StateR1 goal = new StateR1(-0.25, 1);
 
         double qdot = p2.qDotSwitchIminusGplus(initial, goal);
         assertEquals(Double.NaN, qdot, 0.001);
@@ -865,9 +861,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void anotherCase() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         ControlR1 initial = new ControlR1(1.127310, -0.624930);
-        ModelR1 goal = new ModelR1(1.937043, 0.502350);
+        StateR1 goal = new StateR1(1.937043, 0.502350);
         ControlR1 s = p2.calculate(10, initial, goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.000001);
@@ -876,9 +872,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void yetAnother() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         ControlR1 initial = new ControlR1(-1.178601, -1.534504);
-        ModelR1 goal = new ModelR1(-0.848954, -1.916583);
+        StateR1 goal = new StateR1(-0.848954, -1.916583);
         ControlR1 s = p2.calculate(10, initial, goal);
         assertEquals(goal.x(), s.x(), 0.000001);
         assertEquals(goal.v(), s.v(), 0.000001);
@@ -887,9 +883,9 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void someTcase() {
         // this is an I-G+ path
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(1.655231, 1.967906);
-        ModelR1 goal = new ModelR1(0.080954, -1.693829);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(1.655231, 1.967906);
+        StateR1 goal = new StateR1(0.080954, -1.693829);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.000001);
@@ -898,10 +894,10 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void someTcase2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
 
         ControlR1 initial = new ControlR1(1.747608, -0.147275);
-        ModelR1 goal = new ModelR1(1.775148, 0.497717);
+        StateR1 goal = new StateR1(1.775148, 0.497717);
 
         double cplus = p2.c_plus(initial);
         assertEquals(1.742, cplus, 0.001);
@@ -939,9 +935,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void someTcase3() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(0.985792, 1.340926);
-        ModelR1 goal = new ModelR1(-0.350934, -1.949649);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(0.985792, 1.340926);
+        StateR1 goal = new StateR1(-0.350934, -1.949649);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.000001);
@@ -950,9 +946,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void someTcase4() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(0, 1);
-        ModelR1 goal = new ModelR1(0, -1);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(0, 1);
+        StateR1 goal = new StateR1(0, -1);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.000001);
@@ -961,9 +957,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void someTcase2a() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
-        ModelR1 initial = new ModelR1(1.747608, -0.147275);
-        ModelR1 goal = new ModelR1(1.775148, 0.497717);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
+        StateR1 initial = new StateR1(1.747608, -0.147275);
+        StateR1 goal = new StateR1(1.775148, 0.497717);
         ControlR1 s = p2.calculate(10, initial.control(), goal);
         // it always gets exactly to the goal
         assertEquals(goal.x(), s.x(), 0.000001);
@@ -974,28 +970,28 @@ class TrapezoidProfileR1Test implements Timeless {
     @Test
     void testVT() {
         // lower max V than the other cases here
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         // initial is (-2,2), vmax is 3, u is 2, so time to limit is 0.5.
         // at 0.5, v=2+2*0.5=3. x=-2+2*0.5+0.5*2*(0.5)^2 = -2+1+0.25=-0.75
         // so this is right at the limit, we should just proceed.
-        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.75, 3.00), new ModelR1(2, 2));
+        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.75, 3.00), new StateR1(2, 2));
         // at vmax for 0.02, -0.75+3*0.02 = exactly -0.69, no t^2 term
         assertEquals(-0.6900, s.x(), 0.0001);
         // should continue at vmax, not go faster
         assertEquals(3.00, s.v(), 0.001);
 
         // same thing, inverted
-        s = p2.calculate(0.02, new ControlR1(0.75, -3.00), new ModelR1(-2, -2));
+        s = p2.calculate(0.02, new ControlR1(0.75, -3.00), new StateR1(-2, -2));
         assertEquals(0.6900, s.x(), 0.0001);
         assertEquals(-3.00, s.v(), 0.001);
     }
 
     @Test
     void testVT2() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
 
         // if we're *near* the limit then there should be two segments.
-        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.78, 2.98), new ModelR1(2, 2));
+        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.78, 2.98), new StateR1(2, 2));
         // follow the profile for about 0.01, then the limit for another 0.01
         // at vmax for 0.02, -0.75+3*0.02 = exactly -0.69, no t^2 term
         assertEquals(-0.7200, s.x(), 0.0001);
@@ -1003,34 +999,34 @@ class TrapezoidProfileR1Test implements Timeless {
         assertEquals(3.00, s.v(), 0.001);
 
         // same, inverted.
-        s = p2.calculate(0.02, new ControlR1(0.78, -2.98), new ModelR1(-2, -2));
+        s = p2.calculate(0.02, new ControlR1(0.78, -2.98), new StateR1(-2, -2));
         assertEquals(0.7200, s.x(), 0.0001);
         assertEquals(-3.00, s.v(), 0.001);
     }
 
     @Test
     void testVT3() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
 
         // if we're at the limit but right at the end, we should join G-.
-        ControlR1 s = p2.calculate(0.02, new ControlR1(0.75, 3.00), new ModelR1(2, 2));
+        ControlR1 s = p2.calculate(0.02, new ControlR1(0.75, 3.00), new StateR1(2, 2));
         // dx = 0.06 - 0.0004
         assertEquals(0.8096, s.x(), 0.0001);
         // dv = 0.04
         assertEquals(2.96, s.v(), 0.001);
 
         // same, inverted
-        s = p2.calculate(0.02, new ControlR1(-0.75, -3.00), new ModelR1(-2, -2));
+        s = p2.calculate(0.02, new ControlR1(-0.75, -3.00), new StateR1(-2, -2));
         assertEquals(-0.8096, s.x(), 0.0001);
         assertEquals(-2.96, s.v(), 0.001);
     }
 
     @Test
     void testVT4() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 3, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(3, 2, 0.01);
         // if we're *near* the end, there should be two segments.
         // 0.75-0.01*3
-        ControlR1 s = p2.calculate(0.02, new ControlR1(0.72, 3.00), new ModelR1(2, 2));
+        ControlR1 s = p2.calculate(0.02, new ControlR1(0.72, 3.00), new StateR1(2, 2));
         // so for the second 0.01 we should be slowing down
         // x = 0.75 + 0.03 - 0.0001
         // this needs to be exact; we're not taking the tswitch path
@@ -1039,7 +1035,7 @@ class TrapezoidProfileR1Test implements Timeless {
         assertEquals(2.98, s.v(), 0.001);
 
         // same thing, inverted
-        s = p2.calculate(0.02, new ControlR1(-0.72, -3.00), new ModelR1(-2, -2));
+        s = p2.calculate(0.02, new ControlR1(-0.72, -3.00), new StateR1(-2, -2));
         // for the second segment we should be speeding up
         // x = -0.75 - 0.03 + 0.0001
         assertEquals(-0.7799, s.x(), 0.0001);
@@ -1051,247 +1047,247 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Verify the time to the switching point via each path */
     @Test
     void testT() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // dv=1.464, a=2
-        assertEquals(0.732, p2.t1IplusGminus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(0.732, p2.t1IplusGminus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
         // dv=0.828, a=2
-        assertEquals(0.414, p2.t1IplusGminus(new ControlR1(-1, 2), new ModelR1(1, 2)), 0.001);
+        assertEquals(0.414, p2.t1IplusGminus(new ControlR1(-1, 2), new StateR1(1, 2)), 0.001);
         // dv = 0.449, a=2
-        assertEquals(0.225, p2.t1IplusGminus(new ControlR1(-0.5, 2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(0.225, p2.t1IplusGminus(new ControlR1(-0.5, 2), new StateR1(0.5, 2)), 0.001);
         // dv = 0
-        assertEquals(0.000, p2.t1IplusGminus(new ControlR1(0, 2), new ModelR1(0, 2)), 0.001);
+        assertEquals(0.000, p2.t1IplusGminus(new ControlR1(0, 2), new StateR1(0, 2)), 0.001);
         // I+G- is negative-time here.
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, 2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, 2), new StateR1(-0.5, 2)), 0.001);
         // I+G- is negative-time here.
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, 2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, 2), new StateR1(-1, 2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
         // I-G+ is negative-time here
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, 2), new ModelR1(1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, 2), new StateR1(1, 2)), 0.001);
         // I-G+ is negative-time here
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-0.5, 2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-0.5, 2), new StateR1(0.5, 2)), 0.001);
         // dv = 0
-        assertEquals(0.000, p2.t1IminusGplus(new ControlR1(0, 2), new ModelR1(0, 2)), 0.001);
+        assertEquals(0.000, p2.t1IminusGplus(new ControlR1(0, 2), new StateR1(0, 2)), 0.001);
         // dv = -4.449, a=2
-        assertEquals(2.225, p2.t1IminusGplus(new ControlR1(0.5, 2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(2.225, p2.t1IminusGplus(new ControlR1(0.5, 2), new StateR1(-0.5, 2)), 0.001);
         // dv = -4.828, a=2
-        assertEquals(2.414, p2.t1IminusGplus(new ControlR1(1, 2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(2.414, p2.t1IminusGplus(new ControlR1(1, 2), new StateR1(-1, 2)), 0.001);
         // dv = -5.464
-        assertEquals(2.732, p2.t1IminusGplus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(2.732, p2.t1IminusGplus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
     }
 
     @Test
     void testTa() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
 
         // dv=1.464
-        assertEquals(0.732, p2.t1IplusGminus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(0.732, p2.t1IplusGminus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
         // dv=0.828
-        assertEquals(0.414, p2.t1IplusGminus(new ControlR1(-1, 2), new ModelR1(1, -2)), 0.001);
-        assertEquals(0.225, p2.t1IplusGminus(new ControlR1(-0.5, 2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(0.414, p2.t1IplusGminus(new ControlR1(-1, 2), new StateR1(1, -2)), 0.001);
+        assertEquals(0.225, p2.t1IplusGminus(new ControlR1(-0.5, 2), new StateR1(0.5, -2)), 0.001);
         // the path switches immediately
-        assertEquals(0.000, p2.t1IplusGminus(new ControlR1(0, 2), new ModelR1(0, -2)), 0.001);
+        assertEquals(0.000, p2.t1IplusGminus(new ControlR1(0, 2), new StateR1(0, -2)), 0.001);
         // only the negative-time solution exists
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, 2), new ModelR1(-0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, 2), new StateR1(-0.5, -2)), 0.001);
         // only the negative-time solution exists
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, 2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, 2), new StateR1(-1, -2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, 2), new ModelR1(-2, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, 2), new StateR1(-2, -2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
         // traverses G+ backwards
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, 2), new ModelR1(1, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, 2), new StateR1(1, -2)), 0.001);
         // traverses G+ backwards
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(-0.5, 2), new StateR1(0.5, -2)), 0.001);
         // switching at the goal, dv=4, a=2
-        assertEquals(2.000, p2.t1IminusGplus(new ControlR1(0, 2), new ModelR1(0, -2)), 0.001);
+        assertEquals(2.000, p2.t1IminusGplus(new ControlR1(0, 2), new StateR1(0, -2)), 0.001);
         // dv=-4.449
-        assertEquals(2.225, p2.t1IminusGplus(new ControlR1(0.5, 2), new ModelR1(-0.5, -2)), 0.001);
+        assertEquals(2.225, p2.t1IminusGplus(new ControlR1(0.5, 2), new StateR1(-0.5, -2)), 0.001);
         // dv=-4.828
-        assertEquals(2.414, p2.t1IminusGplus(new ControlR1(1, 2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(2.414, p2.t1IminusGplus(new ControlR1(1, 2), new StateR1(-1, -2)), 0.001);
         // dv=-5.464
-        assertEquals(2.732, p2.t1IminusGplus(new ControlR1(2, 2), new ModelR1(-2, -2)), 0.001);
+        assertEquals(2.732, p2.t1IminusGplus(new ControlR1(2, 2), new StateR1(-2, -2)), 0.001);
     }
 
     @Test
     void testTb() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // dv=5.464
-        assertEquals(2.732, p2.t1IplusGminus(new ControlR1(-2, -2), new ModelR1(2, 2)), 0.001);
+        assertEquals(2.732, p2.t1IplusGminus(new ControlR1(-2, -2), new StateR1(2, 2)), 0.001);
         // dv=4.828
-        assertEquals(2.414, p2.t1IplusGminus(new ControlR1(-1, -2), new ModelR1(1, 2)), 0.001);
+        assertEquals(2.414, p2.t1IplusGminus(new ControlR1(-1, -2), new StateR1(1, 2)), 0.001);
         // dv=4.449
-        assertEquals(2.225, p2.t1IplusGminus(new ControlR1(-0.5, -2), new ModelR1(0.5, 2)), 0.001);
+        assertEquals(2.225, p2.t1IplusGminus(new ControlR1(-0.5, -2), new StateR1(0.5, 2)), 0.001);
         // switches at G
-        assertEquals(2.000, p2.t1IplusGminus(new ControlR1(0, -2), new ModelR1(0, 2)), 0.001);
+        assertEquals(2.000, p2.t1IplusGminus(new ControlR1(0, -2), new StateR1(0, 2)), 0.001);
         // traverses G- backwards
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, -2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(0.5, -2), new StateR1(-0.5, 2)), 0.001);
         // traverses G- backwards
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, -2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(1, -2), new StateR1(-1, 2)), 0.001);
         // no intersection
-        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, -2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IplusGminus(new ControlR1(2, -2), new StateR1(-2, 2)), 0.001);
 
         // no intersection
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, -2), new ModelR1(2, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-2, -2), new StateR1(2, 2)), 0.001);
         // traverses I- backwards
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, -2), new ModelR1(1, 2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-1, -2), new StateR1(1, 2)), 0.001);
         // traverses I- backwards
-        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-0.5, -2), new ModelR1(0.5, -2)), 0.001);
+        assertEquals(Double.NaN, p2.t1IminusGplus(new ControlR1(-0.5, -2), new StateR1(0.5, -2)), 0.001);
         // switches at I, dv=0
-        assertEquals(0.000, p2.t1IminusGplus(new ControlR1(0, -2), new ModelR1(0, 2)), 0.001);
+        assertEquals(0.000, p2.t1IminusGplus(new ControlR1(0, -2), new StateR1(0, 2)), 0.001);
         // dv=-0.449
-        assertEquals(0.225, p2.t1IminusGplus(new ControlR1(0.5, -2), new ModelR1(-0.5, 2)), 0.001);
+        assertEquals(0.225, p2.t1IminusGplus(new ControlR1(0.5, -2), new StateR1(-0.5, 2)), 0.001);
         // dv=-0.828
-        assertEquals(0.414, p2.t1IminusGplus(new ControlR1(1, -2), new ModelR1(-1, 2)), 0.001);
+        assertEquals(0.414, p2.t1IminusGplus(new ControlR1(1, -2), new StateR1(-1, 2)), 0.001);
         // dv=-1.464
-        assertEquals(0.732, p2.t1IminusGplus(new ControlR1(2, -2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(0.732, p2.t1IminusGplus(new ControlR1(2, -2), new StateR1(-2, 2)), 0.001);
     }
 
     /** Verify the time to the switching point */
     @Test
     void testT1() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
-        assertEquals(0.732, p2.t1(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
-        assertEquals(0.414, p2.t1(new ControlR1(-1, 2), new ModelR1(1, 2)), 0.001);
-        assertEquals(0.225, p2.t1(new ControlR1(-0.5, 2), new ModelR1(0.5, 2)), 0.001);
-        assertEquals(0.000, p2.t1(new ControlR1(0, 2), new ModelR1(0, 2)), 0.001);
-        assertEquals(2.225, p2.t1(new ControlR1(0.5, 2), new ModelR1(-0.5, 2)), 0.001);
-        assertEquals(2.414, p2.t1(new ControlR1(1, 2), new ModelR1(-1, 2)), 0.001);
-        assertEquals(2.732, p2.t1(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
+        assertEquals(0.732, p2.t1(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
+        assertEquals(0.414, p2.t1(new ControlR1(-1, 2), new StateR1(1, 2)), 0.001);
+        assertEquals(0.225, p2.t1(new ControlR1(-0.5, 2), new StateR1(0.5, 2)), 0.001);
+        assertEquals(0.000, p2.t1(new ControlR1(0, 2), new StateR1(0, 2)), 0.001);
+        assertEquals(2.225, p2.t1(new ControlR1(0.5, 2), new StateR1(-0.5, 2)), 0.001);
+        assertEquals(2.414, p2.t1(new ControlR1(1, 2), new StateR1(-1, 2)), 0.001);
+        assertEquals(2.732, p2.t1(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
 
-        assertEquals(0.732, p2.t1(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
-        assertEquals(0.414, p2.t1(new ControlR1(-1, 2), new ModelR1(1, -2)), 0.001);
-        assertEquals(0.225, p2.t1(new ControlR1(-0.5, 2), new ModelR1(0.5, -2)), 0.001);
-        assertEquals(0.000, p2.t1(new ControlR1(0, 2), new ModelR1(0, -2)), 0.001);
-        assertEquals(2.225, p2.t1(new ControlR1(0.5, 2), new ModelR1(-0.5, -2)), 0.001);
-        assertEquals(2.414, p2.t1(new ControlR1(1, 2), new ModelR1(-1, -2)), 0.001);
-        assertEquals(2.732, p2.t1(new ControlR1(2, 2), new ModelR1(-2, -2)), 0.001);
+        assertEquals(0.732, p2.t1(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
+        assertEquals(0.414, p2.t1(new ControlR1(-1, 2), new StateR1(1, -2)), 0.001);
+        assertEquals(0.225, p2.t1(new ControlR1(-0.5, 2), new StateR1(0.5, -2)), 0.001);
+        assertEquals(0.000, p2.t1(new ControlR1(0, 2), new StateR1(0, -2)), 0.001);
+        assertEquals(2.225, p2.t1(new ControlR1(0.5, 2), new StateR1(-0.5, -2)), 0.001);
+        assertEquals(2.414, p2.t1(new ControlR1(1, 2), new StateR1(-1, -2)), 0.001);
+        assertEquals(2.732, p2.t1(new ControlR1(2, 2), new StateR1(-2, -2)), 0.001);
 
-        assertEquals(2.732, p2.t1(new ControlR1(-2, -2), new ModelR1(2, 2)), 0.001);
-        assertEquals(2.414, p2.t1(new ControlR1(-1, -2), new ModelR1(1, 2)), 0.001);
-        assertEquals(2.225, p2.t1(new ControlR1(-0.5, -2), new ModelR1(0.5, 2)), 0.001);
-        assertEquals(0.000, p2.t1(new ControlR1(0, -2), new ModelR1(0, 2)), 0.001);
-        assertEquals(0.225, p2.t1(new ControlR1(0.5, -2), new ModelR1(-0.5, 2)), 0.001);
-        assertEquals(0.414, p2.t1(new ControlR1(1, -2), new ModelR1(-1, 2)), 0.001);
-        assertEquals(0.732, p2.t1(new ControlR1(2, -2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(2.732, p2.t1(new ControlR1(-2, -2), new StateR1(2, 2)), 0.001);
+        assertEquals(2.414, p2.t1(new ControlR1(-1, -2), new StateR1(1, 2)), 0.001);
+        assertEquals(2.225, p2.t1(new ControlR1(-0.5, -2), new StateR1(0.5, 2)), 0.001);
+        assertEquals(0.000, p2.t1(new ControlR1(0, -2), new StateR1(0, 2)), 0.001);
+        assertEquals(0.225, p2.t1(new ControlR1(0.5, -2), new StateR1(-0.5, 2)), 0.001);
+        assertEquals(0.414, p2.t1(new ControlR1(1, -2), new StateR1(-1, 2)), 0.001);
+        assertEquals(0.732, p2.t1(new ControlR1(2, -2), new StateR1(-2, 2)), 0.001);
     }
 
     /** Verify paths taken */
     @Test
     void testCalculate() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
-        assertEquals(-1.959, p2.calculate(0.02, new ControlR1(-2, 2), new ModelR1(2, 2)).x(), 0.001);
-        assertEquals(-0.959, p2.calculate(0.02, new ControlR1(-1, 2), new ModelR1(1, 2)).x(), 0.001);
-        assertEquals(-0.459, p2.calculate(0.02, new ControlR1(-0.5, 2), new ModelR1(0.5, 2)).x(), 0.001);
-        assertEquals(0.000, p2.calculate(0.02, new ControlR1(0, 2), new ModelR1(0, 2)).x(), 0.001);
-        assertEquals(0.539, p2.calculate(0.02, new ControlR1(0.5, 2), new ModelR1(-0.5, 2)).x(), 0.001);
-        assertEquals(1.039, p2.calculate(0.02, new ControlR1(1, 2), new ModelR1(-1, 2)).x(), 0.001);
-        assertEquals(2.039, p2.calculate(0.02, new ControlR1(2, 2), new ModelR1(-2, 2)).x(), 0.001);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
+        assertEquals(-1.959, p2.calculate(0.02, new ControlR1(-2, 2), new StateR1(2, 2)).x(), 0.001);
+        assertEquals(-0.959, p2.calculate(0.02, new ControlR1(-1, 2), new StateR1(1, 2)).x(), 0.001);
+        assertEquals(-0.459, p2.calculate(0.02, new ControlR1(-0.5, 2), new StateR1(0.5, 2)).x(), 0.001);
+        assertEquals(0.000, p2.calculate(0.02, new ControlR1(0, 2), new StateR1(0, 2)).x(), 0.001);
+        assertEquals(0.539, p2.calculate(0.02, new ControlR1(0.5, 2), new StateR1(-0.5, 2)).x(), 0.001);
+        assertEquals(1.039, p2.calculate(0.02, new ControlR1(1, 2), new StateR1(-1, 2)).x(), 0.001);
+        assertEquals(2.039, p2.calculate(0.02, new ControlR1(2, 2), new StateR1(-2, 2)).x(), 0.001);
 
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-2, 2), new ModelR1(2, 2)).v(), 0.001);
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-1, 2), new ModelR1(1, 2)).v(), 0.001);
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-0.5, 2), new ModelR1(0.5, 2)).v(), 0.001);
-        assertEquals(2.0, p2.calculate(0.02, new ControlR1(0, 2), new ModelR1(0, 2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0.5, 2), new ModelR1(-0.5, 2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(1, 2), new ModelR1(-1, 2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(2, 2), new ModelR1(-2, 2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-2, 2), new StateR1(2, 2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-1, 2), new StateR1(1, 2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-0.5, 2), new StateR1(0.5, 2)).v(), 0.001);
+        assertEquals(2.0, p2.calculate(0.02, new ControlR1(0, 2), new StateR1(0, 2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0.5, 2), new StateR1(-0.5, 2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(1, 2), new StateR1(-1, 2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(2, 2), new StateR1(-2, 2)).v(), 0.001);
 
     }
 
     @Test
     void testCalculateA() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
-        assertEquals(-1.959, p2.calculate(0.02, new ControlR1(-2, 2), new ModelR1(2, -2)).x(), 0.001);
-        assertEquals(-0.959, p2.calculate(0.02, new ControlR1(-1, 2), new ModelR1(1, -2)).x(), 0.001);
-        assertEquals(-0.459, p2.calculate(0.02, new ControlR1(-0.5, 2), new ModelR1(0.5, -2)).x(), 0.001);
-        assertEquals(0.039, p2.calculate(0.02, new ControlR1(0, 2), new ModelR1(0, -2)).x(), 0.001);
-        assertEquals(0.539, p2.calculate(0.02, new ControlR1(0.5, 2), new ModelR1(-0.5, -2)).x(), 0.001);
-        assertEquals(1.039, p2.calculate(0.02, new ControlR1(1, 2), new ModelR1(-1, -2)).x(), 0.001);
-        assertEquals(2.039, p2.calculate(0.02, new ControlR1(2, 2), new ModelR1(-2, -2)).x(), 0.001);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
+        assertEquals(-1.959, p2.calculate(0.02, new ControlR1(-2, 2), new StateR1(2, -2)).x(), 0.001);
+        assertEquals(-0.959, p2.calculate(0.02, new ControlR1(-1, 2), new StateR1(1, -2)).x(), 0.001);
+        assertEquals(-0.459, p2.calculate(0.02, new ControlR1(-0.5, 2), new StateR1(0.5, -2)).x(), 0.001);
+        assertEquals(0.039, p2.calculate(0.02, new ControlR1(0, 2), new StateR1(0, -2)).x(), 0.001);
+        assertEquals(0.539, p2.calculate(0.02, new ControlR1(0.5, 2), new StateR1(-0.5, -2)).x(), 0.001);
+        assertEquals(1.039, p2.calculate(0.02, new ControlR1(1, 2), new StateR1(-1, -2)).x(), 0.001);
+        assertEquals(2.039, p2.calculate(0.02, new ControlR1(2, 2), new StateR1(-2, -2)).x(), 0.001);
 
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-2, 2), new ModelR1(2, -2)).v(), 0.001);
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-1, 2), new ModelR1(1, -2)).v(), 0.001);
-        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-0.5, 2), new ModelR1(0.5, -2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0, 2), new ModelR1(0, -2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0.5, 2), new ModelR1(-0.5, -2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(1, 2), new ModelR1(-1, -2)).v(), 0.001);
-        assertEquals(1.96, p2.calculate(0.02, new ControlR1(2, 2), new ModelR1(-2, -2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-2, 2), new StateR1(2, -2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-1, 2), new StateR1(1, -2)).v(), 0.001);
+        assertEquals(2.04, p2.calculate(0.02, new ControlR1(-0.5, 2), new StateR1(0.5, -2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0, 2), new StateR1(0, -2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(0.5, 2), new StateR1(-0.5, -2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(1, 2), new StateR1(-1, -2)).v(), 0.001);
+        assertEquals(1.96, p2.calculate(0.02, new ControlR1(2, 2), new StateR1(-2, -2)).v(), 0.001);
     }
 
     @Test
     void testCalculateB() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
-        assertEquals(-2.039, p2.calculate(0.02, new ControlR1(-2, -2), new ModelR1(2, 2)).x(), 0.001);
-        assertEquals(-1.039, p2.calculate(0.02, new ControlR1(-1, -2), new ModelR1(1, 2)).x(), 0.001);
-        assertEquals(-0.539, p2.calculate(0.02, new ControlR1(-0.5, -2), new ModelR1(0.5, 2)).x(), 0.001);
-        assertEquals(-0.039, p2.calculate(0.02, new ControlR1(0, -2), new ModelR1(0, 2)).x(), 0.001);
-        assertEquals(0.459, p2.calculate(0.02, new ControlR1(0.5, -2), new ModelR1(-0.5, 2)).x(), 0.001);
-        assertEquals(0.959, p2.calculate(0.02, new ControlR1(1, -2), new ModelR1(-1, 2)).x(), 0.001);
-        assertEquals(1.959, p2.calculate(0.02, new ControlR1(2, -2), new ModelR1(-2, 2)).x(), 0.001);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
+        assertEquals(-2.039, p2.calculate(0.02, new ControlR1(-2, -2), new StateR1(2, 2)).x(), 0.001);
+        assertEquals(-1.039, p2.calculate(0.02, new ControlR1(-1, -2), new StateR1(1, 2)).x(), 0.001);
+        assertEquals(-0.539, p2.calculate(0.02, new ControlR1(-0.5, -2), new StateR1(0.5, 2)).x(), 0.001);
+        assertEquals(-0.039, p2.calculate(0.02, new ControlR1(0, -2), new StateR1(0, 2)).x(), 0.001);
+        assertEquals(0.459, p2.calculate(0.02, new ControlR1(0.5, -2), new StateR1(-0.5, 2)).x(), 0.001);
+        assertEquals(0.959, p2.calculate(0.02, new ControlR1(1, -2), new StateR1(-1, 2)).x(), 0.001);
+        assertEquals(1.959, p2.calculate(0.02, new ControlR1(2, -2), new StateR1(-2, 2)).x(), 0.001);
 
-        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-2, -2), new ModelR1(2, 2)).v(), 0.001);
-        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-1, -2), new ModelR1(1, 2)).v(), 0.001);
-        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-0.5, -2), new ModelR1(0.5, 2)).v(), 0.001);
-        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(0, -2), new ModelR1(0, 2)).v(), 0.001);
-        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(0.5, -2), new ModelR1(-0.5, 2)).v(), 0.001);
-        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(1, -2), new ModelR1(-1, 2)).v(), 0.001);
-        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(2, -2), new ModelR1(-2, 2)).v(), 0.001);
+        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-2, -2), new StateR1(2, 2)).v(), 0.001);
+        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-1, -2), new StateR1(1, 2)).v(), 0.001);
+        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(-0.5, -2), new StateR1(0.5, 2)).v(), 0.001);
+        assertEquals(-1.96, p2.calculate(0.02, new ControlR1(0, -2), new StateR1(0, 2)).v(), 0.001);
+        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(0.5, -2), new StateR1(-0.5, 2)).v(), 0.001);
+        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(1, -2), new StateR1(-1, 2)).v(), 0.001);
+        assertEquals(-2.04, p2.calculate(0.02, new ControlR1(2, -2), new StateR1(-2, 2)).v(), 0.001);
     }
 
     @Test
     void testSwitchingTime() {
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
         // between (-2,2) and (2,2) the switching point is at (0, 3.464)
         // at the switching point,
         // u=-2, v=3.464, dt=0.02, dx = 0.0693 + 0.0004, dv=0.04
 
         // 0.02s before the switching point should yield the switching point exactly
-        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.0693, 3.424), new ModelR1(2, 2));
+        ControlR1 s = p2.calculate(0.02, new ControlR1(-0.0693, 3.424), new StateR1(2, 2));
         assertEquals(0.000, s.x(), 0.001);
         assertEquals(3.464, s.v(), 0.001);
 
         // this is right at the switching point: the correct path is 0.02 down G-
-        s = p2.calculate(0.02, new ControlR1(0, 3.464), new ModelR1(2, 2));
+        s = p2.calculate(0.02, new ControlR1(0, 3.464), new StateR1(2, 2));
         assertEquals(0.0693, s.x(), 0.001);
         assertEquals(3.424, s.v(), 0.001);
 
         // split dt between I+ and G-
         // u=-2, v=3.464, dt=0.01, dx = 0.0346 + 0.0001, dv=0.02
         // the correct outcome is 0.01 down G-
-        s = p2.calculate(0.02, new ControlR1(-0.0346, 3.444), new ModelR1(2, 2));
+        s = p2.calculate(0.02, new ControlR1(-0.0346, 3.444), new StateR1(2, 2));
         assertEquals(0.0346, s.x(), 0.001);
         assertEquals(3.444, s.v(), 0.001);
     }
 
     @Test
     void testQDotSwitch() {
-        TrapezoidProfileR1 p = new TrapezoidProfileR1(logger.name("one"), 5, 1, 0.01);
+        TrapezoidProfileR1 p = new TrapezoidProfileR1(5, 1, 0.01);
 
-        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(logger.name("two"), 5, 2, 0.01);
+        TrapezoidProfileR1 p2 = new TrapezoidProfileR1(5, 2, 0.01);
 
-        assertEquals(1.224, p2.qDotSwitchIplusGminus(new ControlR1(0, 0), new ModelR1(0.5, 1.0)), 0.001);
-        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(0, 0), new ModelR1(0.5, 1.0)), 0.001);
+        assertEquals(1.224, p2.qDotSwitchIplusGminus(new ControlR1(0, 0), new StateR1(0.5, 1.0)), 0.001);
+        assertEquals(Double.NaN, p2.qDotSwitchIminusGplus(new ControlR1(0, 0), new StateR1(0.5, 1.0)), 0.001);
 
-        assertEquals(3.000, p.qDotSwitchIplusGminus(new ControlR1(-3, 2), new ModelR1(2, 2)), 0.001);
-        assertEquals(2.828, p.qDotSwitchIplusGminus(new ControlR1(-2, 2), new ModelR1(2, 2)), 0.001);
-        assertEquals(2.645, p.qDotSwitchIplusGminus(new ControlR1(-1, 2), new ModelR1(2, 2)), 0.001);
+        assertEquals(3.000, p.qDotSwitchIplusGminus(new ControlR1(-3, 2), new StateR1(2, 2)), 0.001);
+        assertEquals(2.828, p.qDotSwitchIplusGminus(new ControlR1(-2, 2), new StateR1(2, 2)), 0.001);
+        assertEquals(2.645, p.qDotSwitchIplusGminus(new ControlR1(-1, 2), new StateR1(2, 2)), 0.001);
 
-        assertEquals(-3.0, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-3, -2)), 0.001);
-        assertEquals(-2.828, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-2, -2)), 0.001);
-        assertEquals(-2.645, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new ModelR1(-1, -2)), 0.001);
+        assertEquals(-3.0, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-3, -2)), 0.001);
+        assertEquals(-2.828, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-2, -2)), 0.001);
+        assertEquals(-2.645, p.qDotSwitchIminusGplus(new ControlR1(2, -2), new StateR1(-1, -2)), 0.001);
 
         // from 2,2 to -2,2. There's no intersection between these curves
-        assertEquals(Double.NaN, p.qDotSwitchIplusGminus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(Double.NaN, p.qDotSwitchIplusGminus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
         // from -2,2 to 2,-2 switches in the same place as -2,2->2,2
-        assertEquals(2.828, p.qDotSwitchIplusGminus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(2.828, p.qDotSwitchIplusGminus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
         // from 2,2 to -2,2 switches at the bottom
-        assertEquals(-2.828, p.qDotSwitchIminusGplus(new ControlR1(2, 2), new ModelR1(-2, 2)), 0.001);
+        assertEquals(-2.828, p.qDotSwitchIminusGplus(new ControlR1(2, 2), new StateR1(-2, 2)), 0.001);
         // from -2,2 to 2,-2, I-G+ is invalid
-        assertEquals(Double.NaN, p.qDotSwitchIminusGplus(new ControlR1(-2, 2), new ModelR1(2, -2)), 0.001);
+        assertEquals(Double.NaN, p.qDotSwitchIminusGplus(new ControlR1(-2, 2), new StateR1(2, -2)), 0.001);
 
     }
 
@@ -1300,9 +1296,9 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testTriangle() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.1);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.1);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(1, 0);
+        final StateR1 end = new StateR1(1, 0);
 
         double tt = 0;
         // the first sample is near the starting state
@@ -1340,9 +1336,9 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testInvertedTriangle() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(-1, 0);
+        final StateR1 end = new StateR1(-1, 0);
 
         // the first sample is near the starting state
         dump(0, sample);
@@ -1371,9 +1367,9 @@ class TrapezoidProfileR1Test implements Timeless {
     /** with a lower top speed, this profile includes a cruise phase. */
     @Test
     void testCruise() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 1, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(1, 2, 0.01);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(1, 0);
+        final StateR1 end = new StateR1(1, 0);
 
         double tt = 0;
 
@@ -1421,11 +1417,11 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testUTurn() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
 
         // initially heading away from the goal
         ControlR1 sample = new ControlR1(0.1, 1);
-        final ModelR1 end = new ModelR1(0, 0);
+        final StateR1 end = new StateR1(0, 0);
 
         double tt = 0;
         dump(tt, sample);
@@ -1468,11 +1464,11 @@ class TrapezoidProfileR1Test implements Timeless {
     /** Same as above but not inverted. */
     @Test
     void testUTurnNotInverted() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
 
         // initially heading away from the goal
         ControlR1 sample = new ControlR1(-0.1, -1, 0);
-        final ModelR1 end = new ModelR1(0, 0);
+        final StateR1 end = new StateR1(0, 0);
         double tt = 0;
         dump(tt, sample);
 
@@ -1519,11 +1515,11 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testUTurn2() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
 
         // initially at the goal with nonzero velocity
         ControlR1 sample = new ControlR1(0, 1);
-        final ModelR1 end = new ModelR1(0, 0);
+        final StateR1 end = new StateR1(0, 0);
         double tt = 0;
         dump(tt, sample);
 
@@ -1574,11 +1570,11 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testUTurn2NotInverted() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
 
         // initially at the goal with nonzero velocity
         ControlR1 sample = new ControlR1(0, -1);
-        final ModelR1 end = new ModelR1(0, 0);
+        final StateR1 end = new StateR1(0, 0);
         double tt = 0;
         dump(tt, sample);
 
@@ -1629,11 +1625,11 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testUTurn3() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.01);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.01);
 
         // behind the goal, too fast to stop.
         ControlR1 sample = new ControlR1(-0.1, 1);
-        final ModelR1 end = new ModelR1(0, 0);
+        final StateR1 end = new StateR1(0, 0);
         double tt = 0;
         dump(tt, sample);
 
@@ -1676,9 +1672,9 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void testWindupCase() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.05);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.05);
         ControlR1 sample = new ControlR1(0, 0);
-        final ModelR1 end = new ModelR1(0, 1);
+        final StateR1 end = new StateR1(0, 1);
         sample = profileX.calculate(0.02, sample, end);
         // I- means dv = 2 * 0.02 = 0.04 and dx = 0.0004
         assertEquals(-0.0004, sample.x(), 0.000001);
@@ -1697,12 +1693,12 @@ class TrapezoidProfileR1Test implements Timeless {
      */
     @Test
     void testUTurnWindup() {
-        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(logger, 5, 2, 0.05);
+        TrapezoidProfileR1 profileX = new TrapezoidProfileR1(5, 2, 0.05);
 
         // initially at rest
         ControlR1 sample = new ControlR1(0, 0);
         // goal is moving
-        final ModelR1 end = new ModelR1(0, 1);
+        final StateR1 end = new StateR1(0, 1);
         double tt = 0;
         dump(tt, sample);
 
@@ -1778,10 +1774,10 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void reachesGoal() {
-        final ModelR1 goal = new ModelR1(3, 0);
+        final StateR1 goal = new StateR1(3, 0);
         ControlR1 state = new ControlR1(0, 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, 1.75, 0.75, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(1.75, 0.75, 0.01);
         for (int i = 0; i < 450; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }
@@ -1797,16 +1793,16 @@ class TrapezoidProfileR1Test implements Timeless {
     // the new constraint creates max braking.
     @Test
     void posContinuousUnderVelChange() {
-        ModelR1 goal = new ModelR1(12, 0);
+        StateR1 goal = new StateR1(12, 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger.name("one"), 1.75, 0.75, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(1.75, 0.75, 0.01);
         ControlR1 state = profile.calculate(TEN_MS, new ControlR1(0, 0), goal);
 
         double lastPos = state.x();
         for (int i = 0; i < 1600; ++i) {
             if (i == 400) {
                 // impose new slower limit
-                profile = new TrapezoidProfileR1(logger.name("two"), 0.75, 0.75, 0.01);
+                profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
             }
 
             state = profile.calculate(TEN_MS, state, goal);
@@ -1831,10 +1827,10 @@ class TrapezoidProfileR1Test implements Timeless {
     // There is some somewhat tricky code for dealing with going backwards
     @Test
     void backwards() {
-        final ModelR1 goal = new ModelR1(-2, 0);
+        final StateR1 goal = new StateR1(-2, 0);
         ControlR1 state = new ControlR1(0, 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, 0.75, 0.75, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
         for (int i = 0; i < 400; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }
@@ -1844,17 +1840,17 @@ class TrapezoidProfileR1Test implements Timeless {
 
     @Test
     void switchGoalInMiddle() {
-        ModelR1 goal = new ModelR1(-2, 0);
+        StateR1 goal = new StateR1(-2, 0);
         ControlR1 state = new ControlR1(0, 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, 0.75, 0.75, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
         for (int i = 0; i < 200; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }
         assertNotEquals(state, goal);
 
-        goal = new ModelR1(0.0, 0.0);
-        profile = new TrapezoidProfileR1(logger, 0.75, 0.75, 0.01);
+        goal = new StateR1(0.0, 0.0);
+        profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
         for (int i = 0; i < 600; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }
@@ -1865,16 +1861,16 @@ class TrapezoidProfileR1Test implements Timeless {
     // Checks to make sure that it hits top speed
     @Test
     void topSpeed() {
-        final ModelR1 goal = new ModelR1(4, 0);
+        final StateR1 goal = new StateR1(4, 0);
         ControlR1 state = new ControlR1(0, 0);
 
-        TrapezoidProfileR1 profile = new TrapezoidProfileR1(logger, 0.75, 0.75, 0.01);
+        TrapezoidProfileR1 profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
         for (int i = 0; i < 200; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }
         assertNear(0.75, state.v(), 10e-5);
 
-        profile = new TrapezoidProfileR1(logger, 0.75, 0.75, 0.01);
+        profile = new TrapezoidProfileR1(0.75, 0.75, 0.01);
         for (int i = 0; i < 2000; ++i) {
             state = profile.calculate(TEN_MS, state, goal);
         }

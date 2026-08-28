@@ -4,7 +4,8 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.r.RDynamics;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -36,7 +37,9 @@ public class Climber extends SubsystemBase {
         LoggerFactory log = parent.type(this);
         LoggerFactory log1 = log.name("motor1");
         LoggerFactory log2 = log.name("motor2");
-        ProfileR1 profile = new TrapezoidProfileR1(log, 3, 5, 0.05);
+        // Dynamics are unimportant for this mechanism.
+        RDynamics dynamics = new RDynamicsAnalytic(0, 0, 0, 0);
+        ProfileR1 profile = new TrapezoidProfileR1(3, 5, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         double initialPosition = 0;
         final BareMotor m1;
@@ -44,19 +47,18 @@ public class Climber extends SubsystemBase {
         switch (Identity.instance) {
             case TEST_BOARD_B0 -> {
                 CurrentLimit limit = new CurrentLimit(60, 40);
-                SimpleDynamics ff = new SimpleDynamics(log, 0, 0);
-                Friction friction = new Friction(log, 0, 0, 0, 0);
-                PIDConstants pid = new PIDConstants(log, 1, 0, 0, 0, 0, 0);
+                Friction friction = new Friction(0, 0, 0, 0);
+                PIDConstants pid = new PIDConstants(1, 0, 0, 0, 0, 0);
                 m1 = new KrakenX60Motor(
                         log1, currentLog, new CanId(6),
                         NeutralMode100.BRAKE, MotorPhase.FORWARD,
                         limit,
-                        ff, friction, pid);
+                        friction, pid);
                 m2 = new KrakenX60Motor(
                         log2, currentLog, new CanId(7),
                         NeutralMode100.BRAKE, MotorPhase.FORWARD,
                         limit,
-                        ff, friction, pid);
+                        friction, pid);
             }
             default -> {
                 m1 = new SimulatedBareMotor(log1, 600);
@@ -64,9 +66,9 @@ public class Climber extends SubsystemBase {
             }
         }
         m_servo1 = OutboardAngularPositionServo.make(
-                log1, m1, ref, GEAR_RATIO, initialPosition);
+                log1, m1, dynamics, ref, GEAR_RATIO, initialPosition, 0, 100);
         m_servo2 = OutboardAngularPositionServo.make(
-                log2, m2, ref, GEAR_RATIO, initialPosition);
+                log2, m2, dynamics, ref, GEAR_RATIO, initialPosition, 0, 100);
     }
 
     public Command setClimb0() {
@@ -104,7 +106,7 @@ public class Climber extends SubsystemBase {
     }
 
     private void actuateWithProfile(double unwrappedGoalRad) {
-        m_servo1.actuateWithProfile(unwrappedGoalRad, 0);
-        m_servo2.actuateWithProfile(unwrappedGoalRad, 0);
+        m_servo1.actuateWithProfile(unwrappedGoalRad);
+        m_servo2.actuateWithProfile(unwrappedGoalRad);
     }
 }

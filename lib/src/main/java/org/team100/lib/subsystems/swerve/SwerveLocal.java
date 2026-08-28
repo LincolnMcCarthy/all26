@@ -3,6 +3,8 @@ package org.team100.lib.subsystems.swerve;
 import java.util.List;
 import java.util.Optional;
 
+import org.team100.lib.dynamics.swerve.SwerveEffort;
+import org.team100.lib.geometry.se2.ChassisAcceleration;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.ChassisSpeedsLogger;
@@ -72,9 +74,10 @@ public class SwerveLocal implements Player {
      * 
      * @param nextSpeed for the next timestep.
      */
-    void setChassisSpeeds(ChassisSpeeds nextSpeed) {
+    void setChassisSpeeds(ChassisSpeeds nextSpeed, ChassisAcceleration a) {
         SwerveModuleStates states = m_swerveKinodynamics.toSwerveModuleStates(nextSpeed);
-        m_modules.setDesiredStates(states);
+        SwerveEffort effort = m_swerveKinodynamics.effort(states, a);
+        m_modules.setDesiredStates(states, effort);
         m_log_chassis_speed.log(() -> nextSpeed);
     }
 
@@ -85,15 +88,16 @@ public class SwerveLocal implements Player {
     /**
      * Set the module states directly. This is just for testing.
      */
-    void setRawModuleStates(SwerveModuleStates targetModuleStates) {
-        m_modules.setRawDesiredStates(targetModuleStates);
+    void setRawModuleStates(
+            SwerveModuleStates targetModuleStates, SwerveEffort effort) {
+        m_modules.setRawDesiredStates(targetModuleStates, effort);
     }
 
     /**
      * Sets the wheels to make an "X" pattern.
      */
     void defense() {
-        setRawModuleStates(statesX);
+        setRawModuleStates(statesX, SwerveEffort.ZERO);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -104,10 +108,6 @@ public class SwerveLocal implements Player {
     /** Uses Cache so the position is fresh and coherent. */
     SwerveModulePositions positions() {
         return m_modules.positions();
-    }
-
-    boolean[] atSetpoint() {
-        return m_modules.atSetpoint();
     }
 
     ///////////////////////////////////////////

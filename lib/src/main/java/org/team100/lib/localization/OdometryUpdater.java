@@ -9,13 +9,13 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.fusion.CovarianceInflation;
 import org.team100.lib.fusion.Fusor;
 import org.team100.lib.geometry.Metrics;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.IsotropicNoiseSE2Logger;
 import org.team100.lib.logging.LoggerFactory.SwerveStateLogger;
 import org.team100.lib.sensor.gyro.Gyro;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModuleDeltas;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePositions;
@@ -194,7 +194,7 @@ public class OdometryUpdater {
             Rotation2d gyroYaw,
             SwerveModulePositions positions) {
 
-        ModelSE2 previousModel = previousState.state();
+        StateSE2 previousModel = previousState.state();
 
         Pose2d previousPose = previousModel.pose();
         if (DEBUG) {
@@ -213,7 +213,7 @@ public class OdometryUpdater {
             System.out.printf("modulePositionDelta %s\n", modulePositionDelta);
         }
 
-        Twist2d twist = m_kinodynamics.getKinematics().toTwist2d(modulePositionDelta);
+        Twist2d twist = m_kinodynamics.getKinematics().forward(modulePositionDelta);
         // add noise
         twist = m_noise.apply(twist);
         if (DEBUG) {
@@ -277,7 +277,7 @@ public class OdometryUpdater {
         // Compute a new velocity using backward finite difference.
         VelocitySE2 velocity = VelocitySE2.velocity(previousPose, newPose, dt);
 
-        ModelSE2 model = new ModelSE2(newPose, velocity);
+        StateSE2 model = new StateSE2(newPose, velocity);
 
         // Noise here can be zero, if we're not moving.
         double cartesianNoise = odoNoise.cartesian();

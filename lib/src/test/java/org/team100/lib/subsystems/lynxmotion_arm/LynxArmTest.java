@@ -3,7 +3,12 @@ package org.team100.lib.subsystems.lynxmotion_arm;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.GeometryUtil;
+import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
+import org.team100.lib.geometry.lynx_arm.LynxArmPose;
+import org.team100.lib.kinematics.lynx_arm.AnalyticLynxArmKinematics;
+import org.team100.lib.kinematics.lynx_arm.LynxArmKinematics;
+import org.team100.lib.kinematics.lynx_arm.NumericLynxArmKinematics;
+import org.team100.lib.testing.TestUtil;
 import org.team100.lib.util.StrUtil;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -28,7 +33,7 @@ public class LynxArmTest {
                 System.out.printf("end %s\n", StrUtil.poseStr(end));
             }
             for (double s = 0; s <= 1; s += 0.2) {
-                Pose3d lerp = GeometryUtil.interpolate(start, end, s);
+                Pose3d lerp = LynxArmPose.interpolate(start, end, s);
                 m_arm.setPosition(lerp);
                 // wrist should be pointing down the whole time
                 LynxArmPose p = m_arm.getPosition();
@@ -113,14 +118,6 @@ public class LynxArmTest {
         }
     }
 
-    void verify(LynxArmConfig q, double a, double b, double c, double d, double e) {
-        assertEquals(a, q.swing().getAsDouble(), 1e-3);
-        assertEquals(b, q.boom(), 1e-3);
-        assertEquals(c, q.stick(), 1e-3);
-        assertEquals(d, q.wrist(), 1e-3);
-        assertEquals(e, q.twist().getAsDouble(), 1e-3);
-    }
-
     @Test
     void testHome() {
         // numeric kinematics
@@ -129,7 +126,7 @@ public class LynxArmTest {
         LynxArmConfig initial = new LynxArmConfig(0, 0, 0, 0, 0);
         LynxArmConfig q = kinematics.inverse(initial, HOME);
         // zero swing, pitch up, elbow and wrist down, no twist.
-        verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
+        TestUtil.verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
     }
 
     @Test
@@ -137,7 +134,7 @@ public class LynxArmTest {
         final LynxArmKinematics kinematics = new NumericLynxArmKinematics();
         try (LynxArm m_arm = new LynxArm(kinematics)) {
             LynxArmConfig q = m_arm.getMeasuredConfig();
-            verify(q, 0.00, -1.937, 1.505, 1.216, 0.00);
+            TestUtil.verify(q, 0.00, -1.939, 1.507, 1.216, 0.00);
         }
     }
 
@@ -149,7 +146,7 @@ public class LynxArmTest {
         LynxArmConfig initial = new LynxArmConfig(0, 0, 0, 0, 0);
         LynxArmConfig q = kinematics.inverse(initial, HOME);
         // zero swing, pitch up, elbow and wrist down, no twist.
-        verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
+        TestUtil.verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
     }
 
     @Test
@@ -157,7 +154,7 @@ public class LynxArmTest {
         final LynxArmKinematics kinematics = AnalyticLynxArmKinematics.real();
         try (LynxArm m_arm = new LynxArm(kinematics)) {
             LynxArmConfig q = m_arm.getMeasuredConfig();
-            verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
+            TestUtil.verify(q, 0.00, -1.936, 1.505, 1.217, 0.00);
         }
     }
 

@@ -9,14 +9,12 @@ import org.team100.lib.config.AnnotatedCommand;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
-import org.team100.lib.trajectory.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
 
 import edu.wpi.first.math.geometry.Pose2d;
 
 /**
  * Shows positions and trajectories.
- * 
- * TODO: make this run upon selection, not continuously.
  */
 public class AutonVisualization {
     private final DoubleArrayLogger m_log_poses;

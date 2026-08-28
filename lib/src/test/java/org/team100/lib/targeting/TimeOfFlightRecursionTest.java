@@ -6,10 +6,10 @@ import java.util.Optional;
 import java.util.function.DoubleFunction;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.GlobalVelocityR2;
-import org.team100.lib.geometry.StateR2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.geometry.r2.VelocityR2;
+import org.team100.lib.geometry.r2.StateR2;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.targeting.TimeOfFlightRecursion.Looper;
 import org.team100.lib.targeting.TimeOfFlightRecursion.Looper.LoopSolution;
 
@@ -30,7 +30,7 @@ public class TimeOfFlightRecursionTest {
     @Test
     void testMotionlessParabolicSteps() {
         Translation2d T0 = new Translation2d(2, 0);
-        GlobalVelocityR2 vT = GlobalVelocityR2.ZERO;
+        VelocityR2 vT = VelocityR2.ZERO;
         Looper looper = new Looper(ir, T0, vT);
         double targetTOF = ir.apply(T0.getNorm()).get().tof();
         assertEquals(0.666, targetTOF, DELTA);
@@ -43,9 +43,9 @@ public class TimeOfFlightRecursionTest {
         TimeOfFlightRecursion tofr = new TimeOfFlightRecursion(ir, 0.01);
         // target is 2m away along +x
         Translation2d targetPosition = new Translation2d(2, 0);
-        GlobalVelocityR2 targetVelocity = GlobalVelocityR2.ZERO;
+        VelocityR2 targetVelocity = VelocityR2.ZERO;
         Optional<Solution> o = tofr.solve(
-                new ModelSE2(),
+                new StateSE2(),
                 new StateR2(targetPosition, targetVelocity));
         Solution x = o.orElseThrow();
         assertEquals(0.666, x.parameters().tof(), DELTA);
@@ -60,7 +60,7 @@ public class TimeOfFlightRecursionTest {
     @Test
     void testAwaySteps() {
         Translation2d T0 = new Translation2d(2, 0);
-        GlobalVelocityR2 vT = new GlobalVelocityR2(2, 0);
+        VelocityR2 vT = new VelocityR2(2, 0);
         Looper looper = new Looper(ir, T0, vT);
 
         double targetTOF = ir.apply(T0.getNorm()).get().tof();
@@ -137,13 +137,13 @@ public class TimeOfFlightRecursionTest {
     void testAwayFromTarget() {
         TimeOfFlightRecursion tofr = new TimeOfFlightRecursion(ir, 0.0001);
         // driving away from the target
-        GlobalVelocityR2 robotVelocity = new GlobalVelocityR2(-2, 0);
+        VelocityR2 robotVelocity = new VelocityR2(-2, 0);
         // target is 2m away along +x
         Translation2d targetPosition = new Translation2d(2, 0);
-        GlobalVelocityR2 targetVelocity = GlobalVelocityR2.ZERO;
+        VelocityR2 targetVelocity = VelocityR2.ZERO;
 
         Optional<Solution> o = tofr.solve(
-                new ModelSE2(
+                new StateSE2(
                         new Pose2d(),
                         new VelocitySE2(robotVelocity.x(), robotVelocity.y(), 0)),
                 new StateR2(targetPosition, targetVelocity));
@@ -157,13 +157,13 @@ public class TimeOfFlightRecursionTest {
     void testHighAwayFromTarget() {
         TimeOfFlightRecursion tofr = new TimeOfFlightRecursion(ir, 0.0001);
         // driving away from the target
-        GlobalVelocityR2 robotVelocity = new GlobalVelocityR2(-1, 0);
+        VelocityR2 robotVelocity = new VelocityR2(-1, 0);
         // target is 2m away along +x
         Translation2d targetPosition = new Translation2d(2, 0);
-        GlobalVelocityR2 targetVelocity = GlobalVelocityR2.ZERO;
+        VelocityR2 targetVelocity = VelocityR2.ZERO;
 
         Optional<Solution> o = tofr.solve(
-                new ModelSE2(
+                new StateSE2(
                         new Pose2d(),
                         new VelocitySE2(robotVelocity.x(), robotVelocity.y(), 0)),
                 new StateR2(targetPosition, targetVelocity));
@@ -178,7 +178,7 @@ public class TimeOfFlightRecursionTest {
     @Test
     void testStrafingSteps() {
         Translation2d T0 = new Translation2d(2, 0);
-        GlobalVelocityR2 vT = new GlobalVelocityR2(0, -2);
+        VelocityR2 vT = new VelocityR2(0, -2);
 
         Looper looper = new Looper(ir, T0, vT);
 
@@ -212,13 +212,13 @@ public class TimeOfFlightRecursionTest {
     void testStrafing() {
         TimeOfFlightRecursion tofr = new TimeOfFlightRecursion(ir, 0.001);
         // driving to the left
-        GlobalVelocityR2 robotVelocity = new GlobalVelocityR2(0, 2);
+        VelocityR2 robotVelocity = new VelocityR2(0, 2);
         // target is 2m away along +x
         Translation2d targetPosition = new Translation2d(2, 0);
-        GlobalVelocityR2 targetVelocity = GlobalVelocityR2.ZERO;
+        VelocityR2 targetVelocity = VelocityR2.ZERO;
 
         Optional<Solution> o = tofr.solve(
-                new ModelSE2(new Pose2d(),
+                new StateSE2(new Pose2d(),
                         new VelocitySE2(robotVelocity.x(), robotVelocity.y(), 0)),
                 new StateR2(targetPosition, targetVelocity));
         Solution x = o.orElseThrow();

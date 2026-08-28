@@ -28,8 +28,13 @@ public class BareMotorGroup implements BareMotor {
     }
 
     @Override
-    public void setVelocity(double velocityRad_S, double accelRad_S2, double torqueNm) {
-        apply((m) -> m.setVelocity(velocityRad_S, accelRad_S2, torqueNm));
+    public void setVoltage(double volts) {
+        apply((m) -> m.setVoltage(volts));
+    }
+
+    @Override
+    public void setVelocity(double velocityRad_S, double torqueNm) {
+        apply((m) -> m.setVelocity(velocityRad_S, torqueNm));
     }
 
     @Override
@@ -53,8 +58,8 @@ public class BareMotorGroup implements BareMotor {
     }
 
     @Override
-    public void setUnwrappedPosition(double positionRad, double velocityRad_S, double accelRad_S2, double torqueNm) {
-        apply((m) -> m.setUnwrappedPosition(positionRad, velocityRad_S, accelRad_S2, torqueNm));
+    public void setUnwrappedPosition(double positionRad, double velocityRad_S, double torqueNm) {
+        apply((m) -> m.setUnwrappedPosition(positionRad, velocityRad_S, torqueNm));
     }
 
     @Override

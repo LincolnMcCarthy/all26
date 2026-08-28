@@ -23,9 +23,10 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.sensor.gyro.SimulatedGyro;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.se2.MockSubsystemSE2;
 import org.team100.lib.subsystems.swerve.SwerveDriveSubsystem;
 import org.team100.lib.subsystems.swerve.SwerveLocal;
@@ -34,19 +35,19 @@ import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.subsystems.swerve.module.SwerveModuleCollection;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePositions;
 import org.team100.lib.testing.Timeless;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraintFactory;
-import org.team100.lib.trajectory.examples.TrajectoryExamples;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraintFactory;
+import org.team100.lib.trajectory.se2.examples.TrajectoryExamples;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.VariableR1;
 import org.team100.lib.visualization.TrajectoryVisualization;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class DriveWithTrajectoryTest implements Timeless {
 
@@ -58,8 +59,8 @@ public class DriveWithTrajectoryTest implements Timeless {
 
     @Test
     void testTrajectoryStart() {
-        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
-        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood(logger);
+        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
+        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
@@ -72,7 +73,7 @@ public class DriveWithTrajectoryTest implements Timeless {
         ControllerSE2 controller = ControllerFactorySE2.test(logger);
 
         // initially at rest
-        MockSubsystemSE2 d = new MockSubsystemSE2(new ModelSE2());
+        MockSubsystemSE2 d = new MockSubsystemSE2(new StateSE2());
 
         DriveWithTrajectory c = new DriveWithTrajectory(logger, d, controller, t, viz);
 
@@ -94,29 +95,29 @@ public class DriveWithTrajectoryTest implements Timeless {
 
         stepTime();
         c.execute();
-        assertEquals(0.102, d.m_setpoint.x(), DELTA);
-        assertEquals(0, d.m_setpoint.y(), DELTA);
-        assertEquals(0, d.m_setpoint.theta(), DELTA);
+        assertEquals(0.102, d.m_setpoint.x().v(), DELTA);
+        assertEquals(0, d.m_setpoint.y().v(), DELTA);
+        assertEquals(0, d.m_setpoint.theta().v(), DELTA);
 
         // more normal driving
         stepTime();
         c.execute();
-        assertEquals(0.139, d.m_setpoint.x(), DELTA);
-        assertEquals(0, d.m_setpoint.y(), DELTA);
-        assertEquals(0, d.m_setpoint.theta(), DELTA);
+        assertEquals(0.139, d.m_setpoint.x().v(), DELTA);
+        assertEquals(0, d.m_setpoint.y().v(), DELTA);
+        assertEquals(0, d.m_setpoint.theta().v(), DELTA);
 
         // etc
         stepTime();
         c.execute();
-        assertEquals(0.179, d.m_setpoint.x(), DELTA);
-        assertEquals(0, d.m_setpoint.y(), DELTA);
-        assertEquals(0, d.m_setpoint.theta(), DELTA);
+        assertEquals(0.179, d.m_setpoint.x().v(), DELTA);
+        assertEquals(0, d.m_setpoint.y().v(), DELTA);
+        assertEquals(0, d.m_setpoint.theta().v(), DELTA);
     }
 
     @Test
     void testTrajectoryDone() {
-        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
-        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood(logger);
+        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
+        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
@@ -129,7 +130,7 @@ public class DriveWithTrajectoryTest implements Timeless {
         ControllerSE2 controller = ControllerFactorySE2.test(logger);
 
         // initially at rest
-        MockSubsystemSE2 d = new MockSubsystemSE2(new ModelSE2());
+        MockSubsystemSE2 d = new MockSubsystemSE2(new StateSE2());
 
         DriveWithTrajectory c = new DriveWithTrajectory(logger, d, controller, t, viz);
         c.initialize();
@@ -138,7 +139,7 @@ public class DriveWithTrajectoryTest implements Timeless {
             stepTime();
             c.execute();
             // we have magically reached the end
-            d.m_state = new ModelSE2(new Pose2d(1, 0, Rotation2d.kZero));
+            d.m_state = new StateSE2(new Pose2d(1, 0, Rotation2d.kZero));
         }
         assertTrue(c.isDone());
 
@@ -156,11 +157,11 @@ public class DriveWithTrajectoryTest implements Timeless {
         // it's on (otherwise it's in whatever state the previous test left it)
         Experiments.instance.testOverride(Experiment.UseSwerveLimiter, true);
         // 1m along +x, no rotation.
-        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
         SwerveModuleCollection collection = SwerveModuleCollection.get(
                 logger, currentLog, new CurrentLimit(10, 20), new CurrentLimit(10, 20), swerveKinodynamics);
         collection.reset();
-        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood(logger);
+        List<TimingConstraint> constraints = new TimingConstraintFactory(swerveKinodynamics).allGood();
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(constraints);
         PathSE2Factory pathFactory = new PathSE2Factory();
         TrajectorySE2Planner planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
@@ -193,8 +194,9 @@ public class DriveWithTrajectoryTest implements Timeless {
         AprilTagFieldLayoutWithCorrectOrientation layout = new AprilTagFieldLayoutWithCorrectOrientation();
 
         AprilTagRobotLocalizer localizer = new AprilTagRobotLocalizer(
-                logger, fieldLogger, layout, history, visionUpdater);
-        FreshSwerveEstimate estimate = new FreshSwerveEstimate(localizer, odometryUpdater, history);
+                logger, fieldLogger, layout, history, visionUpdater,DriverStation::getAlliance);
+        FreshSwerveEstimate estimate = new FreshSwerveEstimate(
+            localizer::update, odometryUpdater::update, history);
         SwerveLocal swerveLocal = new SwerveLocal(logger, swerveKinodynamics, collection);
 
         SwerveDriveSubsystem drive = new SwerveDriveSubsystem(
@@ -204,7 +206,7 @@ public class DriveWithTrajectoryTest implements Timeless {
                 swerveLocal);
 
         // initially at rest
-        assertEquals(0, collection.states().frontLeft().speedMetersPerSecond(), DELTA);
+        assertEquals(0, collection.states().frontLeft().speed(), DELTA);
         assertEquals(0, collection.states().frontLeft().angle().get().getRadians(), DELTA);
 
         DriveWithTrajectory command = new DriveWithTrajectory(
@@ -214,20 +216,20 @@ public class DriveWithTrajectoryTest implements Timeless {
 
         command.execute();
         // but that output is not available until after takt.
-        assertEquals(0, collection.states().frontLeft().speedMetersPerSecond(), DELTA);
+        assertEquals(0, collection.states().frontLeft().speed(), DELTA);
         assertEquals(0, collection.states().frontLeft().angle().get().getRadians(), DELTA);
 
         // drive normally more
         stepTime();
         command.execute();
         // this is the output from the previous takt
-        assertEquals(0.033, collection.states().frontLeft().speedMetersPerSecond(), DELTA);
+        assertEquals(0.033, collection.states().frontLeft().speed(), DELTA);
         assertEquals(0, collection.states().frontLeft().angle().get().getRadians(), DELTA);
 
         // etc
         stepTime();
         command.execute();
-        assertEquals(0.064, collection.states().frontLeft().speedMetersPerSecond(), DELTA);
+        assertEquals(0.064, collection.states().frontLeft().speed(), DELTA);
         assertEquals(0, collection.states().frontLeft().angle().get().getRadians(), DELTA);
     }
 

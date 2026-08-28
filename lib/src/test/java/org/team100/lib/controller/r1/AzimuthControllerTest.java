@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
-import org.team100.lib.state.ModelR1;
-import org.team100.lib.tuning.Mutable;
+import org.team100.lib.state.StateR1;
 
 public class AzimuthControllerTest {
     private static final double DELTA = 0.001;
@@ -15,21 +14,20 @@ public class AzimuthControllerTest {
 
     @Test
     void test0() {
-        Mutable.unpublishAll();
         FeedbackR1 feedback = new FullStateFeedback(log, 1, 0.01, false, 1, 1);
         AzimuthController aim = new AzimuthController(log, () -> 5.0, feedback);
         aim.reset();
         assertEquals(0,
-                aim.getOmega(new ModelR1(), new ModelR1(0, 0)), DELTA);
+                aim.getOmega(new StateR1(), new StateR1(0, 0)), DELTA);
 
         aim.reset();
         assertEquals(Math.PI / 2,
-                aim.getOmega(new ModelR1(), new ModelR1(Math.PI / 2, 0)), DELTA);
+                aim.getOmega(new StateR1(), new StateR1(Math.PI / 2, 0)), DELTA);
 
         // strafing
         aim.reset();
         assertEquals(-1.01,
-                aim.getOmega(new ModelR1(0, 0), new ModelR1(0, -1)), DELTA);
+                aim.getOmega(new StateR1(0, 0), new StateR1(0, -1)), DELTA);
     }
 
 }

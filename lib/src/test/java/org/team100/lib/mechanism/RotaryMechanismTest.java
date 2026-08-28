@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -19,9 +18,8 @@ public class RotaryMechanismTest implements Timeless {
     /** Show that the limits have effect. */
     @Test
     void testLimits() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor motor = new MockBareMotor(ff, friction);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor motor = new MockBareMotor(friction);
         MockRotaryPositionSensor sensor = new MockRotaryPositionSensor();
         double gearRatio = 1;
         RotaryMechanism mech = new RotaryMechanism(logger, motor, sensor, gearRatio, 1, 2);
@@ -39,28 +37,27 @@ public class RotaryMechanismTest implements Timeless {
         // velocity limit observes the encoder
         // within bounds => ok
         sensor.angle = 1.5;
-        mech.setVelocity(1.0, 0, 0);
+        mech.setVelocity(1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
         // out of bounds => stop
         sensor.angle = 2.5;
-        mech.setVelocity(1.0, 0, 0);
+        mech.setVelocity(1.0, 0);
         assertEquals(0.0, motor.velocity, DELTA);
 
         // positional limits filter the input
         // within bounds => ok
-        mech.setUnwrappedPosition(1.5, 1.0, 0, 0);
+        mech.setUnwrappedPosition(1.5, 1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
         // out of bounds => stop
-        mech.setUnwrappedPosition(2.5, 1.0, 0, 0);
+        mech.setUnwrappedPosition(2.5, 1.0, 0);
         assertEquals(0.0, motor.velocity, DELTA);
     }
 
     /** Same cases as above, but unlimited */
     @Test
     void testUnlimited() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor motor = new MockBareMotor(ff, friction);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor motor = new MockBareMotor(friction);
         MockRotaryPositionSensor sensor = new MockRotaryPositionSensor();
         double gearRatio = 1;
         RotaryMechanism mech = new RotaryMechanism(
@@ -79,28 +76,27 @@ public class RotaryMechanismTest implements Timeless {
         // velocity limit observes the encoder
         // within bounds => ok
         sensor.angle = 1.5;
-        mech.setVelocity(1.0, 0, 0);
+        mech.setVelocity(1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
         // out of bounds => stop
         sensor.angle = 2.5;
-        mech.setVelocity(1.0, 0, 0);
+        mech.setVelocity(1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
 
         // positional limits filter the input
         // within bounds => ok
-        mech.setUnwrappedPosition(1.5, 1.0, 0, 0);
+        mech.setUnwrappedPosition(1.5, 1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
         // out of bounds => stop
-        mech.setUnwrappedPosition(2.5, 1.0, 0, 0);
+        mech.setUnwrappedPosition(2.5, 1.0, 0);
         assertEquals(1.0, motor.velocity, DELTA);
     }
 
     @Test
     void testWrapNearMeasurement() {
         LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor motor = new MockBareMotor(ff, friction);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor motor = new MockBareMotor(friction);
         MockRotaryPositionSensor sensor = new MockRotaryPositionSensor();
         RotaryMechanism mech = new RotaryMechanism(
                 log, motor, sensor, 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);

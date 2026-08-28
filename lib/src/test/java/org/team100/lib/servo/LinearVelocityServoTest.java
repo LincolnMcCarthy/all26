@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -22,9 +22,9 @@ class LinearVelocityServoTest {
 
     @Test
     void testNoReset() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor driveMotor = new MockBareMotor(ff, friction);
+        PDynamics dyn = new PDynamics(0);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor driveMotor = new MockBareMotor(friction);
         MockIncrementalBareEncoder driveEncoder = new MockIncrementalBareEncoder();
         LinearMechanism mech = new LinearMechanism(logger,
                 driveMotor, driveEncoder, 1, 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -32,21 +32,21 @@ class LinearVelocityServoTest {
         VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
                 logger, () -> profile, 1);
         OutboardLinearVelocityServo servo = new OutboardLinearVelocityServo(
-                logger, mech, ref, 1);
+                logger, mech, dyn, ref, 1);
         // 0.5 m/s
         servo.setVelocityProfiled(0.5);
     }
 
     @Test
     void testSimple() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        MockBareMotor driveMotor = new MockBareMotor(ff, friction);
+        PDynamics dyn = new PDynamics(0);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        MockBareMotor driveMotor = new MockBareMotor(friction);
         MockIncrementalBareEncoder driveEncoder = new MockIncrementalBareEncoder();
         LinearMechanism mech = new LinearMechanism(logger,
                 driveMotor, driveEncoder, 1, 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         OutboardLinearVelocityServo servo = new OutboardLinearVelocityServo(
-                logger, mech, new NoVelocityReferenceR1(), 1);
+                logger, mech, dyn, new NoVelocityReferenceR1(), 1);
         // 0.5 m/s
         servo.setVelocityDirect(0.5);
         // wheel radius is 0.5 m, so drive speed is 1 m/s

@@ -6,7 +6,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.profile.se2.HolonomicProfileFactory;
 import org.team100.lib.profile.se2.ProfileSE2;
 import org.team100.lib.reference.se2.ProfileReferenceSE2;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.se2.commands.helper.VelocityReferenceControllerSE2;
 import org.team100.lib.subsystems.swerve.SwerveDriveSubsystem;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -49,7 +49,6 @@ public class Rotate extends MoveAndHold {
         m_swerveKinodynamics = swerveKinodynamics;
         m_target = new Rotation2d(targetAngleRadians);
         m_profile = HolonomicProfileFactory.trapezoidal(
-                m_log.name("profile"),
                 m_swerveKinodynamics.getMaxDriveVelocityM_S(),
                 m_swerveKinodynamics.getMaxDriveAccelerationM_S2(),
                 0.01,
@@ -71,7 +70,7 @@ public class Rotate extends MoveAndHold {
         Translation2d dx = m_drive.getVelocity().stopping(m_swerveKinodynamics.getMaxDriveAccelerationM_S2());
         Pose2d goal = new Pose2d(measurement.getX() + dx.getX(), measurement.getY() + dx.getY(), m_target);
         m_reference = new ProfileReferenceSE2(m_log, m_profile, "rotate");
-        m_reference.setGoal(new ModelSE2(goal));
+        m_reference.setGoal(new StateSE2(goal));
         m_referenceController = new VelocityReferenceControllerSE2(
                 m_log, m_drive, m_controller, m_reference);
     }

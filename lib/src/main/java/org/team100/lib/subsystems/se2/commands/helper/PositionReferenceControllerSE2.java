@@ -2,14 +2,14 @@ package org.team100.lib.subsystems.se2.commands.helper;
 
 import org.team100.lib.controller.se2.ControllerSE2;
 import org.team100.lib.controller.se2.NullControllerSE2;
-import org.team100.lib.geometry.VelocitySE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.reference.se2.ReferenceSE2;
 import org.team100.lib.state.ControlSE2;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
 
 /**
- * Actuates a positional subsystem based on a reference.
+ * Actuates a positional subsystem based on a positional reference.
  * 
  * Uses outboard positional control, so it just passes through the "next"
  * reference.
@@ -36,7 +36,7 @@ public class PositionReferenceControllerSE2 extends ReferenceControllerSE2Base {
      * @param u    ignored, since this uses outboard feedback only.
      */
     @Override
-    void execute100(ControlSE2 next, VelocitySE2 u) {
+    void execute100(ControlSE2 next, VelocityControlSE2 u) {
         m_subsystem.set(next);
     }
 

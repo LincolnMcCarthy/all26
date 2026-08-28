@@ -4,7 +4,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.BareMotor;
@@ -33,26 +33,27 @@ public class ClimberExtension extends SubsystemBase {
 
     public ClimberExtension(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory log = parent.type(this);
-        ProfileR1 profile = new TrapezoidProfileR1(log, 0.1, 2, 0.05);
+        ProfileR1 profile = new TrapezoidProfileR1(0.1, 2, 0.05);
+        // dynamics are unimportant for this subsystem.
+        PDynamics dyn = new PDynamics(0);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         final BareMotor motor;
         switch (Identity.instance) {
             case TEST_BOARD_6B -> {
                 CurrentLimit limit = new CurrentLimit(40, 40);
-                SimpleDynamics ff = new SimpleDynamics(log, 0, 0);
-                Friction friction = new Friction(log, 0, 0, 0, 0);
-                PIDConstants pid = new PIDConstants(log, 1, 0, 0, 0, 0, 0);
+                Friction friction = new Friction(0, 0, 0, 0);
+                PIDConstants pid = new PIDConstants(1, 0, 0, 0, 0, 0);
                 motor = new NeoVortexCANSparkMotor(
                         log, currentLog, new CanId(2),
                         NeutralMode100.BRAKE, MotorPhase.FORWARD,
-                        limit, ff, friction, pid, 0, 0);
+                        limit, friction, pid, 0, 0);
             }
             default -> {
                 motor = new SimulatedBareMotor(log, 600);
             }
         }
         m_servo = OutboardLinearPositionServo.make(
-                log, motor, ref, GEAR_RATIO, WHEEL_DIAMETER_M);
+                log, motor, dyn, ref, GEAR_RATIO, WHEEL_DIAMETER_M);
     }
 
     public Command setPosition() {
@@ -83,6 +84,6 @@ public class ClimberExtension extends SubsystemBase {
     }
 
     private void setPositionProfiled(double goalM) {
-        m_servo.setPositionProfiled(goalM, 0);
+        m_servo.setPositionProfiled(goalM);
     }
 }

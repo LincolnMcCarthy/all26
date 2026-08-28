@@ -5,19 +5,20 @@ import java.util.Optional;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
 
+import org.team100.lib.camera.Camera;
+import org.team100.lib.camera.Offset;
 import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.SideEffect;
 import org.team100.lib.coherence.Takt;
-import org.team100.lib.config.Camera;
-import org.team100.lib.geometry.CentroidR2;
-import org.team100.lib.geometry.NearR2;
+import org.team100.lib.geometry.r2.CentroidR2;
+import org.team100.lib.geometry.r2.NearR2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.LoggerFactory.IntLogger;
 import org.team100.lib.network.CameraReader;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.util.CoalescingCollection;
 import org.team100.lib.util.TrailingHistory;
 
@@ -48,7 +49,7 @@ public class Targets extends CameraReader<Target> {
     public final DoubleArrayLogger m_log_coalescedTargets;
 
     /** state = f(takt seconds) from history. */
-    private final DoubleFunction<ModelSE2> m_history;
+    private final DoubleFunction<StateSE2> m_history;
     /** Accumulation of targets we see; this is really for logging only. */
     private final TrailingHistory<Translation2d> m_allTargets;
     /** Coalesced targets */
@@ -63,7 +64,7 @@ public class Targets extends CameraReader<Target> {
             LoggerFactory parent,
             LoggerFactory fieldLogger,
             double maxSightAge,
-            DoubleFunction<ModelSE2> history) {
+            DoubleFunction<StateSE2> history) {
         super(parent, "objectVision", "targets", StructBuffer.create(Target.struct));
         LoggerFactory log = parent.type(this);
         m_maxSightAgeS = maxSightAge;
@@ -101,7 +102,7 @@ public class Targets extends CameraReader<Target> {
 
             m_log_poseTimestamp.log(() -> timeSec);
             Pose2d robotPose = m_history.apply(timeSec).pose();
-            Transform3d cameraOffset = camera.getOffset();
+            Transform3d cameraOffset = Offset.get(camera).offset();
             TargetLocalizer.cameraRotToFieldRelative(
                     robotPose,
                     cameraOffset,

@@ -1,15 +1,19 @@
 package org.team100.lib.subsystems.mecanum;
 
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.dynamics.mecanum.MecanumDynamics;
+import org.team100.lib.dynamics.mecanum.MecanumEffort;
+import org.team100.lib.geometry.se2.ChassisAcceleration;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100;
+import org.team100.lib.kinematics.mecanum.MecanumKinematics100.Slip;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
-import org.team100.lib.logging.LoggerFactory.VelocitySE2Logger;
+import org.team100.lib.logging.LoggerFactory.VelocityControlSE2Logger;
+import org.team100.lib.mechanism.LinearMechanism;
 import org.team100.lib.sensor.gyro.Gyro;
-import org.team100.lib.servo.OutboardLinearVelocityServo;
-import org.team100.lib.state.ModelSE2;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100;
-import org.team100.lib.subsystems.mecanum.kinematics.MecanumKinematics100.Slip;
+import org.team100.lib.state.StateSE2;
+import org.team100.lib.state.VelocityControlSE2;
 import org.team100.lib.subsystems.se2.VelocitySubsystemSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 
@@ -23,21 +27,23 @@ import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-/** Mecanum drive with optional gyro. */
+/**
+ * Mecanum drive with optional gyro.
+ */
 public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemSE2 {
 
     private final DoubleArrayLogger m_log_field_robot;
-    private final VelocitySE2Logger m_log_input;
+    private final VelocityControlSE2Logger m_log_input;
     /** May be null. */
     private final Gyro m_gyro;
     private final double m_trackWidthM;
     private final double m_wheelbaseM;
-    // using "servos" because they compute acceleration.
-    private final OutboardLinearVelocityServo m_frontLeft;
-    private final OutboardLinearVelocityServo m_frontRight;
-    private final OutboardLinearVelocityServo m_rearLeft;
-    private final OutboardLinearVelocityServo m_rearRight;
+    private final LinearMechanism m_frontLeft;
+    private final LinearMechanism m_frontRight;
+    private final LinearMechanism m_rearLeft;
+    private final LinearMechanism m_rearRight;
     private final MecanumKinematics100 m_kinematics;
+    private final MecanumDynamics m_dynamics;
 
     private MecanumDriveWheelPositions m_positions;
     private VelocitySE2 m_input;
@@ -50,17 +56,19 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
     public MecanumDrive100(
             LoggerFactory parent,
             LoggerFactory fieldLogger,
+            double m,
+            double I,
             Gyro gyro,
             double trackWidthM,
             double wheelbaseM,
             Slip slip,
-            OutboardLinearVelocityServo frontLeft,
-            OutboardLinearVelocityServo frontRight,
-            OutboardLinearVelocityServo rearLeft,
-            OutboardLinearVelocityServo rearRight) {
+            LinearMechanism frontLeft,
+            LinearMechanism frontRight,
+            LinearMechanism rearLeft,
+            LinearMechanism rearRight) {
         LoggerFactory log = parent.type(this);
         m_log_field_robot = fieldLogger.doubleArrayLogger(Level.COMP, "robot");
-        m_log_input = log.VelocitySE2Logger(Level.TRACE, "drive input");
+        m_log_input = log.velocityControlSE2Logger(Level.TRACE, "drive input");
         m_gyro = gyro;
         m_trackWidthM = trackWidthM;
         m_wheelbaseM = wheelbaseM;
@@ -68,22 +76,23 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
         m_frontRight = frontRight;
         m_rearLeft = rearLeft;
         m_rearRight = rearRight;
+        Translation2d fl = new Translation2d(m_wheelbaseM / 2, m_trackWidthM / 2);
+        Translation2d fr = new Translation2d(m_wheelbaseM / 2, -m_trackWidthM / 2);
+        Translation2d rl = new Translation2d(-m_wheelbaseM / 2, m_trackWidthM / 2);
+        Translation2d rr = new Translation2d(-m_wheelbaseM / 2, -m_trackWidthM / 2);
         m_kinematics = new MecanumKinematics100(
-                log, slip,
-                new Translation2d(m_wheelbaseM / 2, m_trackWidthM / 2),
-                new Translation2d(m_wheelbaseM / 2, -m_trackWidthM / 2),
-                new Translation2d(-m_wheelbaseM / 2, m_trackWidthM / 2),
-                new Translation2d(-m_wheelbaseM / 2, -m_trackWidthM / 2));
+                slip, fl, fr, rl, rr);
+        m_dynamics = new MecanumDynamics(m, I, fl, fr, rl, rr);
         m_positions = new MecanumDriveWheelPositions();
-        m_input = new VelocitySE2(0, 0, 0);
+        m_input = VelocitySE2.ZERO;
         m_pose = new Pose2d();
         m_gyroOffset = new Rotation2d();
     }
 
     @Override
-    public ModelSE2 getState() {
+    public StateSE2 getState() {
         // assume the velocity is exactly what was requested.
-        return new ModelSE2(m_pose, m_input);
+        return new StateSE2(m_pose, m_input);
     }
 
     /**
@@ -92,15 +101,18 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
      * @param nextV for the next timestep
      */
     @Override
-    public void setVelocity(VelocitySE2 nextV) {
+    public void set(VelocityControlSE2 nextV) {
         Rotation2d yaw = getYaw();
         ChassisSpeeds speed = SwerveKinodynamics.toInstantaneousChassisSpeeds(
-                nextV, yaw);
+                nextV.velocity(), yaw);
         MecanumDriveWheelSpeeds mSpeed = m_kinematics.toWheelSpeeds(speed);
-        m_frontLeft.setVelocityDirect(mSpeed.frontLeftMetersPerSecond);
-        m_frontRight.setVelocityDirect(mSpeed.frontRightMetersPerSecond);
-        m_rearLeft.setVelocityDirect(mSpeed.rearLeftMetersPerSecond);
-        m_rearRight.setVelocityDirect(mSpeed.rearRightMetersPerSecond);
+        ChassisAcceleration accel = ChassisAcceleration.fromFieldRelative(
+                nextV.acceleration(), yaw);
+        MecanumEffort effort = m_dynamics.effort(accel);
+        m_frontLeft.setVelocity(mSpeed.frontLeftMetersPerSecond, effort.fl());
+        m_frontRight.setVelocity(mSpeed.frontRightMetersPerSecond, effort.fr());
+        m_rearLeft.setVelocity(mSpeed.rearLeftMetersPerSecond, effort.rl());
+        m_rearRight.setVelocity(mSpeed.rearRightMetersPerSecond, effort.rr());
         m_log_input.log(() -> nextV);
     }
 
@@ -118,8 +130,8 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
     }
 
     /** Set the field-relative velocity. */
-    public Command driveWithGlobalVelocity(VelocitySE2 v) {
-        return run(() -> setVelocity(v))
+    public Command driveWithGlobalVelocity(VelocityControlSE2 v) {
+        return run(() -> set(v))
                 .withName("drive with global velocity");
     }
 
@@ -169,10 +181,10 @@ public class MecanumDrive100 extends SubsystemBase implements VelocitySubsystemS
 
     private Twist2d twist() {
         MecanumDriveWheelPositions newPositions = new MecanumDriveWheelPositions(
-                m_frontLeft.getDistance(),
-                m_frontRight.getDistance(),
-                m_rearLeft.getDistance(),
-                m_rearRight.getDistance());
+                m_frontLeft.getPositionM(),
+                m_frontRight.getPositionM(),
+                m_rearLeft.getPositionM(),
+                m_rearRight.getPositionM());
         Twist2d twist = m_kinematics.toTwist2d(m_positions, newPositions);
         m_positions = newPositions;
         return twist;

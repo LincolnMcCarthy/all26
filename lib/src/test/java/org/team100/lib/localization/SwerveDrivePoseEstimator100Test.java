@@ -11,13 +11,13 @@ import java.util.function.UnaryOperator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.VelocitySE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.sensor.gyro.MockGyro;
-import org.team100.lib.state.ModelSE2;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModulePosition100;
@@ -59,7 +59,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     private static void verify(double x, double sigma, SwerveHistory history, double timestamp) {
         SwerveState state = history.getRecord(timestamp);
-        ModelSE2 model = state.state();
+        StateSE2 model = state.state();
         Pose2d estimate = model.pose();
         assertEquals(x, estimate.getX(), DELTA);
         assertEquals(0, estimate.getY(), DELTA);
@@ -73,7 +73,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
         assertEquals(sigma, history.getRecord(timestamp).gyroBias().sigma(), DELTA);
     }
 
-    private static void verifyVelocity(double xV, ModelSE2 state) {
+    private static void verifyVelocity(double xV, StateSE2 state) {
         VelocitySE2 v = state.velocity();
         assertEquals(xV, v.x(), DELTA);
     }
@@ -85,7 +85,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     @Test
     void testGyroOffset() {
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
         SwerveHistory history = new SwerveHistory(
                 logger,
@@ -120,7 +120,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     @Test
     void odo1() {
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         SwerveHistory history = new SwerveHistory(
@@ -168,7 +168,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     @Test
     void odo2() {
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -218,7 +218,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     @Test
     void odo3() {
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionNoise = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -273,7 +273,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
     @Test
     void outOfOrder() {
         // out of order vision updates
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -401,7 +401,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
     void minorWeirdness() {
         // weirdness with out-of-order vision updates
 
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -530,7 +530,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
     void test0105() {
         // this is the current (post-comp 2024) base case.
         // within a few frames, the estimate converges on the vision input.
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -595,7 +595,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
     @Test
     void test0110() {
         // double vision stdev (r) -> slower convergence
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(1.0, Double.MAX_VALUE);
@@ -660,7 +660,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
     void test00505() {
         // half odo stdev (q) -> slower convergence
         // the K is q/(q+qr) so it's q compared to r that matters.
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, Double.MAX_VALUE);
@@ -727,7 +727,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
         // actual odometry error is very low
         // measured camera error is something under 10 cm
         // these yield much slower convergence, maybe too slow? try and see.
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forTest();
         Gyro gyro = new MockGyro();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.1, Double.MAX_VALUE);
@@ -856,7 +856,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
             public void periodic() {
             }
         };
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest();
 
         final IsotropicNoiseSE2 visionMeasurementStdDevs = IsotropicNoiseSE2.fromStdDev(0.5, 0.5);
         SwerveHistory estimator = new SwerveHistory(
@@ -934,7 +934,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
                     groundTruthState.velocityMetersPerSecond * groundTruthState.curvatureRadPerMeter);
 
             SwerveModuleStates moduleStates = kinodynamics.getKinematics()
-                    .toSwerveModuleStates(SwerveKinodynamics.discretize(chassisSpeeds, DT));
+                    .inverse(SwerveKinodynamics.discretize(chassisSpeeds, DT));
             SwerveModuleState100[] moduleStatesAll = moduleStates.all();
             SwerveModulePosition100[] positionsAll = positions.all();
             SwerveModulePosition100[] newPositions = new SwerveModulePosition100[positionsAll.length];
@@ -943,7 +943,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
                 // speed noise results in distance noise for each wheel (a lot of noise)
                 double velocityNoise = 1 - rand.nextGaussian() * 0.05;
                 double distanceMeters = positionsAll[i].distanceMeters()
-                        + moduleStatesAll[i].speedMetersPerSecond() * velocityNoise * DT;
+                        + moduleStatesAll[i].speed() * velocityNoise * DT;
 
                 Optional<Rotation2d> angle = moduleStatesAll[i].angle();
                 Optional<Rotation2d> newAngle = Optional.empty();
@@ -959,7 +959,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
             positions = new SwerveModulePositions(newPositions[0], newPositions[1], newPositions[2], newPositions[3]);
 
             ou.update(t);
-            ModelSE2 xHat = estimator.apply(t);
+            StateSE2 xHat = estimator.apply(t);
 
             double error = groundTruthState.poseMeters.getTranslation().getDistance(
                     xHat.pose().getTranslation());
@@ -1009,7 +1009,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
         // If that were the case, after 1000 measurements, the estimated pose would
         // converge to that measurement.
 
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest();
         Gyro gyro = new MockGyro();
 
         final SwerveModulePosition100 fl = new SwerveModulePosition100();
@@ -1065,7 +1065,7 @@ class SwerveDrivePoseEstimator100Test implements Timeless {
 
     @Test
     void testDiscardsOldVisionMeasurements() {
-        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest(logger);
+        SwerveKinodynamics kinodynamics = SwerveKinodynamicsFactory.forWPITest();
         Gyro gyro = new MockGyro();
 
         var estimator = new SwerveHistory(

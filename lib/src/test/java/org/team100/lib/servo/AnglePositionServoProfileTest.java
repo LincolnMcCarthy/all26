@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.controller.r1.FeedbackR1;
 import org.team100.lib.controller.r1.PIDFeedback;
+import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
@@ -16,7 +16,7 @@ import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.profile.r1.TrapezoidProfileR1;
 import org.team100.lib.reference.r1.ProfileReferenceR1;
 import org.team100.lib.sensor.position.absolute.MockRotaryPositionSensor;
-import org.team100.lib.state.ModelR1;
+import org.team100.lib.state.StateR1;
 import org.team100.lib.testing.Timeless;
 
 class AnglePositionServoProfileTest implements Timeless {
@@ -32,9 +32,9 @@ class AnglePositionServoProfileTest implements Timeless {
     double previousMotorSpeed = 0;
 
     public AnglePositionServoProfileTest() {
-        SimpleDynamics ff = new SimpleDynamics(logger, 0.100, 0.100);
-        Friction friction = new Friction(logger, 0.100, 0.100, 0.0, 0.1);
-        motor = new MockBareMotor(ff, friction);
+        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
+        Friction friction = new Friction(0.100, 0.100, 0.0, 0.1);
+        motor = new MockBareMotor(friction);
         sensor = new MockRotaryPositionSensor();
         RotaryMechanism mech = new RotaryMechanism(
                 logger,
@@ -44,16 +44,16 @@ class AnglePositionServoProfileTest implements Timeless {
                 Double.NEGATIVE_INFINITY,
                 Double.POSITIVE_INFINITY);
         feedback2 = new PIDFeedback(logger, 1, 0, 0, false, 0.05, 1);
-        ProfileR1 profile = new TrapezoidProfileR1(logger, 1, 1, 0.05);
+        ProfileR1 profile = new TrapezoidProfileR1(1, 1, 0.05);
         ref = new ProfileReferenceR1(logger, () -> profile, 0.05, 0.05);
-        servo = new OnboardAngularPositionServo(logger, mech, ref, feedback2);
+        servo = new OnboardAngularPositionServo(logger, mech, dyn, ref, feedback2);
         servo.reset();
     }
 
     @Test
     void testProfile() {
         // the profile pays attention to time, so this needs to be in the test method.
-        ref.init(new ModelR1());
+        ref.init(new StateR1());
         verify(0.1, 0.005, 0.1);
         verify(0.2, 0.020, 0.2);
         verify(0.3, 0.045, 0.3);
@@ -83,7 +83,7 @@ class AnglePositionServoProfileTest implements Timeless {
         // spin for 100ms
         for (int i = 0; i < 5; ++i) {
             // observe the current instant and set the output for the next step
-            servo.setPositionProfiled(1, 0);
+            servo.setPositionProfiled(1);
             stepTime();
             // trapezoid integral over the step
             sensor.angle += 0.5 * (motor.velocity + previousMotorSpeed) * 0.02;

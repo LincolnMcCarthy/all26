@@ -4,7 +4,6 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
@@ -43,9 +42,8 @@ public class PivotSubsystem extends SubsystemBase {
                     canId,
                     NeutralMode100.BRAKE,
                     MotorPhase.FORWARD, limit,
-                    new SimpleDynamics(logger, 0, 0),
-                    new Friction(logger, 0.07, 0.07, 0.01, 0.5),
-                    PIDConstants.zero(logger),
+                    new Friction(0.07, 0.07, 0.01, 0.5),
+                    PIDConstants.zero(),
                     0,
                     0);
         });
@@ -72,7 +70,7 @@ public class PivotSubsystem extends SubsystemBase {
     }
 
     public Command stop() {
-        return run(this::stop);
+        return run(this::zero);
     }
 
     @Override

@@ -1,4 +1,4 @@
-# SENSOR MODES
+# Sensor Modes
 
 The Raspberry Pi cameras we use advertise a few sensor modes to choose from:
 

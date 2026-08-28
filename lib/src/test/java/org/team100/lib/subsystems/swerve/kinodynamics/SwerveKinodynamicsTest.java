@@ -3,10 +3,8 @@ package org.team100.lib.subsystems.swerve.kinodynamics;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.logging.TestLoggerFactory;
-import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.dynamics.swerve.Tire;
+import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.subsystems.swerve.module.state.SwerveModuleStates;
 import org.team100.lib.testing.Timeless;
 
@@ -15,12 +13,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 class SwerveKinodynamicsTest implements Timeless {
     private static final double DELTA = 0.001;
-    private final LoggerFactory logger = new TestLoggerFactory(new TestPrimitiveLogger());
 
     /** From field relative speed to robot relative speed to modules and back. */
     @Test
     void testRoundTripMotionless() {
-        SwerveKinodynamics unlimited = SwerveKinodynamicsFactory.unlimited(logger);
+        SwerveKinodynamics unlimited = SwerveKinodynamicsFactory.unlimited();
         VelocitySE2 v = new VelocitySE2(0, 0, 0);
         Rotation2d theta = new Rotation2d();
         ChassisSpeeds instantaneous = SwerveKinodynamics.toInstantaneousChassisSpeeds(v, theta);
@@ -35,7 +32,7 @@ class SwerveKinodynamicsTest implements Timeless {
     /** From field relative speed to robot relative speed to modules and back. */
     @Test
     void testRoundTripDriveAndSpin() {
-        SwerveKinodynamics unlimited = SwerveKinodynamicsFactory.unlimited(logger);
+        SwerveKinodynamics unlimited = SwerveKinodynamicsFactory.unlimited();
         VelocitySE2 v = new VelocitySE2(5, 0, 25);
         Rotation2d theta = new Rotation2d();
         ChassisSpeeds instantaneous = SwerveKinodynamics.toInstantaneousChassisSpeeds(v, theta);
@@ -52,8 +49,9 @@ class SwerveKinodynamicsTest implements Timeless {
         double track = 0.5;
         double wheelbase = 0.5;
         double driveV = 1;
-        SwerveKinodynamics k = new SwerveKinodynamics(logger,
-                driveV, 1, 1, 1, 1, 20 * Math.PI, track, track, wheelbase, wheelbase / 2, 1);
+        SwerveKinodynamics k = new SwerveKinodynamics(
+                driveV, 1, 1, 1, track, track, wheelbase, wheelbase / 2, 1,
+                70, 6, new Tire(175, 0.05));
         assertEquals(1, k.getMaxDriveVelocityM_S(), DELTA);
 
         double r = Math.hypot(track / 2, wheelbase / 2);
@@ -69,8 +67,9 @@ class SwerveKinodynamicsTest implements Timeless {
         double track = 0.5;
         double wheelbase = 0.5;
         double driveV = 4;
-        SwerveKinodynamics k = new SwerveKinodynamics(logger,
-                driveV, 1, 1, 1, 1, 20 * Math.PI, track, track, wheelbase, wheelbase / 2, 1);
+        SwerveKinodynamics k = new SwerveKinodynamics(
+                driveV, 1, 1, 1, track, track, wheelbase, wheelbase / 2, 1,
+                70, 6, new Tire(175, 0.05));
         assertEquals(4, k.getMaxDriveVelocityM_S(), DELTA);
 
         double r = Math.hypot(track / 2, wheelbase / 2);
@@ -87,9 +86,8 @@ class SwerveKinodynamicsTest implements Timeless {
         double wheelbase = 1;
         double driveV = 4;
         SwerveKinodynamics k = new SwerveKinodynamics(
-                logger,
-                driveV, 1, 1, 1, 1, 20 * Math.PI, track, track, wheelbase,
-                wheelbase / 2, 1);
+                driveV, 1, 1, 1, track, track, wheelbase,
+                wheelbase / 2, 1, 70, 6, new Tire(175, 0.05));
         assertEquals(4, k.getMaxDriveVelocityM_S(), DELTA);
 
         double r = Math.hypot(track / 2, wheelbase / 2);
@@ -105,8 +103,9 @@ class SwerveKinodynamicsTest implements Timeless {
         double track = 0.5;
         double wheelbase = 0.5;
         double driveA = 1;
-        SwerveKinodynamics k = new SwerveKinodynamics(logger,
-                1, 1, driveA, 1, 1, 20 * Math.PI, track, track, wheelbase, wheelbase / 2, 1);
+        SwerveKinodynamics k = new SwerveKinodynamics(
+                1, 1, driveA, 1, track, track, wheelbase, wheelbase / 2, 1,
+                70, 6, new Tire(175, 0.05));
         assertEquals(1, k.getMaxDriveAccelerationM_S2(), DELTA);
 
         double r = Math.hypot(track / 2, wheelbase / 2);
@@ -123,8 +122,9 @@ class SwerveKinodynamicsTest implements Timeless {
         double track = 1;
         double wheelbase = 1;
         double driveA = 1;
-        SwerveKinodynamics k = new SwerveKinodynamics(logger,
-                1, 1, driveA, 1, 1, 20 * Math.PI, track, track, wheelbase, wheelbase / 2, 1);
+        SwerveKinodynamics k = new SwerveKinodynamics(
+                1, 1, driveA, 1, track, track, wheelbase, wheelbase / 2, 1,
+                70, 6, new Tire(175, 0.05));
         assertEquals(1, k.getMaxDriveAccelerationM_S2(), DELTA);
 
         double r = Math.hypot(track / 2, wheelbase / 2);
@@ -142,8 +142,9 @@ class SwerveKinodynamicsTest implements Timeless {
         double track = 1;
         double wheelbase = 1;
         double vcg = 0.3;
-        SwerveKinodynamics k = new SwerveKinodynamics(logger,
-                1, 1, 1, 1, 1, 20 * Math.PI, track, track, wheelbase, wheelbase / 2, vcg);
+        SwerveKinodynamics k = new SwerveKinodynamics(
+                1, 1, 1, 1, track, track, wheelbase, wheelbase / 2, vcg,
+                70, 6, new Tire(175, 0.05));
         assertEquals(1, k.getMaxDriveAccelerationM_S2(), DELTA);
 
         double fulcrum = Math.min(track / 2, wheelbase / 2);
@@ -157,7 +158,7 @@ class SwerveKinodynamicsTest implements Timeless {
 
     @Test
     void testAFewCases() {
-        SwerveKinodynamics limits = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        SwerveKinodynamics limits = SwerveKinodynamicsFactory.forRealisticTest();
         double maxV = limits.getMaxDriveVelocityM_S();
         double maxOmega = limits.getMaxAngleSpeedRad_S();
         assertEquals(5, maxV, DELTA);
@@ -168,10 +169,10 @@ class SwerveKinodynamicsTest implements Timeless {
             ChassisSpeeds s = new ChassisSpeeds(0, 0, -9.38);
             // now discretizes.
             SwerveModuleStates ms = limits.toSwerveModuleStates(s);
-            assertEquals(3.316, ms.frontLeft().speedMetersPerSecond(), DELTA);
-            assertEquals(3.316, ms.frontRight().speedMetersPerSecond(), DELTA);
-            assertEquals(3.316, ms.rearLeft().speedMetersPerSecond(), DELTA);
-            assertEquals(3.316, ms.rearRight().speedMetersPerSecond(), DELTA);
+            assertEquals(3.316, ms.frontLeft().speed(), DELTA);
+            assertEquals(3.316, ms.frontRight().speed(), DELTA);
+            assertEquals(3.316, ms.rearLeft().speed(), DELTA);
+            assertEquals(3.316, ms.rearRight().speed(), DELTA);
         }
         {
             // with an extra ~2m/s, it's too fast
@@ -179,10 +180,10 @@ class SwerveKinodynamicsTest implements Timeless {
             SwerveModuleStates ms = limits.toSwerveModuleStates(s);
             // we no longer desaturate at this level: use the setpoint generator if you want
             // that.
-            assertEquals(5.035, ms.frontLeft().speedMetersPerSecond(), DELTA);
-            assertEquals(4.735, ms.frontRight().speedMetersPerSecond(), DELTA);
-            assertEquals(2.689, ms.rearLeft().speedMetersPerSecond(), DELTA);
-            assertEquals(2.074, ms.rearRight().speedMetersPerSecond(), DELTA);
+            assertEquals(5.035, ms.frontLeft().speed(), DELTA);
+            assertEquals(4.735, ms.frontRight().speed(), DELTA);
+            assertEquals(2.689, ms.rearLeft().speed(), DELTA);
+            assertEquals(2.074, ms.rearRight().speed(), DELTA);
 
             ChassisSpeeds i = limits.toChassisSpeedsWithDiscretization(ms, 0.02);
             // we get back what we put in
@@ -195,7 +196,7 @@ class SwerveKinodynamicsTest implements Timeless {
 
     @Test
     void testDiscretizationNoEffect() {
-        SwerveKinodynamics l = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        SwerveKinodynamics l = SwerveKinodynamicsFactory.forRealisticTest();
         // for this test the gyro rate and the commanded omega are the same,
         // though this is definitely not true in general
         {
@@ -220,7 +221,7 @@ class SwerveKinodynamicsTest implements Timeless {
 
     @Test
     void testDiscretizationWithEffect() {
-        SwerveKinodynamics l = SwerveKinodynamicsFactory.forRealisticTest(logger);
+        SwerveKinodynamics l = SwerveKinodynamicsFactory.forRealisticTest();
         // for this test the gyro rate and the commanded omega are the same,
         // though this is definitely not true in general
         {

@@ -19,11 +19,15 @@ public enum Experiment {
      */
     HeedVision,
     /**
-     * Skip acceleration feedforward in drivetrain, to reduce noise.
-     */
-    DriveWithoutAccel,
-    /**
      * Skip velocity feedforward in steering, to reduce noise.
      */
-    SteerWithoutVelocity
+    SteerWithoutVelocity,
+    /**
+     * Use longitudinal dynamics, i.e. motor torque.
+     */
+    SwerveDynamicsLongitudinal,
+    /**
+     * Use lateral dynamics, i.e. slip angle.
+     */
+    SwerveDynamicsLateral
 }

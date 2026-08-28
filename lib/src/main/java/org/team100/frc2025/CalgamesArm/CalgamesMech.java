@@ -13,18 +13,22 @@ import org.team100.lib.config.ElevatorUtil.ScoringLevel;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
-import org.team100.lib.config.SimpleDynamics;
-import org.team100.lib.geometry.AccelerationSE2;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.VelocitySE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.dynamics.prr.PRREffort;
+import org.team100.lib.geometry.prr.PRRAcceleration;
+import org.team100.lib.geometry.prr.PRRConfig;
+import org.team100.lib.geometry.prr.PRRVelocity;
+import org.team100.lib.geometry.se2.AccelerationSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.VelocitySE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
+import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.AccelerationSE2Logger;
 import org.team100.lib.logging.LoggerFactory.ConfigLogger;
-import org.team100.lib.logging.LoggerFactory.JointAccelerationsLogger;
-import org.team100.lib.logging.LoggerFactory.JointForceLogger;
-import org.team100.lib.logging.LoggerFactory.JointVelocitiesLogger;
+import org.team100.lib.logging.LoggerFactory.PRRAccelerationLogger;
+import org.team100.lib.logging.LoggerFactory.PRREffortLogger;
+import org.team100.lib.logging.LoggerFactory.PRRVelocityLogger;
 import org.team100.lib.logging.LoggerFactory.Pose2dLogger;
 import org.team100.lib.logging.LoggerFactory.VelocitySE2Logger;
 import org.team100.lib.logging.TotalCurrentLog;
@@ -46,13 +50,7 @@ import org.team100.lib.sensor.position.absolute.wpi.AS5048RotaryPositionSensor;
 import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
 import org.team100.lib.sensor.position.incremental.ctre.Talon6Encoder;
 import org.team100.lib.state.ControlSE2;
-import org.team100.lib.state.ModelSE2;
-import org.team100.lib.subsystems.prr.AnalyticalJacobian;
-import org.team100.lib.subsystems.prr.EAWConfig;
-import org.team100.lib.subsystems.prr.ElevatorArmWristKinematics;
-import org.team100.lib.subsystems.prr.JointAccelerations;
-import org.team100.lib.subsystems.prr.JointForce;
-import org.team100.lib.subsystems.prr.JointVelocities;
+import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.prr.SubsystemPRR;
 import org.team100.lib.subsystems.prr.commands.FollowJointProfiles;
 import org.team100.lib.subsystems.se2.PositionSubsystemSE2;
@@ -73,13 +71,13 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
     /// CANONICAL CONFIGS
     /// These are used with profiles.
     ///
-    public static final EAWConfig HOME = new EAWConfig(0, 0, 0);
-    private static final EAWConfig CORAL_GROUND_PICK = new EAWConfig(0, -1.83, -0.12);
-    private static final EAWConfig CLIMB = new EAWConfig(0, -1.83, 2);
-    private static final EAWConfig STATION = new EAWConfig(0, -1, 0);
-    private static final EAWConfig PROCESSOR = new EAWConfig(0, 1.2, 0);
-    private static final EAWConfig ALGAE_GROUND = new EAWConfig(0, 1.43, 0);
-    private static final EAWConfig L1 = new EAWConfig(0, -.95, -.5);
+    public static final PRRConfig HOME = new PRRConfig(0, 0, 0);
+    private static final PRRConfig CORAL_GROUND_PICK = new PRRConfig(0, -1.83, -0.12);
+    private static final PRRConfig CLIMB = new PRRConfig(0, -1.83, 2);
+    private static final PRRConfig STATION = new PRRConfig(0, -1, 0);
+    private static final PRRConfig PROCESSOR = new PRRConfig(0, 1.2, 0);
+    private static final PRRConfig ALGAE_GROUND = new PRRConfig(0, 1.43, 0);
+    private static final PRRConfig L1 = new PRRConfig(0, -.95, -.5);
 
     ////////////////////////////////////////////////////////
     ///
@@ -98,15 +96,14 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
     private final double m_wristLengthM;
     private final MechTrajectories m_transit;
 
-    private final ElevatorArmWristKinematics m_kinematics;
-    private final AnalyticalJacobian m_jacobian;
+    private final PRRKinematics m_kinematics;
 
     private final Dynamics m_dynamics;
 
     private final ConfigLogger m_log_config;
-    private final JointVelocitiesLogger m_log_jointV;
-    private final JointAccelerationsLogger m_log_jointA;
-    private final JointForceLogger m_log_jointF;
+    private final PRRVelocityLogger m_log_jointV;
+    private final PRRAccelerationLogger m_log_jointA;
+    private final PRREffortLogger m_log_jointF;
 
     private final Pose2dLogger m_log_pose;
     private final VelocitySE2Logger m_log_cartesianV;
@@ -135,19 +132,18 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         m_armLengthM = armLength;
         m_wristLengthM = wristLength;
 
-        m_kinematics = new ElevatorArmWristKinematics(armLength, wristLength);
-        m_jacobian = new AnalyticalJacobian(m_kinematics);
+        m_kinematics = new PRRKinematics(armLength, wristLength, PRRKinematics.Solver.ANALYTIC);
         m_dynamics = new Dynamics();
 
         m_home = m_kinematics.forward(HOME);
 
-        m_transit = new MechTrajectories(parent, this, m_kinematics, m_jacobian);
+        m_transit = new MechTrajectories(parent, this, m_kinematics);
 
         LoggerFactory jointLog = parent.name("joints");
         m_log_config = jointLog.logConfig(Level.DEBUG, "config");
-        m_log_jointV = jointLog.logJointVelocities(Level.DEBUG, "velocity");
-        m_log_jointA = jointLog.logJointAccelerations(Level.DEBUG, "accel");
-        m_log_jointF = jointLog.logJointForce(Level.DEBUG, "force");
+        m_log_jointV = jointLog.logPRRVelocity(Level.DEBUG, "velocity");
+        m_log_jointA = jointLog.logPRRAcceleration(Level.DEBUG, "accel");
+        m_log_jointF = jointLog.logPRREffort(Level.DEBUG, "force");
 
         LoggerFactory cartesianLog = parent.name("cartesian");
         m_log_pose = cartesianLog.pose2dLogger(Level.DEBUG, "pose");
@@ -173,9 +169,8 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
                         new CanId(11),
                         NeutralMode100.BRAKE, MotorPhase.REVERSE,
                         new CurrentLimit(100, 100),
-                        new SimpleDynamics(elevatorfrontLog, 0.002, 0.002),
-                        new Friction(elevatorfrontLog, 0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(elevatorfrontLog, 1));
+                        new Friction(0.100, 0.100, 0.005, 0.5),
+                        PIDConstants.makePositionPID(1));
                 IncrementalBareEncoder elevatorFrontEncoder = elevatorFrontMotor.encoder();
 
                 m_elevatorFront = new LinearMechanism(
@@ -189,9 +184,8 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
                         new CanId(12),
                         NeutralMode100.BRAKE, MotorPhase.FORWARD,
                         new CurrentLimit(100, 100),
-                        new SimpleDynamics(elevatorbackLog, 0.002, 0.002),
-                        new Friction(elevatorbackLog, 0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(elevatorbackLog, 1));
+                        new Friction(0.100, 0.100, 0.005, 0.5),
+                        PIDConstants.makePositionPID(1));
                 Talon6Encoder elevatorBackEncoder = elevatorBackMotor.encoder();
                 m_elevatorBack = new LinearMechanism(
                         elevatorbackLog, elevatorBackMotor, elevatorBackEncoder,
@@ -205,9 +199,8 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
                         NeutralMode100.BRAKE,
                         MotorPhase.REVERSE,
                         new CurrentLimit(100, 100),
-                        new SimpleDynamics(shoulderLog, 0.002, 0.002),
-                        new Friction(shoulderLog, 0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(shoulderLog, 1));
+                        new Friction(0.100, 0.100, 0.005, 0.5),
+                        PIDConstants.makePositionPID(1));
                 Talon6Encoder shoulderEncoder = shoulderMotor.encoder();
                 // The shoulder has a 5048 on the intermediate shaft
                 AS5048RotaryPositionSensor shoulderSensor = new AS5048RotaryPositionSensor(
@@ -236,9 +229,8 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
                         new CanId(22),
                         NeutralMode100.COAST, MotorPhase.FORWARD,
                         new CurrentLimit(40, 60),
-                        new SimpleDynamics(wristLog, 0.002, 0.002),
-                        new Friction(wristLog, 0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(wristLog, 1));
+                        new Friction(0.100, 0.100, 0.005, 0.5),
+                        PIDConstants.makePositionPID(1));
                 // the wrist has no angle sensor, so it needs to start in the "zero" position.
                 Talon6Encoder wristEncoder = wristMotor.encoder();
                 final double wristGearRatio = 55.710;
@@ -307,27 +299,27 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         return m_wristLengthM;
     }
 
-    public EAWConfig getConfig() {
-        return new EAWConfig(
+    public PRRConfig getConfig() {
+        return new PRRConfig(
                 m_elevatorBack.getPositionM(),
                 m_shoulder.getWrappedPositionRad(),
                 m_wrist.getWrappedPositionRad());
     }
 
-    public JointVelocities getJointVelocity() {
-        return new JointVelocities(
+    public PRRVelocity getJointVelocity() {
+        return new PRRVelocity(
                 m_elevatorBack.getVelocityM_S(),
                 m_shoulder.getVelocityRad_S(),
                 m_wrist.getVelocityRad_S());
     }
 
     @Override
-    public ModelSE2 getState() {
-        EAWConfig c = getConfig();
-        JointVelocities jv = getJointVelocity();
+    public StateSE2 getState() {
+        PRRConfig c = getConfig();
+        PRRVelocity jv = getJointVelocity();
         Pose2d p = m_kinematics.forward(c);
-        VelocitySE2 v = m_jacobian.forward(c, jv);
-        return new ModelSE2(p, v);
+        VelocitySE2 v = m_kinematics.forward(c, jv);
+        return new StateSE2(p, v);
     }
 
     // for testing only
@@ -336,41 +328,44 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         AccelerationSE2 a = new AccelerationSE2(0, 0, 0);
         ControlSE2 control = new ControlSE2(pose, v, a);
 
-        JointVelocities jv = m_jacobian.inverse(control.model());
-        JointAccelerations ja = m_jacobian.inverseA(control);
-        JointForce jf = m_dynamics.forward(getConfig(), jv, ja);
+        PRRConfig q = getConfig();
+        PRRVelocity jv = m_kinematics.inverse(q, control.model());
+        PRRAcceleration ja = m_kinematics.inverse(q, control);
+        PRREffort jf = m_dynamics.forward(getConfig(), jv, ja);
 
-        m_elevatorFront.setVelocity(jv.elevator(), ja.elevator(), jf.elevator());
-        m_elevatorBack.setVelocity(jv.elevator(), ja.elevator(), jf.elevator());
+        m_elevatorFront.setVelocity(jv.q1dot(), jf.f1());
+        m_elevatorBack.setVelocity(jv.q1dot(), jf.f1());
         if (DISABLED) {
-            m_wrist.setUnwrappedPosition(2, 0, 0, 0);
+            m_wrist.setUnwrappedPosition(2, 0, 0);
             return;
         }
-        m_wrist.setVelocity(jv.wrist(), ja.wrist(), jf.wrist());
-        m_shoulder.setVelocity(jv.shoulder(), ja.shoulder(), jf.shoulder());
+        m_wrist.setVelocity(jv.q3dot(), jf.t3());
+        m_shoulder.setVelocity(jv.q2dot(), jf.t2());
     }
 
     /** There are no profiles here, so this control needs to be feasible. */
     @Override
     public void set(ControlSE2 control) {
         Pose2d pose = control.pose();
-        EAWConfig config = m_kinematics.inverse(pose);
-        if (DEBUG) {
-            System.out.printf("pose %s config %s\n", StrUtil.pose2Str(pose), config);
-        }
-        if (config.isNaN()) {
+        List<PRRConfig> configs = m_kinematics.inverse(pose);
+        if (configs.isEmpty()) {
             if (DEBUG)
                 System.out.println("skipping invalid config");
             stop();
             return;
         }
-        JointVelocities jv = m_jacobian.inverse(control.model());
-        JointAccelerations ja = m_jacobian.inverseA(control);
+        // for now always use the "up" config.
+        PRRConfig config = configs.get(0);
+        if (DEBUG) {
+            System.out.printf("pose %s config %s\n", StrUtil.pose2Str(pose), config);
+        }
+        PRRVelocity jv = m_kinematics.inverse(config, control.model());
+        PRRAcceleration ja = m_kinematics.inverse(config, control);
         set(config, jv, ja);
     }
 
-    public void set(EAWConfig c, JointVelocities jv, JointAccelerations ja) {
-        JointForce jf = m_dynamics.forward(c, jv, ja);
+    public void set(PRRConfig c, PRRVelocity jv, PRRAcceleration ja) {
+        PRREffort jf = m_dynamics.forward(c, jv, ja);
         set(c, jv, ja, jf);
     }
 
@@ -627,12 +622,8 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
 
     /////////////////////////////////////////////////////////////
 
-    public ElevatorArmWristKinematics getKinematics() {
+    public PRRKinematics getKinematics() {
         return m_kinematics;
-    }
-
-    public AnalyticalJacobian getJacobian() {
-        return m_jacobian;
     }
 
     @Override
@@ -650,23 +641,23 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         m_elevatorFront.stop();
         m_elevatorBack.stop();
         if (DISABLED) {
-            m_wrist.setUnwrappedPosition(2, 0, 0, 0);
+            m_wrist.setUnwrappedPosition(2, 0, 0);
             return;
         }
-        m_wrist.setUnwrappedPosition(0, 0, 0, 0);
-        m_shoulder.setUnwrappedPosition(0, 0, 0, 0);
+        m_wrist.setUnwrappedPosition(0, 0, 0);
+        m_shoulder.setUnwrappedPosition(0, 0, 0);
     }
 
-    private void set(EAWConfig c, JointVelocities jv, JointAccelerations ja, JointForce jf) {
+    private void set(PRRConfig c, PRRVelocity jv, PRRAcceleration ja, PRREffort jf) {
         logConfig(c, jv, ja, jf);
-        m_elevatorFront.setPosition(c.shoulderHeight(), jv.elevator(), 0, jf.elevator());
-        m_elevatorBack.setPosition(c.shoulderHeight(), jv.elevator(), 0, jf.elevator());
+        m_elevatorFront.setPosition(c.q1(), jv.q1dot(), jf.f1());
+        m_elevatorBack.setPosition(c.q1(), jv.q1dot(), jf.f1());
         if (DISABLED) {
-            m_wrist.setUnwrappedPosition(2, 0, 0, 0);
+            m_wrist.setUnwrappedPosition(2, 0, 0);
             return;
         }
-        m_wrist.setUnwrappedPosition(c.wristAngle(), jv.wrist(), 0, jf.wrist());
-        m_shoulder.setUnwrappedPosition(c.shoulderAngle(), jv.shoulder(), 0, jf.shoulder());
+        m_wrist.setUnwrappedPosition(c.q3(), jv.q3dot(), jf.t3());
+        m_shoulder.setUnwrappedPosition(c.q2(), jv.q2dot(), jf.t2());
     }
 
     public Command setDisabled(boolean disabled) {
@@ -675,14 +666,14 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         });
     }
 
-    private void logConfig(EAWConfig c, JointVelocities jv, JointAccelerations ja, JointForce jf) {
+    private void logConfig(PRRConfig c, PRRVelocity jv, PRRAcceleration ja, PRREffort jf) {
         m_log_config.log(() -> c);
         m_log_jointV.log(() -> jv);
         m_log_jointA.log(() -> ja);
         m_log_jointF.log(() -> jf);
         Pose2d p = m_kinematics.forward(c);
-        VelocitySE2 v = m_jacobian.forward(c, jv);
-        AccelerationSE2 a = m_jacobian.forwardA(c, jv, ja);
+        VelocitySE2 v = m_kinematics.forward(c, jv);
+        AccelerationSE2 a = m_kinematics.forward(c, jv, ja);
         m_log_pose.log(() -> p);
         m_log_cartesianV.log(() -> v);
         m_log_cartesianA.log(() -> a);

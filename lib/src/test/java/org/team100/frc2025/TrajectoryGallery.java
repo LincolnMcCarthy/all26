@@ -13,23 +13,23 @@ import org.team100.frc2025.field.FieldConstants2025;
 import org.team100.frc2025.field.FieldConstants2025.CoralStation;
 import org.team100.frc2025.field.FieldConstants2025.ReefPoint;
 import org.team100.lib.config.ElevatorUtil.ScoringLevel;
-import org.team100.lib.geometry.DirectionSE2;
-import org.team100.lib.geometry.WaypointSE2;
+import org.team100.lib.geometry.se2.DirectionSE2;
+import org.team100.lib.geometry.se2.WaypointSE2;
+import org.team100.lib.kinematics.prr.PRRKinematics;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
-import org.team100.lib.subsystems.prr.ElevatorArmWristKinematics;
+import org.team100.lib.path.se2.PathSE2Factory;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
-import org.team100.lib.trajectory.TrajectorySE2;
-import org.team100.lib.trajectory.TrajectorySE2Factory;
-import org.team100.lib.trajectory.TrajectorySE2Planner;
-import org.team100.lib.trajectory.TrajectorySE2ToVectorSeries;
-import org.team100.lib.trajectory.constraint.ConstantConstraint;
-import org.team100.lib.trajectory.constraint.TimingConstraint;
-import org.team100.lib.trajectory.constraint.TorqueConstraint;
-import org.team100.lib.trajectory.constraint.YawRateConstraint;
-import org.team100.lib.trajectory.path.PathSE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2;
+import org.team100.lib.trajectory.se2.TrajectorySE2Factory;
+import org.team100.lib.trajectory.se2.TrajectorySE2Planner;
+import org.team100.lib.trajectory.se2.TrajectorySE2ToVectorSeries;
+import org.team100.lib.trajectory.se2.constraint.ConstantConstraint;
+import org.team100.lib.trajectory.se2.constraint.TimingConstraint;
+import org.team100.lib.trajectory.se2.constraint.TorqueConstraint;
+import org.team100.lib.trajectory.se2.constraint.YawRateConstraint;
 import org.team100.lib.util.ChartUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -37,7 +37,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 /** Show some trajectories from 2025 in a vector series chart. */
 public class TrajectoryGallery {
     LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());
-    SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest(log);
+    SwerveKinodynamics swerveKinodynamics = SwerveKinodynamicsFactory.forRealisticTest();
 
     @Test
     void testGoToCoralStation1() {
@@ -94,15 +94,15 @@ public class TrajectoryGallery {
         // homeToL2
         List<TimingConstraint> c = new ArrayList<>();
         // These are known to work, but suboptimal.
-        c.add(new ConstantConstraint(log, 10, 5));
-        c.add(new YawRateConstraint(log, 10, 5));
+        c.add(new ConstantConstraint(10, 5));
+        c.add(new YawRateConstraint(10, 5));
         // This is new
         c.add(new TorqueConstraint(20));
         TrajectorySE2Factory trajectoryFactory = new TrajectorySE2Factory(c);
         PathSE2Factory pathFactory = new PathSE2Factory(0.05, 0.01, 0.1);
         TrajectorySE2Planner m_planner = new TrajectorySE2Planner(pathFactory, trajectoryFactory);
 
-        ElevatorArmWristKinematics m_kinematics = new ElevatorArmWristKinematics(0.5, 0.343);
+        PRRKinematics m_kinematics = new PRRKinematics(0.5, 0.343, PRRKinematics.Solver.ANALYTIC);
         Pose2d m_home = m_kinematics.forward(CalgamesMech.HOME);
         WaypointSE2 start = new WaypointSE2(m_home, m_course, 1);
         TrajectorySE2 m_trajectory = m_planner.restToRest(List.of(start, m_goal));
@@ -111,7 +111,7 @@ public class TrajectoryGallery {
     }
 
     private List<VectorSeries> series(CoralStation coralStation, ReefPoint reefPoint, ScoringLevel scoringLevel) {
-        GoToCoralStation toStation = new GoToCoralStation(log, swerveKinodynamics, coralStation, 0.5);
+        GoToCoralStation toStation = new GoToCoralStation(swerveKinodynamics, coralStation, 0.5);
         // the start is the goal from the previous maneuver
         Pose2d start = FieldConstants2025.makeGoal(scoringLevel, reefPoint);
         TrajectorySE2 trajectory = toStation.apply(start);

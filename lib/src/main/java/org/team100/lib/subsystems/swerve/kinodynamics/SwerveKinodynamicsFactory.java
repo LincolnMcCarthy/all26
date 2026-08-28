@@ -1,7 +1,7 @@
 package org.team100.lib.subsystems.swerve.kinodynamics;
 
 import org.team100.lib.config.Identity;
-import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.dynamics.swerve.Tire;
 
 /**
  * Each drivetrain should be tuned, and the values here should be the physical
@@ -27,7 +27,7 @@ public class SwerveKinodynamicsFactory {
      * Tests should try to avoid calling get(). Use one of the test-specific methods
      * below instead.
      */
-    public static SwerveKinodynamics get(LoggerFactory log) {
+    public static SwerveKinodynamics get() {
         System.out.printf("Swerve Kinodynamics Factory using Identity %s\n", Identity.instance);
         switch (Identity.instance) {
             case COMP_BOT:
@@ -38,46 +38,46 @@ public class SwerveKinodynamicsFactory {
                 // 9/24/24, raised steering rate from 20 to 40, accel from 60 to 120.
                 // 3/15/26, lowered vcg, fixed offset, rasied other limits
                 return new SwerveKinodynamics(
-                        log,
                         5, // max vel m/s
                         20, // stall m/s/s
                         20, // max accel m/s/s
                         50, // max decel m/s/s
-                        40, // max module steering rate rad/s
-                        120, // max module steering accel rad/s/s
                         0.565, // front track m
                         0.565, // back track m
                         0.565, // wheelbase m
                         0.283, // front offset m
-                        0.15); // vcg m
+                        0.15, // vcg m
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
             case SWERVE_TWO:
                 return new SwerveKinodynamics(
-                        log,
                         4, // vel m/s
                         10, // stall m/s/s
                         2, // accel m/s/s
                         2, // decel m/s/s
-                        13, // steering rate rad/s
-                        20 * Math.PI, // steering accel rad/s/s
                         0.380, // track m
                         0.380, // track m
                         0.445, // wheelbase m
                         0.2225, // front offset m
-                        0.5); // vcg m
+                        0.5, // vcg m
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
             case SWERVE_ONE:
                 return new SwerveKinodynamics(
-                        log,
                         5, // vel m/s
                         10, // stall m/s/s
                         10, // max accel m/s/s
                         40, // max decel m/s/s
-                        40, // steering rate rad/s
-                        120, // steering accel rad/s/s
                         0.49, // front track m
                         0.44, // back track m
                         0.462, // wheelbase m
                         0.31, // front offset m
-                        0.1); // vcg m 
+                        0.1, // vcg m
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
             case BLANK:
                 // this is used for tests and simulation; the limits should be kept in sync
                 // with the comp config, so that the simulator provides realistic
@@ -85,18 +85,18 @@ public class SwerveKinodynamicsFactory {
                 // a whole lots of tests, which you'll have to touch every time you
                 // change it. :-(
                 return new SwerveKinodynamics(
-                        log,
                         5, // vel m/s
                         20, // stall m/s/s
                         20, // accel m/s/s
                         50, // decel m/s/s
-                        40, // steering rate rad/s
-                        120, // steering accel rad/s/s
                         0.565, // track m
                         0.565, // track m
                         0.565, // wheelbase m
                         0.283, // front offset m
-                        0.15); // vcg m
+                        0.15, // vcg m
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
             case BETA_BOT:
                 // these numbers were extracted from module mode acceleration
                 // runs as shown in this spreadsheet
@@ -111,70 +111,70 @@ public class SwerveKinodynamicsFactory {
                 // also i observed the steering speed and reduced it a bit.
                 // the beta bot has very low VCG.
                 return new SwerveKinodynamics(
-                        log,
                         5, // max vel m/s
                         10, // stall m/s/s
                         20, // max accel m/s/s
                         50, // max decel m/s/s
-                        20, // max module steering rate rad/s
-                        60, // max module steering accel rad/s/s
                         0.491, // front track m
                         0.44, // back track m
                         0.491, // wheelbase m
                         0.29, // front offset m
-                        0.5); // vcg m HIGH LIKE COMP
+                        0.5, // vcg m HIGH LIKE COMP
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
             default:
                 System.out.println("WARNING: ***");
                 System.out.println("WARNING: *** Using default kinodynamics, this should never happen.");
                 System.out.println("WARNING: ***");
                 return new SwerveKinodynamics(
-                        log,
                         5, // vel m/s
                         20, // stall m/s/s
                         5, // accel m/s/s
                         5, // decel m/s/s
-                        13, // steering rate rad/s
-                        20 * Math.PI, // steering accel rad/s/s
                         0.5, // track m
                         0.5, // track m
                         0.5, // wheelbase m
                         0.25, // front offset m
-                        0.3); // vcg m
+                        0.3, // vcg m
+                        70, // mass kg
+                        6, // inertia kgm^2
+                        new Tire(175, 0.05));
         }
     }
 
     /** This is for the Mecanum drive on Rookiebot 2 */
-    public static SwerveKinodynamics mecanum(LoggerFactory log) {
+    public static SwerveKinodynamics mecanum() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 10, // stall m/s/s
                 10, // accel m/s/s
                 20, // decel m/s/s
-                20 * Math.PI,
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
     /** This is for the tank drive on Rookiebot 1 */
-    public static SwerveKinodynamics tank(LoggerFactory log) {
+    public static SwerveKinodynamics tank() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 10, // stall m/s/s
                 10, // accel m/s/s
                 20, // decel m/s/s
-                20 * Math.PI,
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
     /**
@@ -183,216 +183,216 @@ public class SwerveKinodynamicsFactory {
      * In particular, the steering rate is *very* slow, which might be useful if
      * you're wanting to allow for steering delay.
      */
-    public static SwerveKinodynamics forTest(LoggerFactory log) {
+    public static SwerveKinodynamics forTest() {
         return new SwerveKinodynamics(
-                log,
                 1, // vel m/s
                 10, // stall m/s/s
                 1, // accel m/s/s
                 1, // decel m/s/s
-                20 * Math.PI,
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics forRealisticTest(LoggerFactory log) {
+    public static SwerveKinodynamics forRealisticTest() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 10, // stall m/s/s
                 10, // accel m/s/s
                 20, // decel m/s/s
-                20 * Math.PI,
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics forTrajectoryTimingTest(LoggerFactory log) {
+    public static SwerveKinodynamics forTrajectoryTimingTest() {
         return new SwerveKinodynamics(
-                log,
                 3.5, // vel m/s
                 20, // stall m/s/s
                 10, // accel m/s/s
                 10, // decel m/s/s
-                20 * Math.PI,
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics likeComp25(LoggerFactory log) {
+    public static SwerveKinodynamics likeComp25() {
         return new SwerveKinodynamics(
-                log,
                 3, // max vel m/s
                 10, // stall m/s/s
                 5, // max accel m/s/s
                 25, // max decel m/s/s
-                40, // max module steering rate rad/s
-                120, // max module steering accel rad/s/s
                 0.590, // front track m
                 0.590, // back track m
                 0.590, // wheelbase m
                 0.295275, // front offset m
-                0.5); // m NOTE VERY HIGH
+                0.5, // m NOTE VERY HIGH
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics forTest2(LoggerFactory log) {
+    public static SwerveKinodynamics forTest2() {
         return new SwerveKinodynamics(
-                log,
                 2, // vel m/s
                 5, // stall m/s/s
                 1, // accel m/s/s
                 1, // decel m/s/s
-                1, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.6); // vcg m
+                0.6, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics forTest3(LoggerFactory log) {
+    public static SwerveKinodynamics forTest3() {
         return new SwerveKinodynamics(
-                log,
                 2, // vel m/s
                 5, // stall m/s/s
                 2, // accel m/s/s
                 2, // decel m/s/s
-                1, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.6); // vcg m
+                0.6, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics forWPITest(LoggerFactory log) {
+    public static SwerveKinodynamics forWPITest() {
         return new SwerveKinodynamics(
-                log,
                 1, // vel m/s
                 5, // stall m/s/s
                 1, // accel m/s/s
                 1, // decel m/s/s
-                1, // steering rate rad/s
-                1, // steering accel rad/s/s
                 2, // track m
                 2, // track m
                 2, // wheelbase m
                 1, // front offset m
-                1); // vcg m
+                1, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
     //////////////////////////////////////////
     //
     // below are specific test cases. try to minimize their number
 
-    public static SwerveKinodynamics highDecelAndCapsize(LoggerFactory log) {
+    public static SwerveKinodynamics highDecelAndCapsize() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 10, // stall m/s/s
                 2, // accel m/s/s
                 300, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.001); // vcg m
+                0.001, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics decelCase(LoggerFactory log) {
+    public static SwerveKinodynamics decelCase() {
         return new SwerveKinodynamics(
-                log,
                 1, // vel m/s
                 10, // stall m/s/s
                 1, // accel m/s/s
                 10, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics highCapsize(LoggerFactory log) {
+    public static SwerveKinodynamics highCapsize() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 20, // stall m/s/s
                 10, // accel m/s/s
                 10, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.1); // vcg m
+                0.1, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics lowCapsize(LoggerFactory log) {
+    public static SwerveKinodynamics lowCapsize() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 20, // stall m/s/s
                 10, // accel m/s/s
                 10, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                2); // vcg m (very high vcg)
+                2, // vcg m (very high vcg)
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
-    public static SwerveKinodynamics limiting(LoggerFactory log) {
+    public static SwerveKinodynamics limiting() {
         return new SwerveKinodynamics(
-                log,
                 5, // vel m/s
                 30, // stall m/s/s
                 10, // accel m/s/s
                 10, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
     /** Large difference in accel and decel, to make asymmetry obvious. */
-    public static SwerveKinodynamics lowAccelHighDecel(LoggerFactory log) {
+    public static SwerveKinodynamics lowAccelHighDecel() {
         return new SwerveKinodynamics(
-                log,
                 4, // vel m/s
                 10, // stall m/s/s
                 1, // accel m/s/s
                 10, // decel m/s/s
-                5, // steering rate rad/s
-                20 * Math.PI, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0.3); // vcg m
+                0.3, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
     /**
@@ -402,20 +402,20 @@ public class SwerveKinodynamicsFactory {
      * the distance is reachable in one time step, i.e. high accel and velocity
      * limits.
      */
-    public static SwerveKinodynamics unlimited(LoggerFactory log) {
+    public static SwerveKinodynamics unlimited() {
         return new SwerveKinodynamics(
-                log,
                 10000, // vel m/s
                 10000, // stall m/s/s
                 10000, // accel m/s/s
                 10000, // decel m/s/s
-                10000, // steering rate rad/s
-                10000, // steering accel rad/s/s
                 0.5, // track m
                 0.5, // track m
                 0.5, // wheelbase m
                 0.25, // front offset m
-                0); // vcg m
+                0, // vcg m
+                70, // mass kg
+                6, // inertia kgm^2
+                new Tire(175, 0.05));
     }
 
     private SwerveKinodynamicsFactory() {
