@@ -17,16 +17,16 @@ public class Robot extends TimedRobot {
 
 
   // private final  m_robotContainer;
-  private final TalonFX first; 
+  // private final TalonFX first; 
   private final TalonFX second; 
   private final SparkFlex flex;
   private final SparkFlex flexs;
 
   public Robot() {
-    first = new TalonFX(9);
-    flex = new SparkFlex(2,  MotorType.kBrushless);
-    flexs = new SparkFlex(4,  MotorType.kBrushless);
-    second = new TalonFX(21); 
+    // first = new TalonFX(9);
+    flex = new SparkFlex(14,  MotorType.kBrushless);
+    flexs = new SparkFlex(1,  MotorType.kBrushless);
+    second = new TalonFX(4); 
   }
 
   @Override
@@ -63,10 +63,10 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    first.set(-1);
-    second.set(1);
-    flex.set(-1);
-    flexs.set(1);
+    // first.set(-1);
+    second.set(-0.2);
+    flex.set(0.2);
+    flexs.set(0.2);
   }
 
   @Override
