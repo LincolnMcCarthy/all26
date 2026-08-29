@@ -18,6 +18,7 @@ import org.team100.lib.kinematics.rrr_se2.RRRFeasibility;
 import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
+import org.team100.lib.mechanism.RotaryMechanism;
 import org.team100.lib.motor.BareMotor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
@@ -51,9 +52,10 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
     final RRRKinematicsPoE m_kinematics;
     final RRRDynamicsNewtonEuler m_dynamics;
     final RRRFeasibility m_feasibility;
-    private final BareMotor m_q1;
-    private final BareMotor m_q2;
-    private final BareMotor m_q3;
+
+    private final RotaryMechanism m_q1;
+    private final RotaryMechanism m_q2;
+    private final RotaryMechanism m_q3;
 
     public RRRArm(LoggerFactory parent) {
         m_log = parent.type(this);
@@ -65,30 +67,37 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         m_dynamics = new RRRDynamicsNewtonEuler(
                 VecBuilder.fill(0, 0, 0), 0.1, 0.1, 0.1, 0.3, 0.3, 0.1, 0.15, 0.15, 0.05, 0.1, 0.1, 0.1);
         m_feasibility = new RRRFeasibility(m_kinematics);
+        final BareMotor m_m1;
+        final BareMotor m_m2;
+        final BareMotor m_m3;
         if (Identity.instance.equals(Identity.TEST_BOARD_B0)) {
-            m_q1 = new Falcon500Motor(
+            m_m1 = new Falcon500Motor(
                     q1, m_CurrentLog, new CanId(5),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
-            m_q2 = new Falcon500Motor(
+            m_m2 = new Falcon500Motor(
                     q2, m_CurrentLog, new CanId(21),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
-            m_q3 = new Neo550CANSparkMotor(
+            m_m3 = new Neo550CANSparkMotor(
                     q3, m_CurrentLog, new CanId(14),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1), 0, 0);
         } else {
-
-            m_q1 = new SimulatedBareMotor(q1, 600);
-
-            m_q2 = new SimulatedBareMotor(q2, 600);
-
-            m_q3 = new SimulatedBareMotor(q3, 600);
+            m_m1 = new SimulatedBareMotor(q1, 600);
+            m_m2 = new SimulatedBareMotor(q2, 600);
+            m_m3 = new SimulatedBareMotor(q3, 600);
         }
+        double r1 = 7;
+        double r2 = 5;
+        double r3 = 12;
+
+        m_q1 = new RotaryMechanism(q1, m_m1, m_m1.encoder(), 0, r1, -Math.PI / 2, Math.PI / 2);
+        m_q2 = new RotaryMechanism(q2, m_m2, m_m2.encoder(), 0, r2, -Math.PI / 2, Math.PI / 2);
+        m_q3 = new RotaryMechanism(q3, m_m3, m_m3.encoder(), 0, r3, -Math.PI / 2, Math.PI / 2);
     }
 
     @Override

@@ -258,7 +258,7 @@ public class WCPSwerveModule100 extends SwerveModule100 {
         ProxyRotaryPositionSensor proxy = new ProxyRotaryPositionSensor(builtInEncoder, gearRatio);
         CombinedRotaryPositionSensor combined = new CombinedRotaryPositionSensor(parent, turningSensor, proxy);
 
-        return new RotaryMechanism(
+        return new RotaryMechanism(     
                 parent, turningMotor, combined, gearRatio,
                 Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
