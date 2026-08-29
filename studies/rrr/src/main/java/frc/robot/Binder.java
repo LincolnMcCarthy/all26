@@ -35,9 +35,9 @@ public class Binder {
                 m_machinery.m_arm.setDefaultCommand(m_machinery.m_arm.run(
                                 () -> m_machinery.m_arm.set(
                                                 new RRRConfig(
-                                                                -21*m_controller.getLeftX(),
-                                                                15*m_controller.getRightX(),
-                                                                36*m_controller.getRightY()),
+                                                                -10*m_controller.getLeftX(),
+                                                                7*m_controller.getRightX(),
+                                                                18*m_controller.getRightY()),
                                                 new RRRVelocity(0, 0, 0),
                                                 new RRRAcceleration(0, 0, 0))));
 
