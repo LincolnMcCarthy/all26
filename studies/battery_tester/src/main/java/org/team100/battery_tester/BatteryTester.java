@@ -68,7 +68,10 @@ public class BatteryTester extends SubsystemBase implements AutoCloseable {
                 new VictorSP(1),
                 new VictorSP(2),
                 new VictorSP(3),
-                new VictorSP(4));
+                new VictorSP(4),
+                new VictorSP(5),
+                new VictorSP(6),
+                new VictorSP(7));
         m_feedback = new PIDFeedback(log, 0.0, 0, 0.0, false, 0.1, 1);
         // m_feedback = new PIDFeedback(log, 0.00025, 0, 0.000001, false, 0.1, 1);
         m_lightbulb = new LightBulb();
