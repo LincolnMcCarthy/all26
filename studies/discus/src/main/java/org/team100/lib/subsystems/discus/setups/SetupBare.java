@@ -20,9 +20,9 @@ public class SetupBare implements Runnable {
         m_discus = new DiscusBare(logger, currentLog);
         m_viz = new ArmVisualization(m_discus::getPosition, "discus", 0);
         // m_discus.setDefaultCommand(m_discus.dutyCycle(
-        //         controller::getLeftX));
+        // controller::getLeftX));
         m_discus.setDefaultCommand(m_discus.voltage(
-                controller::getLeftX));
+                () -> 12 * controller.getLeftX()));
     }
 
     @Override
