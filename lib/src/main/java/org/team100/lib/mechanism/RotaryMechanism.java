@@ -39,6 +39,8 @@ public class RotaryMechanism implements Player {
     private final DoubleLogger m_log_filtered_velocity;
     LinearFilter lowPassFilter = LinearFilter.singlePoleIIR(0.2375, TimedRobot100.LOOP_PERIOD_S);
 
+    /** Respects limits. */
+    private double m_unwrappedPositionWithinLimits;
     /** For computing acceleration. */
     private double m_velocity;
 
@@ -197,10 +199,16 @@ public class RotaryMechanism implements Player {
             m_motor.stop();
             return;
         }
+        m_unwrappedPositionWithinLimits = positionRad;
         m_motor.setUnwrappedPosition(
                 positionRad * m_gearRatio,
                 velocityRad_S * m_gearRatio,
                 torqueNm / m_gearRatio);
+    }
+
+    /** Desired position, with limits applied. */
+    public double getUnwrappedPositionWithinLimits() {
+        return m_unwrappedPositionWithinLimits;
     }
 
     public StateR1 getUnwrappedMeasurement() {
