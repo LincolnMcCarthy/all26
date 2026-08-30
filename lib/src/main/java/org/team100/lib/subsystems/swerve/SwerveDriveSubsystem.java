@@ -130,7 +130,6 @@ public class SwerveDriveSubsystem extends SubsystemBase implements VelocitySubsy
     public void resetPose(Pose2d robotPose, IsotropicNoiseSE2 noise) {
         if (DEBUG)
             System.out.println("WARNING: Make sure resetting the swerve module collection doesn't break anything");
-        m_swerveLocal.reset();
         m_odometryUpdater.reset(robotPose, noise);
         m_stateCache.reset();
     }

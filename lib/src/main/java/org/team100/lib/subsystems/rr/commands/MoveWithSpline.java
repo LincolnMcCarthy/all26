@@ -26,9 +26,6 @@ import edu.wpi.first.math.numbers.N2;
  * velocity really only makes sense if you kinda know where the starting point
  * really is, i.e. for sequences.
  * 
- * TODO: make another one of these where the initial velocity is computed,
- * e.g. towards the endpoint, or something.
- * 
  * * The benefit of using joint splines is that it is immune to interior
  * singularities and joint limits.
  * 
