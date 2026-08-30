@@ -26,7 +26,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  */
 public class DiscusBare extends SubsystemBase {
     private static final double SCALE = 0.05;
-     private static final double VOLT_SCALE = 0.2;
+    private static final double VOLT_SCALE = 0.2;
     private static final double SUPPLY_LIMIT = 100;
     private static final double STATOR_LIMIT = 100;
     private final BareMotor m_motor;
@@ -35,8 +35,8 @@ public class DiscusBare extends SubsystemBase {
     public DiscusBare(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory logger = parent.type(this);
         switch (Identity.instance) {
-            case TEAM100_2018 , SWERVE_TWO-> {
-                Friction friction = new Friction(0.14, 0.14, 0, 0); 
+            case TEAM100_2018, SWERVE_TWO, TEST_BOARD_B0 -> {
+                Friction friction = new Friction(0.14, 0.14, 0, 0);
                 PIDConstants pid = PIDConstants.makePositionPID(0.0);
                 m_motor = new Falcon500Motor(
                         logger,
@@ -76,7 +76,7 @@ public class DiscusBare extends SubsystemBase {
 
     public Command voltage(DoubleSupplier p) {
         return run(() -> setVoltage(
-                p.getAsDouble())); 
+                p.getAsDouble()));
     }
 
     @Override
@@ -85,5 +85,4 @@ public class DiscusBare extends SubsystemBase {
         m_sensor.periodic();
     }
 
-    
 }

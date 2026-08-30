@@ -119,7 +119,7 @@ public class SwerveModuleCollection implements Player {
                                 DriveRatio.FAST,
                                 new CanId(32), // steer
                                 new RoboRioChannel(6),
-                                0.936189,
+                                0.648451,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
                         WCPSwerveModule100.getFalconDriveFalconSteer(
