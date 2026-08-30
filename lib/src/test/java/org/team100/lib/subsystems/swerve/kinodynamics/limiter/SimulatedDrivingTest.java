@@ -147,7 +147,6 @@ public class SimulatedDrivingTest implements Timeless {
     @Test
     void testStraight() {
         // just +x
-        collection.reset();
         VelocityControlSE2 input = new VelocityControlSE2(2, 0, 0);
         double start = Takt.get();
         for (int i = 0; i < 100; ++i) {
@@ -162,7 +161,6 @@ public class SimulatedDrivingTest implements Timeless {
     void testStraightVerbatim() {
         // just +x
         // this accelerates infinitely, immediately to the requested speed.
-        collection.reset();
         VelocityControlSE2 input = new VelocityControlSE2(2, 0, 0);
         double start = Takt.get();
         for (int i = 0; i < 100; ++i) {
@@ -182,7 +180,6 @@ public class SimulatedDrivingTest implements Timeless {
     @Test
     void testVeering() {
         Experiments.instance.testOverride(Experiment.UseSwerveLimiter, true);
-        collection.reset();
         // +x and spinning. course is always zero.
         VelocityControlSE2 input = new VelocityControlSE2(2, 0, 3.5);
         for (int i = 0; i < 50; ++i) {
@@ -200,7 +197,6 @@ public class SimulatedDrivingTest implements Timeless {
      */
     @Test
     void testVeeringVerbatim() {
-        collection.reset();
         // +x and spinning
         VelocityControlSE2 input = new VelocityControlSE2(2, 0, 3.5);
         for (int i = 0; i < 100; ++i) {

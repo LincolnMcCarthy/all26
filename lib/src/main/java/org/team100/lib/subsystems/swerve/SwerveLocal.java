@@ -116,11 +116,6 @@ public class SwerveLocal implements Player {
         m_modules.close();
     }
 
-    /** Set turning setpoint to measurement, zero drive encoder. */
-    void reset() {
-        m_modules.reset();
-    }
-
     /** Updates visualization. */
     void periodic() {
         m_logPositions.log(this::positions);

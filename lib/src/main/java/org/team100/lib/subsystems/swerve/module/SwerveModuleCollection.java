@@ -69,9 +69,7 @@ public class SwerveModuleCollection implements Player {
         LoggerFactory rearRightLogger = collectionLogger.name("Rear Right");
 
         switch (Identity.instance) {
-            // TODO: turned off while testing
             case COMP_BOT:
-                // case SWERVE_TWO:
                 System.out.println("************** WCP MODULES w/Duty-Cycle Encoders **************");
                 return new SwerveModuleCollection(
                         WCPSwerveModule100.getKrakenDriveKrakenSteer(
@@ -150,7 +148,6 @@ public class SwerveModuleCollection implements Player {
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE));
             case BETA_BOT:
-                // case SWERVE_TWO:
                 System.out.println("************** WCP MODULES w/Duty-Cycle Encoders **************");
                 return new SwerveModuleCollection(
                         WCPSwerveModule100.getKrakenDriveKrakenSteer(
@@ -167,7 +164,7 @@ public class SwerveModuleCollection implements Player {
                                 new CanId(8), // drive
                                 DriveRatio.MEDIUM,
                                 new CanId(7), // steer
-                                  new RoboRioChannel(2),
+                                new RoboRioChannel(2),
                                 0.817243,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE),
@@ -189,8 +186,6 @@ public class SwerveModuleCollection implements Player {
                                 0.853782,
                                 kinodynamics,
                                 EncoderDrive.INVERSE, NeutralMode100.COAST, MotorPhase.REVERSE));
-            
-
 
             case BLANK:
             default:
@@ -259,14 +254,6 @@ public class SwerveModuleCollection implements Player {
         m_frontRight.stop();
         m_rearLeft.stop();
         m_rearRight.stop();
-    }
-
-    /** Set turning setpoint to measurement, zero drive encoders. */
-    public void reset() {
-        m_frontLeft.reset();
-        m_frontRight.reset();
-        m_rearLeft.reset();
-        m_rearRight.reset();
     }
 
     //////////////////////////////////////////////////////

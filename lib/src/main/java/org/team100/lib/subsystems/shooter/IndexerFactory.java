@@ -180,9 +180,6 @@ public class IndexerFactory {
         return mech;
     }
 
-    /**
-     * TODO: verify the velocity averaging parameters
-     */
     private static BareMotor getMotor(
             CurrentLimit limit,
             LoggerFactory log,
@@ -192,15 +189,18 @@ public class IndexerFactory {
             MotorPhase phase,
             Friction friction,
             PIDConstants pid) {
+        // motor params for for velocity control
+        int averageDepth = 2;
+        int measurementPeriod = 4;
         return switch (Identity.instance) {
             case BLANK ->
                 new SimulatedBareMotor(log, freeSpeedRad_S);
             case DEMO_BOT -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
             default -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
         };
     }
 

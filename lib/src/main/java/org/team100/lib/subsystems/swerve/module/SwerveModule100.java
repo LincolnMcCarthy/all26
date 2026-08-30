@@ -126,13 +126,6 @@ public abstract class SwerveModule100 implements Player {
         actuate(desired, effort);
     }
 
-    /**
-     * Set turning setpoint to measurement, zero drive encoder.
-     * TODO: remove this.
-     */
-    void reset() {
-    }
-
     void close() {
         m_steer.close();
     }

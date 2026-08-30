@@ -64,11 +64,6 @@ public class TankDriveFactory {
                 log, fieldLogger, dynamics, trackWidthM, maxSpeedM_S, mechL, mechR);
     }
 
-    /**
-     * Real or simulated depending on identity.
-     * 
-     * TODO: verify the velocity averaging parameters
-     */
     private static BareMotor getMotor(
             LoggerFactory log,
             TotalCurrentLog currentLog,
@@ -78,14 +73,17 @@ public class TankDriveFactory {
             CurrentLimit limit,
             Friction friction,
             PIDConstants pid) {
+        // parameters for velocity control.
+        int averageDepth = 2;
+        int measurementPeriod = 4;
         return switch (Identity.instance) {
             case BLANK -> new SimulatedBareMotor(log, freeSpeedRad_S);
             case DEMO_BOT -> new Neo550CANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
             default -> new NeoCANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
         };
     }
 }

@@ -3,9 +3,6 @@ package frc.robot;
 import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.commands.MoveAndHold;
-import org.team100.lib.geometry.rrr.RRRAcceleration;
-import org.team100.lib.geometry.rrr.RRRConfig;
-import org.team100.lib.geometry.rrr.RRRVelocity;
 import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.profile.r1.WPITrapezoidProfileR1;

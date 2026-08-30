@@ -24,7 +24,7 @@ public record RRRConfig(double q1, double q2, double q3) {
     private static final double s3 = 1.0;
 
     /**
-     * For now, euclidean with weights.
+     * Euclidean distance in joint space, with weights.
      * 
      * You can change these weights to change how configs are selected, based on
      * their "nearness" to the current pose.

@@ -79,19 +79,17 @@ public class MecanumDriveFactory {
                 mechFL, mechFR, mechRL, mechRR);
     }
 
-    /**
-     * Real or simulated depending on identity.
-     * 
-     * TODO: verify the velocity averaging parameters
-     */
     public static BareMotor getMotor(
             LoggerFactory log, TotalCurrentLog currentLog, CanId can, MotorPhase phase,
             CurrentLimit limit, Friction friction, PIDConstants pid) {
+        // parameters for velocity control
+        int averageDepth = 2;
+        int measurementPeriod = 4;
         return switch (Identity.instance) {
             case BLANK -> new SimulatedBareMotor(log, 600);
             default -> new NeoCANSparkMotor(
                     log, currentLog, can, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
         };
     }
 
