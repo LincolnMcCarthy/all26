@@ -3,8 +3,6 @@ package org.team100.lib.kinematics.lynx_arm;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.OptionalDouble;
-
 import org.junit.jupiter.api.Test;
 import org.team100.lib.geometry.lynx_arm.LynxArmConfig;
 import org.team100.lib.geometry.lynx_arm.LynxArmPose;
