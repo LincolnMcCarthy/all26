@@ -77,7 +77,9 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
                 l1, l2, l3,
                 l1 / 2, l2 / 2, l3 / 2,
                 0.1, 0.1, 0.1);
-        m_feasibility = new RRRFeasibility(m_kinematics);
+        m_feasibility = new RRRFeasibility(m_kinematics,
+                new RRRConfig(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2),
+                new RRRConfig(Math.PI / 2, Math.PI / 2, Math.PI / 2));
         final BareMotor m_m1;
         final BareMotor m_m2;
         final BareMotor m_m3;
@@ -147,7 +149,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
             System.out.println("infeasible pose " + StrUtil.poseStr(p));
             return null;
         }
-        return getBest(qFeasible, q0);
+        return RRRConfig.getBest(qFeasible, q0);
     }
 
     public RRRVelocity qdot(RRRConfig q, VelocitySE2 xdot) {
@@ -182,22 +184,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
                 m_q3.getVelocityRad_S());
     }
 
-    /**
-     * Choose config "closest" to q0, using the (non-Euclidean) config distance
-     * metric.
-     */
-    RRRConfig getBest(List<RRRConfig> qAll, RRRConfig q0) {
-        double closest = Double.POSITIVE_INFINITY;
-        RRRConfig best = qAll.get(0);
-        for (RRRConfig q : qAll) {
-            double d = q0.distance(q);
-            if (d < closest) {
-                closest = d;
-                best = q;
-            }
-        }
-        return best;
-    }
+
 
     public Pose2d pose() {
         return pose(getConfig());
