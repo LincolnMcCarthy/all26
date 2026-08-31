@@ -71,7 +71,7 @@ public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> 
      */
     public SixDofConfig config(Pose3d p) {
         SixDofConfig q0 = getConfig();
-        List<SixDofConfig> qAll = m_kinematics.inverse(p, q0.q1(), q0.q4());
+        List<SixDofConfig> qAll = m_kinematics.inverse(p, q0.q1(), q0.q2(), q0.q4());
         List<SixDofConfig> qFeasible = m_feasibility.filter(qAll);
         if (qFeasible.isEmpty()) {
             System.out.println("infeasible pose " + StrUtil.poseStr(p));

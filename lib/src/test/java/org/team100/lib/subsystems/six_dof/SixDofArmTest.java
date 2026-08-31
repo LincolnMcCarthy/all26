@@ -39,7 +39,7 @@ public class SixDofArmTest {
     void test2() {
         SixDofArm arm = new SixDofArm(log);
         List<SixDofConfig> all1 = arm.m_kinematics.inverse(
-                new Pose3d(0.5, 0.25, 0.1, new Rotation3d(0, 0, 0)), 0.0, 0.0);
+                new Pose3d(0.5, 0.25, 0.1, new Rotation3d(0, 0, 0)), 0.0, null, 0.0);
         assertEquals(8, all1.size());
         List<SixDofConfig> f1 = arm.m_feasibility.filter(all1);
         assertEquals(4, f1.size());
@@ -48,7 +48,7 @@ public class SixDofArmTest {
         System.out.printf("b1 %s\n", b1);
 
         List<SixDofConfig> all2 = arm.m_kinematics.inverse(
-                new Pose3d(0.2, -0.2, 0.6, new Rotation3d(0, 0, 0)), 0.0, 0.0);
+                new Pose3d(0.2, -0.2, 0.6, new Rotation3d(0, 0, 0)), 0.0, null, 0.0);
         assertEquals(8, all2.size());
         System.out.println("feasibility filtering ...");
         List<SixDofConfig> f2 = arm.m_feasibility.filter(all2);

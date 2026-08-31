@@ -97,7 +97,7 @@ public class RRKinematics {
      * the singularity is impossible, so you can safely pass null.
      * 
      * @param x         tool point position
-     * @param q1Default in case of singularity
+     * @param q1Default in case of singularity (x at origin)
      */
     public List<RRConfig> inverse(Translation2d x, Double q1Default) {
         if (DEBUG)
