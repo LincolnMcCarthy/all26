@@ -70,8 +70,10 @@ public class MoveWithProfile extends MoveAndHold {
     @Override
     public void execute() {
         double distance = m_profileGoal.x();
-        if (distance < 1e-6)
+        if (distance < 1e-6) {
+            // we're already there
             return;
+        }
         m_setpoint = m_profile.calculate(
                 TimedRobot100.LOOP_PERIOD_S,
                 m_setpoint,

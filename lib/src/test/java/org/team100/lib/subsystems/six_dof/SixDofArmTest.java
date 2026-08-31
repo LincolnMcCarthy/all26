@@ -10,11 +10,16 @@ import org.team100.lib.geometry.six_dof.SixDofConfig;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
+import org.team100.lib.profile.r1.ProfileR1;
+import org.team100.lib.profile.r1.WPITrapezoidProfileR1;
+import org.team100.lib.subsystems.six_dof.commands.MoveWithProfile;
+import org.team100.lib.testing.TestUtil;
+import org.team100.lib.testing.Timeless;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 
-public class SixDofArmTest {
+public class SixDofArmTest implements Timeless {
     LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());
 
     @Test
@@ -59,7 +64,29 @@ public class SixDofArmTest {
         // use previous pose to measure distance
         SixDofConfig b2 = SixDofConfig.getBest(f2, b1);
         System.out.printf("b2 %s\n", b2);
+    }
 
+    @Test
+    void testCmd() {
+        // verify the command gets to the end
+        SixDofArm arm = new SixDofArm(log);
+        SixDofConfig initialConfig = new SixDofConfig(0, 0, 0, 0, 0, 0);
+        TestUtil.verify(initialConfig, arm.getConfig());
+
+        SixDofConfig configGoal = new SixDofConfig(0.558, 0.666, -1.332, 0.791, 0.841, -0.593);
+        Pose3d poseGoal = new Pose3d(0.5, 0.25, 0.1, new Rotation3d(0, 0, 0));
+        TestUtil.verify(configGoal, arm.config(poseGoal));
+        ProfileR1 profile = new WPITrapezoidProfileR1(2, 10);
+        MoveWithProfile cmd = arm.move(profile, poseGoal);
+        cmd.initialize();
+        for (int i = 0; i < 100; ++i) {
+            stepTime();
+            cmd.execute();
+            arm.periodic();
+        }
+        SixDofConfig finalConfig = arm.getConfig();
+        TestUtil.verify(configGoal, finalConfig);
+        TestUtil.verify(poseGoal, arm.pose(finalConfig).p7());
     }
 
 }

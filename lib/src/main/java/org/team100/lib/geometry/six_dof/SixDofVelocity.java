@@ -1,5 +1,9 @@
 package org.team100.lib.geometry.six_dof;
 
+import java.util.List;
+
+import org.team100.lib.state.ControlR1;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -13,6 +17,10 @@ public record SixDofVelocity(
         double q4dot,
         double q5dot,
         double q6dot) {
+
+    public static SixDofVelocity zero() {
+        return new SixDofVelocity(0, 0, 0, 0, 0, 0);
+    }
 
     public static SixDofVelocity fromVector(Matrix<N6, N1> v) {
         return new SixDofVelocity(
@@ -32,5 +40,15 @@ public record SixDofVelocity(
                 q4dot,
                 q5dot,
                 q6dot);
+    }
+
+    public static SixDofVelocity fromList(List<ControlR1> setpoint) {
+        return new SixDofVelocity(
+                setpoint.get(0).v(),
+                setpoint.get(1).v(),
+                setpoint.get(2).v(),
+                setpoint.get(3).v(),
+                setpoint.get(4).v(),
+                setpoint.get(5).v());
     }
 }
