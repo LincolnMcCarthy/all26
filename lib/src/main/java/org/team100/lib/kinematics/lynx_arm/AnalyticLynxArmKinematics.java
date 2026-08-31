@@ -39,20 +39,25 @@ public class AnalyticLynxArmKinematics implements LynxArmKinematics {
         m_wristLength = wristLength;
         m_gripLength = gripLength;
         m_twodof = new RRKinematics(boomLength, stickLength);
+        // the real apparatus limits
+        // rr is inverted
         m_feasibility = new RRFeasibility(
                 m_twodof,
-                new RRConfig(-Math.PI / 2, -3),
-                new RRConfig(Math.PI / 2, 3));
+                new RRConfig(0, -Math.PI),
+                new RRConfig(Math.PI, 0));
     }
 
+    /** All links 1 meter long. */
     public static AnalyticLynxArmKinematics unit() {
         return new AnalyticLynxArmKinematics(1, 1, 1, 1, 1);
     }
 
+    /** All links 0.5 meters long. */
     public static AnalyticLynxArmKinematics half() {
         return new AnalyticLynxArmKinematics(0.5, 0.5, 0.5, 0.5, 0.5);
     }
 
+    /** Measured link lengths of the real Lynx apparatus. */
     public static AnalyticLynxArmKinematics real() {
         return new AnalyticLynxArmKinematics(0.06731, 0.14605, 0.187325, 0.061, 0.055);
     }
@@ -141,14 +146,14 @@ public class AnalyticLynxArmKinematics implements LynxArmKinematics {
         Translation2d twoDofEnd = new Translation2d(
                 hypot,
                 twoDofY);
-        List<RRConfig> twoDofConfig = m_twodof.inverse(twoDofEnd, config.boom());
+        List<RRConfig> twoDofConfig = m_twodof.inverse(twoDofEnd, -config.boom());
         if (twoDofConfig.isEmpty()) {
-            System.out.println("AnalyticLynxArmKinematics.inverse: no solution for pose " + StrUtil.poseStr(end));
+            System.out.println("AnalyticLynxArmKinematics.inverse: no solution for RR " + StrUtil.transStr(twoDofEnd));
             return config;
         }
         List<RRConfig> qFeasible = m_feasibility.filter(twoDofConfig);
         if (qFeasible.isEmpty()) {
-            System.out.println("AnalyticLynxArmKinematics.inverse: infeasible pose " + StrUtil.poseStr(end));
+            System.out.println("AnalyticLynxArmKinematics.inverse: infeasible RR " + StrUtil.transStr(twoDofEnd));
             return config;
         }
 
