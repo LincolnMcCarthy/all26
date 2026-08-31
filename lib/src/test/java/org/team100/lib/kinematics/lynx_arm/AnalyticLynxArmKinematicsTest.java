@@ -151,8 +151,8 @@ public class AnalyticLynxArmKinematicsTest {
                 new Pose3d(),
                 new Pose3d(new Translation3d(5, 0, 1), new Rotation3d(0, 0, 0)));
         LynxArmConfig q = new LynxArmConfig(0, 0, 0, 0, 0);
-
-        assertThrows(IllegalArgumentException.class, () -> k.inverse(q, t.p6()));
+        // no solution, return measurement 
+        TestUtil.verify(q, k.inverse(q, t.p6()));
     }
 
     @Test

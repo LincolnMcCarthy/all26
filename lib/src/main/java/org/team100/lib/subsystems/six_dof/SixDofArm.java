@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * Six-DOF arm, for training.
  */
 public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> {
-    private static final boolean DEBUG = false;
     private final LoggerFactory m_log;
 
     final SixDofKinematics m_kinematics;
@@ -77,7 +76,7 @@ public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> 
             System.out.println("infeasible pose " + StrUtil.poseStr(p));
             return null;
         }
-        return getBest(qFeasible, q0);
+        return SixDofConfig.getBest(qFeasible, q0);
     }
 
     public void setPosition(Pose3d p) {
@@ -95,25 +94,6 @@ public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> 
         m_q4.setUnwrappedPosition(q.q4(), 0, 0);
         m_q5.setUnwrappedPosition(q.q5(), 0, 0);
         m_q6.setUnwrappedPosition(q.q6(), 0, 0);
-    }
-
-    /**
-     * Choose config "closest" to q0, using the (non-Euclidean) config distance
-     * metric.
-     */
-    SixDofConfig getBest(List<SixDofConfig> qAll, SixDofConfig q0) {
-        double closest = Double.POSITIVE_INFINITY;
-        SixDofConfig best = qAll.get(0);
-        for (SixDofConfig q : qAll) {
-            double d = q0.distance(q);
-            if (DEBUG)
-                System.out.printf("q0 %s q %s distance %6.3f\n", q0, q, d);
-            if (d < closest) {
-                closest = d;
-                best = q;
-            }
-        }
-        return best;
     }
 
     public SixDofVelocity qdot(SixDofConfig q, VelocitySE3 xdot) {

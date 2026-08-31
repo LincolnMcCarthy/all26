@@ -1,5 +1,7 @@
 package org.team100.lib.geometry.rr;
 
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -73,5 +75,22 @@ public record RRConfig(double q1, double q2) {
 
     public RRConfig minus(RRConfig other) {
         return new RRConfig(q1 - other.q1, q2 - other.q2);
+    }
+
+    /**
+     * Choose config "closest" to q0, using the (non-Euclidean) config distance
+     * metric.
+     */
+    public static RRConfig getBest(List<RRConfig> qAll, RRConfig q0) {
+        double closest = Double.POSITIVE_INFINITY;
+        RRConfig best = qAll.get(0);
+        for (RRConfig q : qAll) {
+            double d = q0.distance(q);
+            if (d < closest) {
+                closest = d;
+                best = q;
+            }
+        }
+        return best;
     }
 }

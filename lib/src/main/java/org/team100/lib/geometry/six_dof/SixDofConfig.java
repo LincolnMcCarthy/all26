@@ -1,5 +1,7 @@
 package org.team100.lib.geometry.six_dof;
 
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -14,6 +16,7 @@ import edu.wpi.first.math.numbers.N6;
  * @param q6 tool roll
  */
 public record SixDofConfig(double q1, double q2, double q3, double q4, double q5, double q6) {
+    private static final boolean DEBUG = false;
 
     /**
      * For now, euclidean with weights.
@@ -57,6 +60,25 @@ public record SixDofConfig(double q1, double q2, double q3, double q4, double q5
     @Override
     public String toString() {
         return String.format("%6.3f, %6.3f, %6.3f, %6.3f, %6.3f, %6.3f", q1, q2, q3, q4, q5, q6);
+    }
+
+    /**
+     * Choose config "closest" to q0, using the (non-Euclidean) config distance
+     * metric.
+     */
+    public static SixDofConfig getBest(List<SixDofConfig> qAll, SixDofConfig q0) {
+        double closest = Double.POSITIVE_INFINITY;
+        SixDofConfig best = qAll.get(0);
+        for (SixDofConfig q : qAll) {
+            double d = q0.distance(q);
+            if (DEBUG)
+                System.out.printf("q0 %s q %s distance %6.3f\n", q0, q, d);
+            if (d < closest) {
+                closest = d;
+                best = q;
+            }
+        }
+        return best;
     }
 
 }
