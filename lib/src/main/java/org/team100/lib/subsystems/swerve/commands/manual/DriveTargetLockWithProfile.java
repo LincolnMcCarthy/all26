@@ -130,6 +130,7 @@ public class DriveTargetLockWithProfile extends Command {
 
     @Override
     public void execute() {
+        // TODO: control noise in this input
         StateSE2 state = m_drive.getState();
 
         // Feedback based on the current state and the previous setpoint.
@@ -146,10 +147,9 @@ public class DriveTargetLockWithProfile extends Command {
         m_log_apparent_motion.log(() -> targetMotion);
 
         double unwrappedBearing = TargetUtil.unwrappedAbsoluteBearing(state.pose(), target);
-        // eliminate target motion to reduce noise
-        // TODO: put back target motion
-        StateR1 goal = new StateR1(unwrappedBearing, 0);
-        // final StateR1 goal = new StateR1(unwrappedBearing, targetMotion);
+
+        // StateR1 goal = new StateR1(unwrappedBearing, 0);
+        StateR1 goal = new StateR1(unwrappedBearing, targetMotion);
         m_log_goal.log(() -> goal);
 
         // Make sure the old setpoint uses the modulus close to the measurement.

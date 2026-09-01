@@ -21,7 +21,6 @@ import edu.wpi.first.math.numbers.N6;
  * "Home" position is extended down +x.
  */
 public class SixDofDynamicsNewtonEuler {
-    // TODO: make g variable, to account for drive base acceleration.
     final Vector<N3> g;
     List<Matrix<N4, N4>> Mlist;
     List<Matrix<N6, N6>> Glist;

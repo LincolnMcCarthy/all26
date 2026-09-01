@@ -15,8 +15,6 @@ import edu.wpi.first.math.MathUtil;
  * 
  * If you use this in tests, you'll have to control the clock somehow, e.g. by
  * using {@link Timeless}.
- * 
- * TODO: I think this can be replaced by ProxyRotaryPositionSensor.
  */
 public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
     private final IncrementalBareEncoder m_encoder;

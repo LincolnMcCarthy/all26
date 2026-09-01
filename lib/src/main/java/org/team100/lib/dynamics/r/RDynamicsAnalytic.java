@@ -1,10 +1,7 @@
 package org.team100.lib.dynamics.r;
 
 /**
- * TODO: allow variable angle of gravity.
- * 
- * Alternatively, we could just have a convention such that the "zero"
- * of every coordinate system is "up".
+ * Gravity is in the -x direction.
  */
 public class RDynamicsAnalytic implements RDynamics {
     /** Gravity. */

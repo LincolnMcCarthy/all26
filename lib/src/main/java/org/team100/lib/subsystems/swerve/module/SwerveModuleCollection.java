@@ -221,7 +221,8 @@ public class SwerveModuleCollection implements Player {
      * 
      * Works fine with empty angles.
      * 
-     * @param nextStates for now+dt
+     * @param nextStates for now+dt. Avoid noise here.
+     * @param effort     force
      */
     public void setDesiredStates(
             SwerveModuleStates nextStates, SwerveEffort effort) {
@@ -240,6 +241,9 @@ public class SwerveModuleCollection implements Player {
      * This "raw" mode is just for testing.
      * 
      * Works fine with empty angles.
+     * 
+     * @param swerveModuleStates. Avoid noise in these inputs.
+     * @param effort              Forces.
      */
     public void setRawDesiredStates(
             SwerveModuleStates swerveModuleStates, SwerveEffort effort) {
