@@ -72,7 +72,8 @@ public class SwerveLocal implements Player {
      * Discretizes the speeds, calculates the inverse kinematic module states, and
      * sets the module states.
      * 
-     * @param nextSpeed for the next timestep.
+     * @param nextSpeed for the next timestep. Avoid noise here.
+     * @param a         accel
      */
     void setChassisSpeeds(ChassisSpeeds nextSpeed, ChassisAcceleration a) {
         SwerveModuleStates states = m_swerveKinodynamics.toSwerveModuleStates(nextSpeed);
@@ -87,6 +88,9 @@ public class SwerveLocal implements Player {
 
     /**
      * Set the module states directly. This is just for testing.
+     * 
+     * @param targetModuleStates avoid noise here
+     * @param effort             forces
      */
     void setRawModuleStates(
             SwerveModuleStates targetModuleStates, SwerveEffort effort) {

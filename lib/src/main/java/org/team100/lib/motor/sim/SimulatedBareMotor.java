@@ -2,13 +2,12 @@ package org.team100.lib.motor.sim;
 
 import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.ObjectCache;
-import org.team100.lib.coherence.Takt;
+import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.LoggerFactory.StateR1Logger;
 import org.team100.lib.motor.BareMotor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
 import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
 import org.team100.lib.state.StateR1;
 import org.team100.lib.util.Math100;
@@ -42,8 +41,6 @@ public class SimulatedBareMotor implements BareMotor {
 
     private StateR1 m_state = new StateR1();
 
-    private double m_time = Takt.get();
-
     public SimulatedBareMotor(LoggerFactory parent, double freeSpeedRad_S) {
         m_log = parent.type(this);
         m_freeSpeedRad_S = freeSpeedRad_S;
@@ -64,44 +61,25 @@ public class SimulatedBareMotor implements BareMotor {
         if (DEBUG) {
             System.out.printf("motor %s update\n", m_log.getRoot());
         }
-        double dt = dt();
-        if (DEBUG) {
-            System.out.printf("SimulatedBareMotor dt %f\n", dt);
-        }
+        double dt = TimedRobot100.LOOP_PERIOD_S;
+
         if (m_velocityInput != null) {
             if (DEBUG) {
                 System.out.printf("SimulatedBareMotor v %f\n", m_velocityInput);
             }
-            if (dt > 0.04) {
-                // probably we should not extrapolate
-                m_state = new StateR1(m_state.x(), m_velocityInput);
-            } else {
-                m_state = new StateR1(m_state.x() + m_velocityInput * dt, m_velocityInput);
-            }
+            m_state = new StateR1(m_state.x() + m_velocityInput * dt, m_velocityInput);
         }
         if (m_positionInput != null) {
             if (DEBUG) {
                 System.out.printf("SimulatedBareMotor x %f\n", m_positionInput);
             }
-            if (dt < 0.01) {
-                // probably we should not differentiate
-                m_state = new StateR1(m_positionInput, m_state.v());
-            } else {
-                m_state = new StateR1(m_positionInput, (m_positionInput - m_state.x()) / dt);
-            }
+            m_state = new StateR1(m_positionInput, (m_positionInput - m_state.x()) / dt);
         }
         if (DEBUG) {
             System.out.printf("SimulatedBareMotor state %s\n", m_state);
         }
         m_log_state.log(() -> m_state);
         return m_state;
-    }
-
-    double dt() {
-        double now = Takt.get();
-        double dt = now - m_time;
-        m_time = now;
-        return dt;
     }
 
     @Override
@@ -160,7 +138,7 @@ public class SimulatedBareMotor implements BareMotor {
     }
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public SimulatedBareEncoder encoder() {
         return new SimulatedBareEncoder(m_log, this);
     }
 
@@ -199,12 +177,17 @@ public class SimulatedBareMotor implements BareMotor {
         return pos;
     }
 
-    /** resets the caches, so the new value is immediately available. */
+    /**
+     * Set the state directly. Also zeros velocity; if you reset the
+     * position while in motion you shouldn't expect it to work anyway.
+     * 
+     * resets the caches, so the new value is immediately available.
+     */
     @Override
     public void setUnwrappedEncoderPositionRad(double positionRad) {
         if (Double.isNaN(positionRad))
             throw new IllegalArgumentException("motor set position");
-        m_positionInput = positionRad;
+        m_state = new StateR1(positionRad, 0);
         m_stateCache.reset();
     }
 
@@ -228,7 +211,6 @@ public class SimulatedBareMotor implements BareMotor {
     public void reset() {
         m_positionInput = 0.0;
         m_velocityInput = 0.0;
-        m_time = Takt.get();
         m_stateCache.reset();
     }
 
