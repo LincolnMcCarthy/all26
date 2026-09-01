@@ -107,7 +107,6 @@ public class RRKinematics {
         if (r < 1e-3) {
             // This can only occur if l1 and l2 are (nearly) the same,
             // so use the default, and 180 degrees for the elbow.
-            // Note: this configuration is not very useful, maybe don't bother?
             if (DEBUG)
                 System.out.println("RR singularity");
             if (q1Default == null)
