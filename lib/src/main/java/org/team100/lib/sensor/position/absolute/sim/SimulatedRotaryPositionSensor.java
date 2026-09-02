@@ -21,6 +21,7 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
     private final double m_gearRatio;
     private final DoubleLogger m_log_position;
     private final DoubleLogger m_log_rate;
+    private final DoubleLogger m_log_accel;
 
     private double m_positionRad = 0;
     // to calculate the position with trapezoid integral
@@ -36,6 +37,7 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
         m_gearRatio = gearRatio;
         m_log_position = log.doubleLogger(Level.TRACE, "position");
         m_log_rate = log.doubleLogger(Level.TRACE, "rate");
+        m_log_accel = log.doubleLogger(Level.TRACE, "accel");
     }
 
     @Override
@@ -51,9 +53,16 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
 
     @Override
     public double getVelocityRad_S() {
-        double m_rate = encoderVelocityRad_S();
-        m_log_rate.log(() -> m_rate);
-        return m_rate;
+        double rate = m_encoder.getVelocityRad_S() / m_gearRatio;
+        m_log_rate.log(() -> rate);
+        return rate;
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        double accel = m_encoder.getAccelerationRad_S2() / m_gearRatio;
+        m_log_accel.log(() -> accel);
+        return accel;
     }
 
     @Override
@@ -69,11 +78,6 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
 
     ///////////////////////////////////////////////////////////
 
-    /** The same as RotaryMechanism.getVelocityRad_S(). */
-    private double encoderVelocityRad_S() {
-        return m_encoder.getVelocityRad_S() / m_gearRatio;
-    }
-
     /**
      * Integrates the mechanism velocity between the previous call and the current
      * instant.
@@ -87,7 +91,7 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
         }
         // this is the velocity at the current instant.
         // motor velocity is rad/s
-        double velocityRad_S = encoderVelocityRad_S();
+        double velocityRad_S = getVelocityRad_S();
 
         // use the previous velocity to calculate the trapezoidal integral
         m_positionRad += 0.5 * (velocityRad_S + m_previousVelocity) * dtS;

@@ -256,7 +256,8 @@ public abstract class SwerveModule100 implements Player {
      * radians per sec.
      * 
      * @param desiredWrappedAngle Angle for the next timestep. There shouldn't be
-     *                            any noise in this input.
+     *                            any noise in this input, because we use a pure
+     *                            single-step backwards difference to compute omega.
      * @returns rad/s
      */
     private double omega(Rotation2d desiredWrappedAngle) {

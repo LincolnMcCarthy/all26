@@ -25,17 +25,22 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public double getVelocityRad_S() {
-        return 0;
-    }
-
-    @Override
     public double getUnwrappedPositionRad() {
         return 0;
     }
 
     @Override
-    public double getCurrent() {
+    public double getVelocityRad_S() {
+        return 0;
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        return 0;
+    }
+
+    @Override
+    public double getStatorCurrent() {
         return 0;
     }
 

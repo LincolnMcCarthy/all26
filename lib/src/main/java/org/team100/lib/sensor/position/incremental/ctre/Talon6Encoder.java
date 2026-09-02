@@ -18,22 +18,19 @@ public class Talon6Encoder implements IncrementalBareEncoder {
         m_log_velocity = log.doubleLogger(Level.TRACE, "velocity (rad_s)");
     }
 
-    /**
-     * Not latency-compensated.
-     * Value is updated in Robot.robotPeriodic().
-     */
+    @Override
+    public double getUnwrappedPositionRad() {
+        return m_motor.getUnwrappedPositionRad();
+    }
+
     @Override
     public double getVelocityRad_S() {
         return m_motor.getVelocityRad_S();
     }
 
-    /**
-     * Latency-compensated.
-     * Value is updated in Robot.robotPeriodic().
-     */
     @Override
-    public double getUnwrappedPositionRad() {
-        return m_motor.getUnwrappedPositionRad();
+    public double getAccelerationRad_S2() {
+        return m_motor.getAccelerationRad_S2();
     }
 
     @Override

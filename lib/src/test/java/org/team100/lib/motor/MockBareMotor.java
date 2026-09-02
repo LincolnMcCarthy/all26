@@ -9,6 +9,8 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     public double position = 0;
     /** rad/s */
     public double velocity = 0;
+    /** rad/s^2 */
+    public double acceleration = 0;
     /** Nm */
     public double torque = 0;
 
@@ -91,17 +93,22 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     }
 
     @Override
-    public double getVelocityRad_S() {
-        return this.velocity;
-    }
-
-    @Override
     public double getUnwrappedPositionRad() {
         return this.position;
     }
 
     @Override
-    public double getCurrent() {
+    public double getVelocityRad_S() {
+        return this.velocity;
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        return this.acceleration;
+    }
+
+    @Override
+    public double getStatorCurrent() {
         return 0;
     }
 

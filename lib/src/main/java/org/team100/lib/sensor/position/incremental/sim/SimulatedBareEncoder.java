@@ -22,12 +22,6 @@ public class SimulatedBareEncoder implements IncrementalBareEncoder {
         m_log_velocity = log.doubleLogger(Level.TRACE, "velocity (rad_s)");
     }
 
-    /** Value should be updated in Robot.robotPeriodic(). */
-    @Override
-    public double getVelocityRad_S() {
-        return m_motor.getVelocityRad_S();
-    }
-
     /**
      * Value should be updated in Robot.robotPeriodic().
      * 
@@ -40,6 +34,17 @@ public class SimulatedBareEncoder implements IncrementalBareEncoder {
             System.out.printf("read encoder position %.6f\n", positionRad);
         }
         return positionRad;
+    }
+
+    /** Value should be updated in Robot.robotPeriodic(). */
+    @Override
+    public double getVelocityRad_S() {
+        return m_motor.getVelocityRad_S();
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        return m_motor.getAccelerationRad_S2();
     }
 
     @Override

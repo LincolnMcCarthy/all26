@@ -1,6 +1,5 @@
 package org.team100.lib.mechanism;
 
-import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
@@ -30,9 +29,6 @@ public class LinearMechanism implements Player {
     private final DoubleLogger m_log_accel;
     private final DoubleLogger m_log_velocity;
     private final DoubleLogger m_log_position;
-
-    /** For computing acceleration. */
-    private double m_velocity;
 
     public LinearMechanism(
             LoggerFactory parent,
@@ -148,15 +144,21 @@ public class LinearMechanism implements Player {
     }
 
     /** Nearly cached. */
+    public double getPositionM() {
+        double positionRad = m_encoder.getUnwrappedPositionRad();
+        return positionRad * m_wheelRadiusM / m_gearRatio;
+    }
+
+    /** Nearly cached. */
     public double getVelocityM_S() {
         double velocityRad_S = m_encoder.getVelocityRad_S();
         return velocityRad_S * m_wheelRadiusM / m_gearRatio;
     }
 
     /** Nearly cached. */
-    public double getPositionM() {
-        double positionRad = m_encoder.getUnwrappedPositionRad();
-        return positionRad * m_wheelRadiusM / m_gearRatio;
+    public double getAccelerationM_S2() {
+        double accelRad_S2 = m_encoder.getAccelerationRad_S2();
+        return accelRad_S2 * m_wheelRadiusM / m_gearRatio;
     }
 
     /** This is not "hold position" this is "torque off". */
@@ -174,11 +176,8 @@ public class LinearMechanism implements Player {
         m_motor.periodic();
         m_encoder.periodic();
         m_log_position.log(this::getPositionM);
-        final double velocity = getVelocityM_S();
-        m_log_velocity.log(() -> velocity);
-        double accel = (velocity - m_velocity) / TimedRobot100.LOOP_PERIOD_S;
-        m_velocity = velocity;
-        m_log_accel.log(() -> accel);
+        m_log_velocity.log(this::getVelocityM_S);
+        m_log_accel.log(this::getAccelerationM_S2);
     }
 
     @Override
