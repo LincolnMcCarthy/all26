@@ -9,8 +9,6 @@ import edu.wpi.first.math.Vector;
 
 /**
  * An N-dimensional spline, made of N individual SplineR1's.
- * 
- * TODO: also dx, ddx, etc.
  */
 public class SplineRn<N extends Num> {
     private static final boolean DEBUG = false;
@@ -23,8 +21,6 @@ public class SplineRn<N extends Num> {
         m_splines = new SplineR1[dim.getNum()];
         // start and end second derivatives are always zero,
         // i.e. zero jerk at the ends.
-        // Note, maybe zero jerk isn't that important?
-        // TODO: use dx as ddx instead, since it's quicker?
         double ddx0 = 0;
         double ddx1 = 0;
         for (int i = 0; i < dim.getNum(); ++i) {

@@ -77,7 +77,7 @@ public class DualDrumShooterFactory {
     public DualDrumDutyCycleShooter makeDutyCycleShooter() {
         LoggerFactory logL = log.name("left");
         LoggerFactory logR = log.name("right");
-        Friction friction = new Friction( 0.0, 0.0, 0.0, 0.5);
+        Friction friction = new Friction(0.0, 0.0, 0.0, 0.5);
         PIDConstants pid = PIDConstants.makeVelocityPID(0.005);
 
         BareMotor left = getMotor(
@@ -143,9 +143,6 @@ public class DualDrumShooterFactory {
         return mech;
     }
 
-    /**
-     * TODO: verify the velocity averaging parameters
-     */
     private static BareMotor getMotor(
             CurrentLimit limit,
             LoggerFactory log,
@@ -155,15 +152,18 @@ public class DualDrumShooterFactory {
             MotorPhase phase,
             Friction friction,
             PIDConstants pid) {
+        // parameters for velocity control.
+        int averageDepth = 2;
+        int measurementPeriod = 4;
         return switch (Identity.instance) {
             case BLANK ->
                 new SimulatedBareMotor(log, freeSpeedRad_S);
             case DEMO_BOT -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
             default -> new MinionSparkMotor(
                     log, currentLog, canId, NeutralMode100.BRAKE, phase,
-                    limit, friction, pid, 2, 4);
+                    limit, friction, pid, averageDepth, measurementPeriod);
         };
     }
 

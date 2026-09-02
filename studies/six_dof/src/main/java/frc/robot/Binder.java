@@ -4,6 +4,8 @@ import static org.team100.lib.util.TriggerUtil.whileTrue;
 
 import org.team100.lib.commands.MoveAndHold;
 import org.team100.lib.geometry.se3.VelocitySE3;
+import org.team100.lib.profile.r1.ProfileR1;
+import org.team100.lib.profile.r1.WPITrapezoidProfileR1;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -17,6 +19,7 @@ public class Binder {
     public Binder(Machinery machinery) {
         m_machinery = machinery;
         XboxController m_controller = new XboxController(0);
+        ProfileR1 profile = new WPITrapezoidProfileR1(1, 1);
         // button 1, "z" in sim
         // whileTrue(m_controller::getAButton, m_machinery.m_arm.warp0());
         // button 2, "x" in sim
@@ -28,13 +31,13 @@ public class Binder {
         // new Pose3d(0.5, 0.25, 0.1, new Rotation3d(0, Math.PI / 2, 0))));
         // button 4, "v" in sim
         // Make a sequence of moves with various positions and orientations.
-        MoveAndHold move1 = m_machinery.m_arm.move(
+        MoveAndHold move1 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.5, 0.25, 0.1, new Rotation3d(0, 0, 0)));
-        MoveAndHold move2 = m_machinery.m_arm.move(
+        MoveAndHold move2 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.25, 0.25, 0.1, new Rotation3d(0, Math.PI / 2, 0)));
-        MoveAndHold move3 = m_machinery.m_arm.move(
+        MoveAndHold move3 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.25, -0.25, 0.1, new Rotation3d(0, 0, 0)));
-        MoveAndHold move4 = m_machinery.m_arm.move(
+        MoveAndHold move4 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.5, -0.25, 0.1, new Rotation3d(0, Math.PI / 2, 0)));
         whileTrue(m_controller::getAButton,
                 move1.until(move1::isDone)
@@ -69,13 +72,13 @@ public class Binder {
                         .andThen(move4s.until(move4s::isDone)));
 
         // circle a target
-        MoveAndHold s1 = m_machinery.m_arm.move(
+        MoveAndHold s1 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.4, 0, 0.3, new Rotation3d(0, 0, Math.PI / 4)));
-        MoveAndHold s2 = m_machinery.m_arm.move(
+        MoveAndHold s2 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.4, 0, 0.3, new Rotation3d(0, Math.PI / 4, 0)));
-        MoveAndHold s3 = m_machinery.m_arm.move(
+        MoveAndHold s3 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.4, 0, 0.3, new Rotation3d(0, 0, -Math.PI / 4)));
-        MoveAndHold s4 = m_machinery.m_arm.move(
+        MoveAndHold s4 = m_machinery.m_arm.move(profile,
                 new Pose3d(0.4, 0, 0.3, new Rotation3d(0, -Math.PI / 4, 0)));
         whileTrue(m_controller::getXButton,
                 s1.until(s1::isDone)

@@ -119,8 +119,6 @@ public class FiveBarCartesian extends SubsystemBase {
                 1.0,
                 -100.0,
                 100.0);
-
-        // TODO: what to do for initial position?
         m_mechP1.setUnwrappedPosition(0, 0, 0);
         m_mechP5.setUnwrappedPosition(0, 0, 0);
     }

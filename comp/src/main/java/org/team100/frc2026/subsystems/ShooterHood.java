@@ -50,8 +50,7 @@ public class ShooterHood extends SubsystemBase {
         LoggerFactory log = parent.type(this);
         m_angle = angle;
 
-        // mass is zero for now because dynamics gravity direction doesn't match.
-        // TODO: make the coordinates here match.
+        // NOTE: mass is zero because dynamics gravity direction doesn't match.
         RDynamics dynamics = new RDynamicsAnalytic(0.000, 0.000, 0.007, 0.001);
         TrapezoidProfileR1 profile = new TrapezoidProfileR1(8, 16, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);

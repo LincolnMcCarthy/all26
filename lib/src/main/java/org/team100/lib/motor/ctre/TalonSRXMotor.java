@@ -117,7 +117,7 @@ public class TalonSRXMotor implements BareMotor {
     }
 
     @Override
-    public double getCurrent() {
+    public double getStatorCurrent() {
         return m_motor.getStatorCurrent();
     }
 
@@ -140,6 +140,11 @@ public class TalonSRXMotor implements BareMotor {
 
     @Override
     public double getVelocityRad_S() {
+        throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
         throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
     }
 

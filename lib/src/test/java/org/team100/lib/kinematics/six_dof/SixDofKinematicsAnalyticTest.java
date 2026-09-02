@@ -56,10 +56,10 @@ public class SixDofKinematicsAnalyticTest {
     void testInverse1() {
         // This is the wrist singularity and the elbow singularity
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
-        // tool (x) points at global +x 
+        // tool (x) points at global +x
         Pose3d p = new Pose3d(1.65, 0, 0.25,
                 new Rotation3d(0, 0, 0));
-        List<SixDofConfig> q = k.inverse(p, null, 1.0);
+        List<SixDofConfig> q = k.inverse(p, null, null, 1.0);
         assertEquals(2, q.size());
         // the q6 are different because of the default q4
         TestUtil.verify(new SixDofConfig(0, 0, 0, 1, 0, -1), q.get(0));
@@ -71,8 +71,8 @@ public class SixDofKinematicsAnalyticTest {
         SixDofKinematics k = new SixDofKinematicsAnalytic(0.25, 0.75, 0.75, 0.15);
         // tool (x) points at global -z
         Pose3d p = new Pose3d(0.5, 0, 0.5,
-                new Rotation3d(0, Math.PI/2, 0));
-        List<SixDofConfig> q = k.inverse(p, null, null);
+                new Rotation3d(0, Math.PI / 2, 0));
+        List<SixDofConfig> q = k.inverse(p, null, null, null);
         assertEquals(8, q.size());
         TestUtil.verify(new SixDofConfig(0, 1.804, -2.259, 0, -1.116, 0), q.get(0));
         TestUtil.verify(new SixDofConfig(0, 1.804, -2.259, 3.141, 1.116, 3.141), q.get(1));
@@ -92,7 +92,7 @@ public class SixDofKinematicsAnalyticTest {
         // note position offset +y, wrist should be at (0.5,0.5,0.5)
         Pose3d p = new Pose3d(0.65, 0.5, 0.5,
                 new Rotation3d(0, 0, 0));
-        List<SixDofConfig> q = k.inverse(p, null, null);
+        List<SixDofConfig> q = k.inverse(p, null, null, null);
         assertEquals(8, q.size());
 
         TestUtil.verify(new SixDofConfig(0.785, 1.387, -2.094, -2.147, -1.003, 2.451), q.get(0));
@@ -109,7 +109,7 @@ public class SixDofKinematicsAnalyticTest {
         // tool (x) points at global +x
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(0, 0, 0));
-        assertThrows(IllegalArgumentException.class, () -> k.inverse(p, null, null));
+        assertThrows(IllegalArgumentException.class, () -> k.inverse(p, null, null, null));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class SixDofKinematicsAnalyticTest {
         // tool (x) points at global +x
         Pose3d p = new Pose3d(0.15, 0, 1,
                 new Rotation3d(0, 0, 0));
-        List<SixDofConfig> q = k.inverse(p, 1.0, null);
+        List<SixDofConfig> q = k.inverse(p, 1.0, null, null);
         assertEquals(4, q.size());
 
         // elbow-up
@@ -139,7 +139,7 @@ public class SixDofKinematicsAnalyticTest {
         // tool (x) points at global +x
         Pose3d p = new Pose3d(0, 0, 1,
                 new Rotation3d(0, 0, 0));
-        List<SixDofConfig> q = k.inverse(p, null, null);
+        List<SixDofConfig> q = k.inverse(p, null, null, null);
         assertEquals(8, q.size());
 
         // flip, elbow up

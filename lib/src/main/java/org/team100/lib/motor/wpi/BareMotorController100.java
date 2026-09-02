@@ -94,9 +94,13 @@ public class BareMotorController100 implements BareMotor {
         // m_motor.close();
     }
 
-    /** MotorControllers do not support velocity measurement. */
     @Override
     public double getVelocityRad_S() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
         throw new UnsupportedOperationException();
     }
 
@@ -106,7 +110,7 @@ public class BareMotorController100 implements BareMotor {
     }
 
     @Override
-    public double getCurrent() {
+    public double getStatorCurrent() {
         throw new UnsupportedOperationException();
     }
 

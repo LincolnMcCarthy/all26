@@ -1,5 +1,7 @@
 package org.team100.lib.geometry.rrr;
 
+import java.util.List;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -24,7 +26,7 @@ public record RRRConfig(double q1, double q2, double q3) {
     private static final double s3 = 1.0;
 
     /**
-     * For now, euclidean with weights.
+     * Euclidean distance in joint space, with weights.
      * 
      * You can change these weights to change how configs are selected, based on
      * their "nearness" to the current pose.
@@ -73,5 +75,22 @@ public record RRRConfig(double q1, double q2, double q3) {
 
     public RRRConfig minus(RRRConfig other) {
         return new RRRConfig(q1 - other.q1, q2 - other.q2, q3 - other.q3);
+    }
+
+    /**
+     * Choose config "closest" to q0, using the (non-Euclidean) config distance
+     * metric.
+     */
+    public static RRRConfig getBest(List<RRRConfig> qAll, RRRConfig q0) {
+        double closest = Double.POSITIVE_INFINITY;
+        RRRConfig best = qAll.get(0);
+        for (RRRConfig q : qAll) {
+            double d = q0.distance(q);
+            if (d < closest) {
+                closest = d;
+                best = q;
+            }
+        }
+        return best;
     }
 }

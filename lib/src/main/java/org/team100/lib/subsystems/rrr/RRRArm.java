@@ -31,6 +31,7 @@ import org.team100.lib.state.ControlSE2;
 import org.team100.lib.state.StateR1;
 import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.rn.PositionSubsystemRn;
+import org.team100.lib.subsystems.rrr.commands.MoveManually;
 import org.team100.lib.subsystems.rrr.commands.MoveWithProfile;
 import org.team100.lib.subsystems.rrr.commands.MoveWithSpline;
 import org.team100.lib.subsystems.rrr.commands.MoveWithTrajectorySE2;
@@ -41,6 +42,8 @@ import org.team100.lib.util.StrUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -48,7 +51,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  */
 public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, PositionSubsystemRn<N3> {
     private final LoggerFactory m_log;
-    private final TotalCurrentLog m_CurrentLog;
+    private final TotalCurrentLog m_currentLog;
     final RRRKinematicsPoE m_kinematics;
     final RRRDynamicsNewtonEuler m_dynamics;
     final RRRFeasibility m_feasibility;
@@ -57,33 +60,43 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
     private final RotaryMechanism m_q2;
     private final RotaryMechanism m_q3;
 
-    public RRRArm(LoggerFactory parent) {
+    public RRRArm(LoggerFactory parent, TotalCurrentLog currentLog) {
         m_log = parent.type(this);
+        m_currentLog = currentLog;
         LoggerFactory q1 = m_log.name("q1");
         LoggerFactory q2 = m_log.name("q2");
         LoggerFactory q3 = m_log.name("q3");
-        m_CurrentLog = new TotalCurrentLog(parent);
-        m_kinematics = new RRRKinematicsPoE(0.3, 0.3, 0.1);
+        // LINK LENGTHS, METERS
+        double l1 = 0.3;
+        double l2 = 0.3;
+        double l3 = 0.1;
+        m_kinematics = new RRRKinematicsPoE(l1, l2, l3);
         m_dynamics = new RRRDynamicsNewtonEuler(
-                VecBuilder.fill(0, 0, 0), 0.1, 0.1, 0.1, 0.3, 0.3, 0.1, 0.15, 0.15, 0.05, 0.1, 0.1, 0.1);
-        m_feasibility = new RRRFeasibility(m_kinematics);
+                VecBuilder.fill(0, 0, 0),
+                0.1, 0.1, 0.1,
+                l1, l2, l3,
+                l1 / 2, l2 / 2, l3 / 2,
+                0.1, 0.1, 0.1);
+        m_feasibility = new RRRFeasibility(m_kinematics,
+                new RRRConfig(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2),
+                new RRRConfig(Math.PI / 2, Math.PI / 2, Math.PI / 2));
         final BareMotor m_m1;
         final BareMotor m_m2;
         final BareMotor m_m3;
         if (Identity.instance.equals(Identity.TEST_BOARD_B0)
                 || Identity.instance.equals(Identity.TEAM100_2018)) {
             m_m1 = new Falcon500Motor(
-                    q1, m_CurrentLog, new CanId(5),
+                    q1, m_currentLog, new CanId(5),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
             m_m2 = new Falcon500Motor(
-                    q2, m_CurrentLog, new CanId(21),
+                    q2, m_currentLog, new CanId(21),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
             m_m3 = new Neo550CANSparkMotor(
-                    q3, m_CurrentLog, new CanId(14),
+                    q3, m_currentLog, new CanId(14),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
                     new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1), 0, 0);
@@ -92,6 +105,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
             m_m2 = new SimulatedBareMotor(q2, 600);
             m_m3 = new SimulatedBareMotor(q3, 600);
         }
+        // GEAR RATIOS
         double r1 = 7;
         double r2 = 5;
         double r3 = 12;
@@ -136,7 +150,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
             System.out.println("infeasible pose " + StrUtil.poseStr(p));
             return null;
         }
-        return getBest(qFeasible, q0);
+        return RRRConfig.getBest(qFeasible, q0);
     }
 
     public RRRVelocity qdot(RRRConfig q, VelocitySE2 xdot) {
@@ -147,12 +161,20 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         return m_kinematics.inverse(q, xdot, xddot);
     }
 
-    /** Current configuration. */
+    /** Current measured configuration. */
     public RRRConfig getConfig() {
         return new RRRConfig(
                 m_q1.getUnwrappedPositionRad(),
                 m_q2.getUnwrappedPositionRad(),
                 m_q3.getUnwrappedPositionRad());
+    }
+
+    /** Desired config, with limits applied. */
+    public RRRConfig getConfigWithinLimits() {
+        return new RRRConfig(
+                m_q1.getUnwrappedPositionWithinLimits(),
+                m_q2.getUnwrappedPositionWithinLimits(),
+                m_q3.getUnwrappedPositionWithinLimits());
     }
 
     /** Current velocity. */
@@ -163,22 +185,7 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
                 m_q3.getVelocityRad_S());
     }
 
-    /**
-     * Choose config "closest" to q0, using the (non-Euclidean) config distance
-     * metric.
-     */
-    RRRConfig getBest(List<RRRConfig> qAll, RRRConfig q0) {
-        double closest = Double.POSITIVE_INFINITY;
-        RRRConfig best = qAll.get(0);
-        for (RRRConfig q : qAll) {
-            double d = q0.distance(q);
-            if (d < closest) {
-                closest = d;
-                best = q;
-            }
-        }
-        return best;
-    }
+
 
     public Pose2d pose() {
         return pose(getConfig());
@@ -214,6 +221,10 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
 
     public MoveAndHold moveSplined(VelocitySE2 x0dot, Pose2d x1, VelocitySE2 x1dot) {
         return new MoveWithSpline(m_log, this, x0dot, x1, x1dot);
+    }
+
+    public Command moveManually(XboxController controller) {
+        return new MoveManually(this, controller);
     }
 
     @Override

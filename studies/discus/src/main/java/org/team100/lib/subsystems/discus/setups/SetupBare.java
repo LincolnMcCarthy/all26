@@ -7,6 +7,7 @@ import org.team100.lib.subsystems.discus.DiscusBare;
 import org.team100.lib.visualization.ArmVisualization;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class SetupBare implements Runnable {
     private final DiscusBare m_discus;
@@ -23,6 +24,11 @@ public class SetupBare implements Runnable {
         // controller::getLeftX));
         m_discus.setDefaultCommand(m_discus.voltage(
                 () -> 12 * controller.getLeftX()));
+        new Trigger(controller::getAButton).whileTrue(
+                m_discus.voltage(() -> 8));
+        new Trigger(controller::getBButton).whileTrue(
+                m_discus.voltage(() -> 12));
+
     }
 
     @Override

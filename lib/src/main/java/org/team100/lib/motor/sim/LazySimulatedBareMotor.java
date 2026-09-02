@@ -74,12 +74,17 @@ public class LazySimulatedBareMotor implements BareMotor {
     }
 
     @Override
+    public double getAccelerationRad_S2() {
+        return m_delegate.getAccelerationRad_S2();
+    }
+
+    @Override
     public double getUnwrappedPositionRad() {
         return m_delegate.getUnwrappedPositionRad();
     }
 
     @Override
-    public double getCurrent() {
+    public double getStatorCurrent() {
         // running means low current
         if (m_running)
             return 10;

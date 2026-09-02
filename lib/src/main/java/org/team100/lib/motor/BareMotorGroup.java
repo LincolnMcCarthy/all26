@@ -38,18 +38,23 @@ public class BareMotorGroup implements BareMotor {
     }
 
     @Override
-    public double getVelocityRad_S() {
-        return mean((m) -> m.getVelocityRad_S());
-    }
-
-    @Override
     public double getUnwrappedPositionRad() {
         return mean((m) -> m.getUnwrappedPositionRad());
     }
 
     @Override
-    public double getCurrent() {
-        return mean((m) -> m.getCurrent());
+    public double getVelocityRad_S() {
+        return mean((m) -> m.getVelocityRad_S());
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        return mean((m) -> m.getAccelerationRad_S2());
+    }
+
+    @Override
+    public double getStatorCurrent() {
+        return mean((m) -> m.getStatorCurrent());
     }
 
     @Override

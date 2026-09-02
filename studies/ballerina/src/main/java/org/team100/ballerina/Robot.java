@@ -13,8 +13,10 @@ import org.team100.lib.indicator.SolidIndicator;
 import org.team100.lib.localization.ManualPose;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
+import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.subsystems.turret.Turret;
 import org.team100.lib.util.Banner;
+import org.team100.lib.util.CanId;
 import org.team100.lib.util.RoboRioChannel;
 import org.team100.lib.visualization.Ball;
 import org.team100.lib.visualization.BallFactory;
@@ -42,10 +44,10 @@ public class Robot extends TimedRobot {
         Logging log = Logging.instance();
         LoggerFactory fieldLogger = log.fieldLogger;
         LoggerFactory rootLogger = log.rootLogger;
+        TotalCurrentLog currentLog = new TotalCurrentLog(rootLogger);
         m_controller = new DriverXboxControl(0);
         m_pose = new ManualPose(fieldLogger, m_controller::velocity, new Pose2d(6, 4, Rotation2d.kZero));
         // use the 2026 target selector
-        // TODO: extract target selection
         Supplier<Optional<Translation2d>> target = () -> {
             return FieldConstants2026.TARGET(
                     m_pose.getState().translation());
@@ -54,7 +56,11 @@ public class Robot extends TimedRobot {
         Targeter targeter = new Targeter(() -> m_pose.getState().translation());
         m_turret = new Turret(
                 rootLogger,
+                currentLog,
                 fieldLogger,
+                new CanId(0),
+                new CanId(0),
+                new CanId(0),
                 targeter::forRange,
                 m_pose::getState,
                 target);
@@ -64,8 +70,6 @@ public class Robot extends TimedRobot {
             m_ball = BallFactory.get2d(
                     fieldLogger, m_pose::getState, m_turret::getAzimuth, m_turret::getSpeed);
         } else {
-            // Always throws knuckleballs
-            // TODO: adjustable spin.
             m_ball = BallFactory.get3d(
                     rootLogger,
                     fieldLogger,
@@ -73,7 +77,7 @@ public class Robot extends TimedRobot {
                     m_turret::getAzimuth,
                     m_turret::getElevation,
                     m_turret::getSpeed,
-                    0);
+                    m_turret::getOmega);
         }
         // button 1
         new Trigger(m_controller::a).whileTrue(m_turret.aim());

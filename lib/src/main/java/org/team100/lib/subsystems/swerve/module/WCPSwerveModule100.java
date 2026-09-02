@@ -128,8 +128,6 @@ public class WCPSwerveModule100 extends SwerveModule100 {
     }
 
     /**
-     * TODO: use this on the drivetrain that works this way.
-     * 
      * MAKE SURE THAT THE BEVELS ON THE WHEELS FOR ZEROING GO TO THE RIGHT
      */
     public static WCPSwerveModule100 getKrakenDriveFalconSteer(

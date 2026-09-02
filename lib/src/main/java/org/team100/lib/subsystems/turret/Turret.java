@@ -4,17 +4,25 @@ import java.util.Optional;
 import java.util.function.DoubleFunction;
 import java.util.function.Supplier;
 
+import org.team100.lib.config.CurrentLimit;
+import org.team100.lib.config.Friction;
+import org.team100.lib.config.PIDConstants;
 import org.team100.lib.controller.r1.PIDFeedback;
 import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.dynamics.r.RDynamicsAnalytic;
-import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.geometry.r2.StateR2;
+import org.team100.lib.geometry.r2.VelocityR2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.BooleanLogger;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
+import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
 import org.team100.lib.mechanism.RotaryMechanism;
+import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.MotorPhase;
+import org.team100.lib.motor.NeutralMode100;
+import org.team100.lib.motor.ctre.KrakenX44Motor;
 import org.team100.lib.motor.sim.SimulatedBareMotor;
 import org.team100.lib.profile.r1.AccelLimitedVelocityProfileR1;
 import org.team100.lib.profile.r1.ProfileR1;
@@ -35,10 +43,12 @@ import org.team100.lib.targeting.FiringParameters;
 import org.team100.lib.targeting.Solution;
 import org.team100.lib.targeting.Solver;
 import org.team100.lib.targeting.TimeOfFlightRecursion;
+import org.team100.lib.util.CanId;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -46,10 +56,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * Attempts to maintain aim. Demonstrates "spotting".
  * 
  * It provides Field2d visualization of the turret using the name "turret".
- * 
- * Now supports variable velocity.
- * 
- * TODO: add real motors.
  */
 public class Turret extends SubsystemBase {
     // azimuth constants
@@ -83,7 +89,11 @@ public class Turret extends SubsystemBase {
      */
     public Turret(
             LoggerFactory parent,
+            TotalCurrentLog currentLog,
             LoggerFactory field,
+            CanId azimuthCanId,
+            CanId elevationCanId,
+            CanId drumCanId,
             DoubleFunction<Optional<FiringParameters>> rangeToParams,
             Supplier<StateSE2> state,
             Supplier<Optional<Translation2d>> target) {
@@ -94,24 +104,35 @@ public class Turret extends SubsystemBase {
         m_log_field_target = field.doubleArrayLogger(Level.COMP, "target");
         m_state = state;
         m_target = target;
-        m_pivot = pivot(log.name("azimuth"));
-        m_elevation = elevation(log.name("elevation"));
-        m_drum = drum(log.name("drum"));
+        m_pivot = pivot(log.name("azimuth"), currentLog, azimuthCanId);
+        m_elevation = elevation(log.name("elevation"), currentLog, elevationCanId);
+        m_drum = drum(log.name("drum"), currentLog, drumCanId);
         // Laser solver always works
         // m_solver = new LaserSolver(rangeToParams);
-        // TODO: make TOFR work
         m_solver = new TimeOfFlightRecursion(rangeToParams, 0.01);
         m_aiming = false;
         m_solved = false;
     }
 
-    private static AngularPositionServo pivot(LoggerFactory log) {
+    private static AngularPositionServo pivot(
+            LoggerFactory log,
+            TotalCurrentLog currentLog,
+            CanId canId) {
         RDynamicsAnalytic dyn = new RDynamicsAnalytic(0.005);
         ProfileR1 profile = new TrapezoidProfileR1(5, 10, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         PIDFeedback feedback = new PIDFeedback(log, 5, 0, 0, false, 0.05, 0.1);
-        // TODO: real motor
-        SimulatedBareMotor motor = new SimulatedBareMotor(log, 600);
+        BareMotor motor;
+        if (RobotBase.isReal()) {
+            motor = new KrakenX44Motor(
+                    log, currentLog, canId,
+                    NeutralMode100.BRAKE, MotorPhase.FORWARD,
+                    new CurrentLimit(1, 1),
+                    new Friction(0, 0, 0, 0),
+                    PIDConstants.makePositionPID(0));
+        } else {
+            motor = new SimulatedBareMotor(log, 600);
+        }
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(
                 log, encoder, GEAR_RATIO);
@@ -123,13 +144,25 @@ public class Turret extends SubsystemBase {
         return pivot;
     }
 
-    private static AngularPositionServo elevation(LoggerFactory log) {
+    private static AngularPositionServo elevation(
+            LoggerFactory log,
+            TotalCurrentLog currentLog,
+            CanId canId) {
         RDynamicsAnalytic dyn = new RDynamicsAnalytic(0, 0, 0, 0);
         ProfileR1 profile = new TrapezoidProfileR1(5, 10, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         PIDFeedback feedback = new PIDFeedback(log, 5, 0, 0, false, 0.05, 0.1);
-        // TODO: real motor
-        SimulatedBareMotor motor = new SimulatedBareMotor(log, 600);
+        BareMotor motor;
+        if (RobotBase.isReal()) {
+            motor = new KrakenX44Motor(
+                    log, currentLog, canId,
+                    NeutralMode100.BRAKE, MotorPhase.FORWARD,
+                    new CurrentLimit(1, 1),
+                    new Friction(0, 0, 0, 0),
+                    PIDConstants.makePositionPID(0));
+        } else {
+            motor = new SimulatedBareMotor(log, 600);
+        }
         IncrementalBareEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(
                 log, encoder, GEAR_RATIO);
@@ -141,13 +174,25 @@ public class Turret extends SubsystemBase {
         return pivot;
     }
 
-    private static LinearVelocityServo drum(LoggerFactory log) {
+    private static LinearVelocityServo drum(
+            LoggerFactory log,
+            TotalCurrentLog currentLog,
+            CanId canId) {
         PDynamics dyn = PDynamics.drum(0.0001, DRUM_DIAMETER / 2);
         VelocityProfileR1 profile = new AccelLimitedVelocityProfileR1(10);
         VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
                 log, () -> profile, 1);
-        // TODO: real motor
-        SimulatedBareMotor motor = new SimulatedBareMotor(log, 600);
+        BareMotor motor;
+        if (RobotBase.isReal()) {
+            motor = new KrakenX44Motor(
+                    log, currentLog, canId,
+                    NeutralMode100.BRAKE, MotorPhase.FORWARD,
+                    new CurrentLimit(1, 1),
+                    new Friction(0, 0, 0, 0),
+                    PIDConstants.makePositionPID(0));
+        } else {
+            motor = new SimulatedBareMotor(log, 600);
+        }
         IncrementalBareEncoder encoder = motor.encoder();
         LinearMechanism mech = new LinearMechanism(
                 log, motor, encoder, DRUM_RATIO, DRUM_DIAMETER,
@@ -184,8 +229,20 @@ public class Turret extends SubsystemBase {
         return new Rotation2d(m_elevation.getWrappedPositionRad());
     }
 
+    /**
+     * Linear velocity of the ball at the exit.
+     */
     public double getSpeed() {
-        return m_drum.getVelocity();
+        return m_drum.getVelocity() / 2;
+    }
+
+    /**
+     * Angular velocity of the ball at the exit.
+     */
+    public double getOmega() {
+        // assume the drum is on the bottom, producing "backspin"
+        // with a ball diameter of 0.1 meters
+        return 10 * m_drum.getVelocity();
     }
 
     private void moveToAim() {
