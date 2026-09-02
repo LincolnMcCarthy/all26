@@ -21,6 +21,13 @@ import org.team100.lib.util.RoboRioChannel;
 /**
  * Represents the modules in the drivetrain.
  * Do not put logic here; this is just for bundling the modules together.
+ * 
+ * HOW TO CALIBRATE THE STEERING
+ * 
+ * 1. align the bevels to the right
+ * 2. find the "position (turns)" in glass
+ * 3. copy the value there into the offset argument
+ * 4. deploy and check that "position (turns-offset)" is zero.
  */
 public class SwerveModuleCollection implements Player {
     private static final boolean DEBUG = false;

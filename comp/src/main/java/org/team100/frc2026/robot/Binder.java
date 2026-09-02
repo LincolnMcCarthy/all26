@@ -37,7 +37,7 @@ public class Binder {
         ///
         /// CONTROLLER
         ///
-        //DriverXboxControl driver = new DriverXboxControl(0);
+        // DriverXboxControl driver = new DriverXboxControl(0);
         InterLinkDX driver = new InterLinkDX(0);
 
         ////////////////////////////////////////////////////
@@ -64,17 +64,18 @@ public class Binder {
         ///
         /// Back: nudge the rotation towards zero.
         /// Start: forget the current pose, listen to camera input.
+        ///
+        /// both together: warp to the origin. FOR TESTING ONLY.
 
         onTrue(driver::back, m_machinery.zeroRotation());
         onTrue(driver::start, m_machinery.disorient());
+        onTrue(() -> driver.start() && driver.back(), m_machinery.zeroPose());
 
         ////////////////////////////////////////////////////
         ///
         /// DEFENSE X POSITION
         ///
         whileTrue(driver::povDown, m_machinery.m_drive.defend());
-
- 
 
         whileTrue(driver::rightTrigger,
                 parallel(
@@ -118,10 +119,6 @@ public class Binder {
                         m_machinery.m_cachedSolution,
                         m_machinery.m_drive)
                         .withName("Target lock"));
-
-
- 
-
 
     }
 
