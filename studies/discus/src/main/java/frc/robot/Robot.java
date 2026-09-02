@@ -4,6 +4,7 @@ import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.Takt;
 import org.team100.lib.subsystems.discus.setups.SetupBare;
 
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -33,6 +34,8 @@ public class Robot extends TimedRobot {
         Cache.refresh();
         CommandScheduler.getInstance().run();
         m_setup.run();
+        // Show all the measurements at maximum rate.
+        NetworkTableInstance.getDefault().flush();
     }
 
     @Override

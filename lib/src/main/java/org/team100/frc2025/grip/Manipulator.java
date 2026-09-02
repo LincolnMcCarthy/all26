@@ -197,7 +197,7 @@ public class Manipulator extends SubsystemBase implements Music {
      * (...and also at startup so include a delay.)
      */
     public boolean hasAlgae() {
-        return m_algaeMotor.getCurrent() > 50;
+        return m_algaeMotor.getStatorCurrent() > 50;
     }
 
     /////////////////////////////////////////////////

@@ -11,6 +11,11 @@ import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
  */
 public interface BareMotor extends Player, TotalCurrentLog.Reporter {
 
+    ////////////////////////////////////////////////////////////
+    ///
+    /// ACTUATION
+    ///
+
     /**
      * Some motors allow torque limiting through current limiting.
      * 
@@ -37,12 +42,12 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
      * There are two kinds of implementations, closed-loop and open-loop.
      * 
      * Closed-loop implementations use the velocity term as the controller target,
-     * and also for feedforward based on back-EMF.  Since back-EMF is intrinsic,
+     * and also for feedforward based on back-EMF. Since back-EMF is intrinsic,
      * this feedforward is correct.
      * 
      * Previously, the closed-loop implementations used a multiplicative
      * feedforward for acceleration, which is the wrong place to do it, since
-     * it properly depends on extrinsics (e.g. mechanism mass).  This argument
+     * it properly depends on extrinsics (e.g. mechanism mass). This argument
      * is gone, and the extrinsics modeled "upstream."
      * 
      * The torque is used by closed-loop implementations using motor
@@ -50,7 +55,7 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
      * so this is correect as well.
      * 
      * Open-loop implementations just scale velocity to voltage or duty cycle
-     * somehow, ignore  the other terms, and don't expect to be very accurate.
+     * somehow, ignore the other terms, and don't expect to be very accurate.
      * 
      * @param velocityRad_S motor shaft speed, rad/s.
      * @param torqueNm      Nm, for gravity compensation or acceleration.
@@ -58,32 +63,6 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
     void setVelocity(
             double velocityRad_S,
             double torqueNm);
-
-    /**
-     * Value should be updated in Robot.robotPeriodic().
-     * 
-     * Motor shaft speed.
-     */
-    double getVelocityRad_S();
-
-    /**
-     * Returns the "unwrapped" angular position, i.e. the measurement domain
-     * continues beyond +/- pi.
-     * 
-     * Value should be updated in Robot.robotPeriodic().
-     * 
-     * Motor shaft position.
-     */
-    double getUnwrappedPositionRad();
-
-    /** Motor stator current in amps. */
-    double getCurrent();
-
-    /**
-     * This is the "unwrapped" position, i.e. the domain is infinite, not cyclical
-     * within +/- pi.
-     */
-    void setUnwrappedEncoderPositionRad(double positionRad);
 
     /**
      * Position feedback with feedforward for friction, velocity, acceleration, and
@@ -115,6 +94,50 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
             double positionRad,
             double velocityRad_S,
             double torqueNm);
+
+    /** This is not "hold position" this is "torque off". */
+    void stop();
+
+    /////////////////////////////////////////////////////////////
+    ///
+    /// MEASUREMENTS
+    ///
+
+    /**
+     * "Unwrapped" angular motor shaft position, i.e. the measurement
+     * domain continues beyond +/- pi.  May be filtered.
+     * 
+     * Value should be updated in Robot.robotPeriodic().
+     */
+    double getUnwrappedPositionRad();
+
+    /**
+     * Motor shaft speed. May be filtered.
+     * 
+     * Value should be updated in Robot.robotPeriodic().
+     */
+    double getVelocityRad_S();
+
+    /**
+     * Motor shaft acceleration. May be filtered.
+     * 
+     * Value should be updated in Robot.robotPeriodic().
+     */
+    double getAccelerationRad_S2();
+
+    /** Motor stator current in amps. */
+    double getStatorCurrent();
+
+    /**
+     * This is the "unwrapped" position, i.e. the domain is infinite, not cyclical
+     * within +/- pi.
+     */
+    void setUnwrappedEncoderPositionRad(double positionRad);
+
+    /////////////////////////////////////////////////////////
+    ///
+    /// MOTOR PARAMETER CONSTANTS
+    ///
 
     /**
      * Motor resistance in ohms, used to calculate voltage from desired torque
@@ -169,18 +192,13 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
         return torqueFFAmps * kROhms();
     }
 
-    /** Return encoder for this motor, if possible */
+    /** Return encoder for this motor, if possible. */
     IncrementalBareEncoder encoder();
-
-    /** This is not "hold position" this is "torque off". */
-    void stop();
 
     /** Reset the cache. */
     void reset();
 
-    /**
-     * For test cleanup.
-     */
+    /** For test cleanup. */
     void close();
 
     /** For logging */

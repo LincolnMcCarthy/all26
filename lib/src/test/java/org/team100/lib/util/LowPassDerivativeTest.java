@@ -93,7 +93,7 @@ public class LowPassDerivativeTest {
     @Test
     void test3() {
         // sinc gains produce rectangular passband, or would, if the gains
-        // were symmetric (noncausal) and infinite in extent.  :-)
+        // were symmetric (noncausal) and infinite in extent. :-)
         double[] sincGains = sincGains(0.125, 4);
         // System.out.println(StrUtil.arrayStr(sincGains));
         double dt = 0.02;
@@ -123,7 +123,7 @@ public class LowPassDerivativeTest {
      * @param f cutoff, normalized
      * @param N taps
      */
-    private double[] sincGains(double f, int N) {
+    private static double[] sincGains(double f, int N) {
         double alpha = alpha(N);
         double[] gains = new double[N];
         for (int i = 0; i < N; ++i) {
@@ -132,11 +132,11 @@ public class LowPassDerivativeTest {
         return gains;
     }
 
-    private double alpha(double N) {
+    private static double alpha(double N) {
         return (N - 1) / 2;
     }
 
-    private double sinc(double x) {
+    private static double sinc(double x) {
         return Math.sin(Math.PI * x) / (Math.PI * x);
     }
 

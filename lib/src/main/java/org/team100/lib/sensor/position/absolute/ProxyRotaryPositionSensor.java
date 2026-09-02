@@ -56,6 +56,11 @@ public class ProxyRotaryPositionSensor implements RotaryPositionSensor {
     }
 
     @Override
+    public double getAccelerationRad_S2() {
+        return m_encoder.getAccelerationRad_S2() / m_gearRatio;
+    }
+
+    @Override
     public void periodic() {
         m_encoder.periodic();
     }

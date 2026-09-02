@@ -8,18 +8,19 @@ package org.team100.lib.sensor.position.incremental;
 public class NoEncoder implements IncrementalBareEncoder {
 
     @Override
+    public double getUnwrappedPositionRad() {
+        return 0;
+    }
+
+    @Override
     public double getVelocityRad_S() {
         return 0;
     }
 
     @Override
-    public double getUnwrappedPositionRad() {
+    public double getAccelerationRad_S2() {
         return 0;
     }
-
-    // @Override
-    // public void reset() {
-    // }
 
     @Override
     public void close() {
