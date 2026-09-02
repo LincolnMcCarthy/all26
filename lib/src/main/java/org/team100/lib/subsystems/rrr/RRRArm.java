@@ -70,7 +70,8 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         final BareMotor m_m1;
         final BareMotor m_m2;
         final BareMotor m_m3;
-        if (Identity.instance.equals(Identity.TEST_BOARD_B0)) {
+        if (Identity.instance.equals(Identity.TEST_BOARD_B0)
+                || Identity.instance.equals(Identity.TEAM100_2018)) {
             m_m1 = new Falcon500Motor(
                     q1, m_CurrentLog, new CanId(5),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
