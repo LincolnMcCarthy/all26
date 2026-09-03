@@ -44,13 +44,13 @@ public class Binder {
 
         // profiles in joint space make kinda circular paths in workspace
         MoveAndHold move1 = m_machinery.m_arm.moveProfiled(profile,
-                new Pose2d(0.45, 0.25, new Rotation2d(0)));
+                new Pose2d(0.5, 0.25, new Rotation2d(0)));
         MoveAndHold move2 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.6, 0.25, new Rotation2d(0)));
         MoveAndHold move3 = m_machinery.m_arm.moveProfiled(profile,
                 new Pose2d(0.6, -0.25, new Rotation2d(0)));
         MoveAndHold move4 = m_machinery.m_arm.moveProfiled(profile,
-                new Pose2d(0.45, -0.25, new Rotation2d(0)));
+                new Pose2d(0.5, -0.25, new Rotation2d(0)));
         whileTrue(m_controller::getAButton,
                 move1.until(move1::isDone)
                         .andThen(move2.until(move2::isDone))
