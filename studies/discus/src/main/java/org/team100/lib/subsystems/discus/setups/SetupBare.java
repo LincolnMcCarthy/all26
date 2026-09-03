@@ -23,7 +23,7 @@ public class SetupBare implements Runnable {
         // m_discus.setDefaultCommand(m_discus.dutyCycle(
         // controller::getLeftX));
         m_discus.setDefaultCommand(m_discus.voltage(
-                () -> 12 * controller.getLeftX()));
+                () -> 4  * controller.getLeftX()));
         new Trigger(controller::getAButton).whileTrue(
                 m_discus.voltage(() -> 8));
         new Trigger(controller::getBButton).whileTrue(
