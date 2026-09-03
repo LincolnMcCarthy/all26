@@ -8,11 +8,11 @@ import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.ctre.Falcon500Motor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.sensor.position.absolute.ProxyRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.RotaryPositionSensor;
 import org.team100.lib.util.CanId;
@@ -29,7 +29,7 @@ public class DiscusBare extends SubsystemBase {
     private static final double VOLT_SCALE = 0.2;
     private static final double SUPPLY_LIMIT = 100;
     private static final double STATOR_LIMIT = 100;
-    private final BareMotor m_motor;
+    private final Motor m_motor;
     private final RotaryPositionSensor m_sensor;
 
     public DiscusBare(LoggerFactory parent, TotalCurrentLog currentLog) {
@@ -50,7 +50,7 @@ public class DiscusBare extends SubsystemBase {
 
             }
             default -> {
-                m_motor = new SimulatedBareMotor(logger, 600);
+                m_motor = new SimulatedMotor(logger, 600);
 
             }
         }

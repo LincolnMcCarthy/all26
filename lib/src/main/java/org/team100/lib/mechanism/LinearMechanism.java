@@ -3,9 +3,9 @@ package org.team100.lib.mechanism;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.music.Player;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
 /**
  * Uses a motor, gears, and a wheel to produce linear output, e.g. a drive wheel
@@ -20,8 +20,8 @@ import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
 public class LinearMechanism implements Player {
     private static final boolean DEBUG = false;
 
-    private final BareMotor m_motor;
-    private final IncrementalBareEncoder m_encoder;
+    private final Motor m_motor;
+    private final IncrementalEncoder m_encoder;
     private final double m_gearRatio;
     private final double m_wheelRadiusM;
     private final double m_minPositionM;
@@ -32,8 +32,8 @@ public class LinearMechanism implements Player {
 
     public LinearMechanism(
             LoggerFactory parent,
-            BareMotor motor,
-            IncrementalBareEncoder encoder,
+            Motor motor,
+            IncrementalEncoder encoder,
             double gearRatio,
             double wheelDiameterM,
             double minPositionM,

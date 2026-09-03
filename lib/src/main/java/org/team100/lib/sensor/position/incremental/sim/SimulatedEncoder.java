@@ -3,19 +3,19 @@ package org.team100.lib.sensor.position.incremental.sim;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class SimulatedBareEncoder implements IncrementalBareEncoder {
+public class SimulatedEncoder implements IncrementalEncoder {
     private static final boolean DEBUG = false;
-    private final BareMotor m_motor;
+    private final Motor m_motor;
 
     private DoubleLogger m_log_position;
     private DoubleLogger m_log_velocity;
 
-    public SimulatedBareEncoder(
+    public SimulatedEncoder(
             LoggerFactory parent,
-            BareMotor motor) {
+            Motor motor) {
         LoggerFactory log = parent.type(this);
         m_motor = motor;
         m_log_position = log.doubleLogger(Level.TRACE, "position (rad)");

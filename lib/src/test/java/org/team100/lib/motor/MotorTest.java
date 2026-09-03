@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class BareMotorTest {
+public class MotorTest {
 
     @Test
     void test0() {
-        BareMotor m = new AbstractBareMotor() {
+        Motor m = new AbstractMotor() {
             @Override
             public double kE() {
                 return 1;

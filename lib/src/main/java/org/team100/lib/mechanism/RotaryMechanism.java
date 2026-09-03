@@ -3,11 +3,11 @@ package org.team100.lib.mechanism;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.music.Player;
 import org.team100.lib.sensor.position.absolute.ProxyRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.RotaryPositionSensor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 import org.team100.lib.state.StateR1;
 
 import edu.wpi.first.math.MathUtil;
@@ -25,7 +25,7 @@ import edu.wpi.first.math.MathUtil;
  * difference.
  */
 public class RotaryMechanism implements Player {
-    private final BareMotor m_motor;
+    private final Motor m_motor;
     private final RotaryPositionSensor m_sensor;
     private final double m_gearRatio;
     private final double m_minPositionRad;
@@ -46,7 +46,7 @@ public class RotaryMechanism implements Player {
      */
     public RotaryMechanism(
             LoggerFactory parent,
-            BareMotor motor,
+            Motor motor,
             RotaryPositionSensor sensor,
             double gearRatio,
             double minPositionRad,
@@ -67,8 +67,8 @@ public class RotaryMechanism implements Player {
     /** There is no absolute position sensor in this case. */
     public RotaryMechanism(
             LoggerFactory parent,
-            BareMotor motor,
-            IncrementalBareEncoder encoder,
+            Motor motor,
+            IncrementalEncoder encoder,
             double initialPosition,
             double gearRatio,
             double minPositionRad,

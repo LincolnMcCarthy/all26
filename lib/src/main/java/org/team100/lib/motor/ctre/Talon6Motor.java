@@ -12,7 +12,7 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.sensor.position.incremental.ctre.Talon6Encoder;
@@ -43,7 +43,7 @@ import edu.wpi.first.units.measure.Voltage;
  * in
  * Robot.robotPeriodic().
  */
-public abstract class Talon6Motor implements BareMotor {
+public abstract class Talon6Motor implements Motor {
     private final LoggerFactory m_log;
     private static final boolean DEBUG = false;
 

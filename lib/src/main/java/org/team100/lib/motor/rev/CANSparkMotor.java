@@ -11,7 +11,7 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.sensor.position.incremental.rev.CANSparkEncoder;
@@ -56,7 +56,7 @@ import com.revrobotics.spark.SparkLimitSwitch;
  * https://www.chiefdelphi.com/t/rev-robotics-2024-2025/471083/26
  * https://www.reca.lc/flywheel
  */
-public abstract class CANSparkMotor implements BareMotor {
+public abstract class CANSparkMotor implements Motor {
     private final LoggerFactory m_log;
     private final Friction m_friction;
     private final SparkBase m_motor;

@@ -4,7 +4,7 @@ package org.team100.lib.sensor.position.incremental;
  * Represents motor-shaft encoder, probably some kind of built-in, but could
  * also represent any incremental (e.g. quadrature) encoder.
  */
-public interface IncrementalBareEncoder {
+public interface IncrementalEncoder {
 
     /**
      * "Unwrapped" angular position (rad), i.e. the measurement domain

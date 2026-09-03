@@ -4,9 +4,9 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.motor.ctre.Talon6Motor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class Talon6Encoder implements IncrementalBareEncoder {
+public class Talon6Encoder implements IncrementalEncoder {
     private final Talon6Motor m_motor;
     private final DoubleLogger m_log_position;
     private final DoubleLogger m_log_velocity;

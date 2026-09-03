@@ -5,7 +5,7 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.sensor.position.absolute.RotaryPositionSensor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
 import edu.wpi.first.math.MathUtil;
 
@@ -17,7 +17,7 @@ import edu.wpi.first.math.MathUtil;
  * using {@link Timeless}.
  */
 public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
-    private final IncrementalBareEncoder m_encoder;
+    private final IncrementalEncoder m_encoder;
     private final double m_gearRatio;
     private final DoubleLogger m_log_position;
     private final DoubleLogger m_log_rate;
@@ -30,7 +30,7 @@ public class SimulatedRotaryPositionSensor implements RotaryPositionSensor {
 
     public SimulatedRotaryPositionSensor(
             LoggerFactory parent,
-            IncrementalBareEncoder encoder,
+            IncrementalEncoder encoder,
             double gearRatio) {
         LoggerFactory log = parent.type(this);
         m_encoder = encoder;

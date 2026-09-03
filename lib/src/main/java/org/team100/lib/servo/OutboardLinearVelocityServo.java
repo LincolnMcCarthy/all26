@@ -8,7 +8,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.LoggerFactory.VelocityControlR1Logger;
 import org.team100.lib.mechanism.LinearMechanism;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.state.VelocityControlR1;
 
@@ -59,7 +59,7 @@ public class OutboardLinearVelocityServo implements LinearVelocityServo {
      */
     public static OutboardLinearVelocityServo make(
             LoggerFactory log,
-            BareMotor motor,
+            Motor motor,
             PDynamics dynamics,
             VelocityReferenceR1 ref,
             double gearRatio,

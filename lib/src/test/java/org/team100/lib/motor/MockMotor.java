@@ -1,9 +1,9 @@
 package org.team100.lib.motor;
 
 import org.team100.lib.config.Friction;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
+public class MockMotor implements Motor, IncrementalEncoder {
     public double output = 0;
     /** rad */
     public double position = 0;
@@ -21,7 +21,7 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     public double torqueFFVolts;
     private final Friction m_friction;
 
-    public MockBareMotor(Friction friction) {
+    public MockMotor(Friction friction) {
         m_friction = friction;
     }
 
@@ -76,7 +76,7 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     }
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public IncrementalEncoder encoder() {
         return this;
     }
 

@@ -1,8 +1,8 @@
 package org.team100.lib.motor;
 
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class AbstractBareMotor implements BareMotor {
+public class AbstractMotor implements Motor {
 
     @Override
     public void play(double freq) {
@@ -74,7 +74,7 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public IncrementalEncoder encoder() {
         return null;
     }
 

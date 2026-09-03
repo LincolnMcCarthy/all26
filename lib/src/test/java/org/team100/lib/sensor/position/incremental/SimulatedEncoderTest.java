@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TestLoggerFactory;
 import org.team100.lib.logging.primitive.TestPrimitiveLogger;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
-import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
+import org.team100.lib.motor.sim.SimulatedMotor;
+import org.team100.lib.sensor.position.incremental.sim.SimulatedEncoder;
 import org.team100.lib.testing.Timeless;
 
-public class SimulatedBareEncoderTest implements Timeless {
+public class SimulatedEncoderTest implements Timeless {
     private static final double DELTA = 0.001;
     private static final LoggerFactory log = new TestLoggerFactory(new TestPrimitiveLogger());
 
@@ -18,8 +18,8 @@ public class SimulatedBareEncoderTest implements Timeless {
     void testSetAndReset() {
         // changing the encoder position should not produce a velocity signal.
 
-        SimulatedBareMotor motor = new SimulatedBareMotor(log, 600);
-        SimulatedBareEncoder encoder = motor.encoder();
+        SimulatedMotor motor = new SimulatedMotor(log, 600);
+        SimulatedEncoder encoder = motor.encoder();
         assertEquals(0, encoder.getUnwrappedPositionRad(), DELTA);
         assertEquals(0, encoder.getVelocityRad_S(), DELTA);
         assertEquals(0, motor.getUnwrappedPositionRad(), DELTA);
@@ -34,7 +34,7 @@ public class SimulatedBareEncoderTest implements Timeless {
         assertEquals(1, motor.getUnwrappedPositionRad(), DELTA);
         assertEquals(0, motor.getVelocityRad_S(), DELTA);
 
-        stepTime();   
+        stepTime();
 
         assertEquals(1, encoder.getUnwrappedPositionRad(), DELTA);
         assertEquals(0, encoder.getVelocityRad_S(), DELTA);

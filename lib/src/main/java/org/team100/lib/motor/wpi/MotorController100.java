@@ -3,14 +3,14 @@ package org.team100.lib.motor.wpi;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
-import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
+import org.team100.lib.sensor.position.incremental.sim.SimulatedEncoder;
 
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 
 /** Wrapoer for RoboRIO-connected PWM speed control */
-public class BareMotorController100 implements BareMotor {
+public class MotorController100 implements Motor {
     private static final double FREE_SPEED_RPM = 6000;
     /**
      * Very much not calibrated.
@@ -22,7 +22,7 @@ public class BareMotorController100 implements BareMotor {
     private final DoubleLogger m_log_duty;
     private final DoubleLogger m_log_reported;
 
-    public BareMotorController100(
+    public MotorController100(
             LoggerFactory parent,
             MotorController motorController) {
         m_log = parent.type(this);
@@ -81,8 +81,8 @@ public class BareMotorController100 implements BareMotor {
         return 60 * 12 / (FREE_SPEED_RPM * 2 * Math.PI);
     }
 
-    public IncrementalBareEncoder encoder() {
-        return new SimulatedBareEncoder(m_log, this);
+    public IncrementalEncoder encoder() {
+        return new SimulatedEncoder(m_log, this);
     }
 
     @Override

@@ -2,14 +2,14 @@ package org.team100.lib.motor;
 
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.music.Player;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
 /**
  * Methods pertain only to the output shaft, not the motion of the attached
  * mechanism. Accordingly, the units are always rotational, and there should be
  * no gear ratios in any implementation.
  */
-public interface BareMotor extends Player, TotalCurrentLog.Reporter {
+public interface Motor extends Player, TotalCurrentLog.Reporter {
 
     ////////////////////////////////////////////////////////////
     ///
@@ -212,7 +212,7 @@ public interface BareMotor extends Player, TotalCurrentLog.Reporter {
     }
 
     /** Return encoder for this motor, if possible. */
-    IncrementalBareEncoder encoder();
+    IncrementalEncoder encoder();
 
     /** Reset the cache. */
     void reset();

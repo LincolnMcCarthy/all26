@@ -4,10 +4,10 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 import org.team100.lib.util.CanId;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -18,7 +18,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * 
  * As implemented here, this controller does not support sensing.
  */
-public class TalonSRXMotor implements BareMotor {
+public class TalonSRXMotor implements Motor {
     private static final double FF_DUTY_RAD_S = 0.0016;
     private final double m_freeSpeedRad_S;
     private final LoggerFactory m_log;
@@ -135,7 +135,7 @@ public class TalonSRXMotor implements BareMotor {
     // unsupported methods
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public IncrementalEncoder encoder() {
         throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
     }
 

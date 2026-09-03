@@ -14,8 +14,8 @@ import org.team100.lib.geometry.rr.RRVelocity;
 import org.team100.lib.kinematics.rr.RRFeasibility;
 import org.team100.lib.kinematics.rr.RRKinematics;
 import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlR2;
@@ -42,8 +42,8 @@ public class RRArm extends SubsystemBase
     final RRKinematics m_kinematics;
     final RRDynamics m_dynamics;
     final RRFeasibility m_feasibility;
-    private final BareMotor m_q1;
-    private final BareMotor m_q2;
+    private final Motor m_q1;
+    private final Motor m_q2;
 
     public RRArm(LoggerFactory parent) {
         m_log = parent.type(this);
@@ -54,8 +54,8 @@ public class RRArm extends SubsystemBase
                 m_kinematics,
                 new RRConfig(-Math.PI / 2, -3),
                 new RRConfig(Math.PI / 2, 3));
-        m_q1 = new SimulatedBareMotor(m_log.name("q1"), 600);
-        m_q2 = new SimulatedBareMotor(m_log.name("q2"), 600);
+        m_q1 = new SimulatedMotor(m_log.name("q1"), 600);
+        m_q2 = new SimulatedMotor(m_log.name("q2"), 600);
     }
 
     @Override

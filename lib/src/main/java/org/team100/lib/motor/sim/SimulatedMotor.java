@@ -7,8 +7,8 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.LoggerFactory.StateR1Logger;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.sensor.position.incremental.sim.SimulatedEncoder;
 import org.team100.lib.state.StateR1;
 import org.team100.lib.util.LowPassDerivative;
 import org.team100.lib.util.Math100;
@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.RobotState;
  * in
  * Robot.robotPeriodic().
  */
-public class SimulatedBareMotor implements BareMotor {
+public class SimulatedMotor implements Motor {
     private static final boolean DEBUG = false;
 
     private final double m_freeSpeedRad_S;
@@ -46,7 +46,7 @@ public class SimulatedBareMotor implements BareMotor {
 
     private StateR1 m_state = new StateR1();
 
-    public SimulatedBareMotor(LoggerFactory parent, double freeSpeedRad_S) {
+    public SimulatedMotor(LoggerFactory parent, double freeSpeedRad_S) {
         m_log = parent.type(this);
         m_freeSpeedRad_S = freeSpeedRad_S;
         m_log_duty = m_log.doubleLogger(Level.DEBUG, "duty_cycle");
@@ -161,8 +161,8 @@ public class SimulatedBareMotor implements BareMotor {
     }
 
     @Override
-    public SimulatedBareEncoder encoder() {
-        return new SimulatedBareEncoder(m_log, this);
+    public SimulatedEncoder encoder() {
+        return new SimulatedEncoder(m_log, this);
     }
 
     @Override
