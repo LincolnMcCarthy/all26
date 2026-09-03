@@ -45,7 +45,7 @@ public class Robot extends TimedRobot {
         LoggerFactory fieldLogger = log.fieldLogger;
         LoggerFactory rootLogger = log.rootLogger;
         TotalCurrentLog currentLog = new TotalCurrentLog(rootLogger);
-        m_controller = new DriverXboxControl(0);
+        m_controller = new DriverXboxControl(rootLogger, 0);
         m_pose = new ManualPose(fieldLogger, m_controller::velocity, new Pose2d(6, 4, Rotation2d.kZero));
         // use the 2026 target selector
         Supplier<Optional<Translation2d>> target = () -> {
