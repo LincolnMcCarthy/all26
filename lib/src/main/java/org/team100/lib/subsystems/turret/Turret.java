@@ -9,6 +9,8 @@ import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.controller.r1.PIDFeedback;
 import org.team100.lib.dynamics.p.PDynamics;
+import org.team100.lib.dynamics.r.Disc;
+import org.team100.lib.dynamics.r.RDynamics;
 import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.geometry.r2.StateR2;
 import org.team100.lib.geometry.r2.VelocityR2;
@@ -118,7 +120,8 @@ public class Turret extends SubsystemBase {
             LoggerFactory log,
             TotalCurrentLog currentLog,
             CanId canId) {
-        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0.005);
+        // TODO: the pivot inertia is definitely not a disc.
+        RDynamics dyn = new Disc(0.005);
         ProfileR1 profile = new TrapezoidProfileR1(5, 10, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         PIDFeedback feedback = new PIDFeedback(log, 5, 0, 0, false, 0.05, 0.1);

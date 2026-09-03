@@ -17,7 +17,11 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public void setVoltage(double volts) {
+    public void setVoltage(double voltage) {
+    }
+
+    @Override
+    public void setCurrent(double current) {
     }
 
     @Override
@@ -55,17 +59,17 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public double kROhms() {
+    public double R() {
         return 0;
     }
 
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
+    public double kE() {
         return 0;
     }
 

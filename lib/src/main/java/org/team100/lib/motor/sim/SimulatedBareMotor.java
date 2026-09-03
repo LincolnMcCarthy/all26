@@ -105,6 +105,19 @@ public class SimulatedBareMotor implements BareMotor {
         setVelocity(volts * m_freeSpeedRad_S / 12, 0);
     }
 
+    @Override
+    public void setCurrent(double current) {
+        // NOTE: this is a ridiculous hack.
+        // TODO: a better simulated current control
+        if (m_velocityInput == null) {
+            setVelocity(0.1, 0);
+        } else {
+            setVelocity(m_velocityInput + current / 100, current);
+        }
+        m_torqueInput = 0.0;
+        m_positionInput = null;
+    }
+
     /** ignores accel and torque but logs them */
     @Override
     public void setVelocity(double velocityRad_S, double torqueNm) {
@@ -132,19 +145,19 @@ public class SimulatedBareMotor implements BareMotor {
 
     /** placeholder */
     @Override
-    public double kROhms() {
+    public double R() {
         return 0.1;
     }
 
     /** placeholder */
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0.02;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return 6000;
+    public double kE() {
+        return 12 / m_freeSpeedRad_S;
     }
 
     @Override

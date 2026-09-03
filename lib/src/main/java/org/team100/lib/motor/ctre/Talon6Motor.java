@@ -24,6 +24,7 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.MusicTone;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -75,12 +76,14 @@ public abstract class Talon6Motor implements BareMotor {
     private final VelocityVoltage m_velocityVoltage;
     private final DutyCycleOut m_dutyCycleOut;
     private final VoltageOut m_voltageOut;
+    private final TorqueCurrentFOC m_currentOut;
     private final PositionVoltage m_positionVoltage;
     private final MusicTone m_music;
 
     // LOGGERS
     private final DoubleLogger m_log_desired_duty;
     private final DoubleLogger m_log_desired_voltage;
+    private final DoubleLogger m_log_desired_current;
     /** rad */
     private final DoubleLogger m_log_desired_position;
     /** rad/s */
@@ -120,6 +123,7 @@ public abstract class Talon6Motor implements BareMotor {
         m_velocityVoltage = new VelocityVoltage(0);
         m_dutyCycleOut = new DutyCycleOut(0);
         m_voltageOut = new VoltageOut(0);
+        m_currentOut = new TorqueCurrentFOC(0);
         m_positionVoltage = new PositionVoltage(0);
         m_music = new MusicTone(0);
 
@@ -130,6 +134,7 @@ public abstract class Talon6Motor implements BareMotor {
         m_velocityVoltage.UpdateFreqHz = 0;
         m_dutyCycleOut.UpdateFreqHz = 0;
         m_voltageOut.UpdateFreqHz = 0;
+        m_currentOut.UpdateFreqHz = 0;
         m_positionVoltage.UpdateFreqHz = 0;
 
         m_log = parent.type(this);
@@ -195,6 +200,7 @@ public abstract class Talon6Motor implements BareMotor {
 
         m_log_desired_duty = m_log.doubleLogger(Level.DEBUG, "desired duty cycle [-1,1]");
         m_log_desired_voltage = m_log.doubleLogger(Level.DEBUG, "desired voltage (V)");
+        m_log_desired_current = m_log.doubleLogger(Level.DEBUG, "desired current (A)");
         m_log_desired_position = m_log.doubleLogger(Level.DEBUG, "desired position (rad)");
         m_log_desired_speed = m_log.doubleLogger(Level.DEBUG, "desired speed (rad_s)");
         m_log_friction_FF = m_log.doubleLogger(Level.TRACE, "friction feedforward (V)");
@@ -229,8 +235,14 @@ public abstract class Talon6Motor implements BareMotor {
     }
 
     @Override
+    public void setCurrent(double current) {
+        warn(() -> m_motor.setControl(m_currentOut.withOutput(current)));
+        m_log_desired_current.log(() -> current);
+    }
+
+    @Override
     public void setTorqueLimit(double torqueNm) {
-        int currentA = (int) (torqueNm / kTNm_amp());
+        int currentA = (int) (torqueNm / kT());
         m_configurator.overrideStatorLimit(currentA);
     }
 

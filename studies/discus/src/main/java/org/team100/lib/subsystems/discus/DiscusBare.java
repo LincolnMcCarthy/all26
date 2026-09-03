@@ -65,8 +65,12 @@ public class DiscusBare extends SubsystemBase {
         m_motor.setDutyCycle(p);
     }
 
-    private void setVoltage(double p) {
-        m_motor.setVoltage(p);
+    private void setVoltage(double v) {
+        m_motor.setVoltage(v);
+    }
+
+    private void setCurrent(double i) {
+        m_motor.setCurrent(i);
     }
 
     public Command dutyCycle(DoubleSupplier p) {
@@ -74,9 +78,13 @@ public class DiscusBare extends SubsystemBase {
                 SCALE * p.getAsDouble()));
     }
 
-    public Command voltage(DoubleSupplier p) {
+    public Command voltage(DoubleSupplier v) {
         return run(() -> setVoltage(
-                p.getAsDouble()));
+                v.getAsDouble()));
+    }
+
+    public Command current(DoubleSupplier i) {
+        return run(()->setCurrent(i.getAsDouble()));
     }
 
     @Override

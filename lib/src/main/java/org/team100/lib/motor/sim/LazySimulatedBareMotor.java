@@ -50,6 +50,11 @@ public class LazySimulatedBareMotor implements BareMotor {
     }
 
     @Override
+    public void setCurrent(double current) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setVelocity(double velocityRad_S, double torqueNm) {
         if (velocityRad_S < 1e-3) {
             m_running = false;
@@ -103,18 +108,18 @@ public class LazySimulatedBareMotor implements BareMotor {
     }
 
     @Override
-    public double kROhms() {
-        return m_delegate.kROhms();
+    public double R() {
+        return m_delegate.R();
     }
 
     @Override
-    public double kTNm_amp() {
-        return m_delegate.kTNm_amp();
+    public double kT() {
+        return m_delegate.kT();
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return m_delegate.kFreeSpeedRPM();
+    public double kE() {
+        return m_delegate.kE();
     }
 
     @Override

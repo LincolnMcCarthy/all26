@@ -130,6 +130,28 @@ public class RRRDynamicsNewtonEuler {
         Slist = List.of(S1, S2, S3);
     }
 
+    /**
+     * Thin rods, center of mass in the geometric center.
+     * 
+     * https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+     * 
+     * @param M1 mass in kg
+     * @param M2 mass in kg
+     * @param L1 length in m
+     * @param L2 length in m
+     */
+    public static RRRDynamicsNewtonEuler thinRod(
+            Vector<N3> g,
+            double M1, double M2, double M3,
+            double L1, double L2, double L3) {
+        return new RRRDynamicsNewtonEuler(
+                g,
+                M1, M2, M3,
+                L1, L2, L3,
+                L1 / 2, L2 / 2, L3 / 2,
+                M1 * L1 * L1 / 12, M2 * L2 * L2 / 12, M3 * L3 * L3 / 12);
+    }
+
     public RRREffort effort(
             RRRConfig q,
             RRRVelocity qdot,

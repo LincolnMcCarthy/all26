@@ -28,8 +28,13 @@ public class BareMotorGroup implements BareMotor {
     }
 
     @Override
-    public void setVoltage(double volts) {
-        apply((m) -> m.setVoltage(volts));
+    public void setVoltage(double voltage) {
+        apply((m) -> m.setVoltage(voltage));
+    }
+
+    @Override
+    public void setCurrent(double current) {
+        apply((m) -> m.setCurrent(current));
     }
 
     @Override
@@ -68,18 +73,18 @@ public class BareMotorGroup implements BareMotor {
     }
 
     @Override
-    public double kROhms() {
-        return mean((m) -> m.kROhms());
+    public double R() {
+        return mean((m) -> m.R());
     }
 
     @Override
-    public double kTNm_amp() {
-        return mean((m) -> m.kTNm_amp());
+    public double kT() {
+        return mean((m) -> m.kT());
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return mean((m) -> m.kFreeSpeedRPM());
+    public double kE() {
+        return mean((m) -> m.kE());
     }
 
     @Override

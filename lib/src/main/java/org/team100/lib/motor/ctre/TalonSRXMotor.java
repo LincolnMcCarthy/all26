@@ -20,7 +20,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  */
 public class TalonSRXMotor implements BareMotor {
     private static final double FF_DUTY_RAD_S = 0.0016;
-
+    private final double m_freeSpeedRad_S;
     private final LoggerFactory m_log;
     private final TalonSRX m_motor;
     private final DoubleLogger m_log_supply;
@@ -33,8 +33,10 @@ public class TalonSRXMotor implements BareMotor {
             CanId canID,
             MotorPhase phase,
             NeutralMode100 neutral,
-            double supplyLimit) {
+            double supplyLimit,
+            double freeSpeedRad_S) {
         currentLog.register(this);
+        m_freeSpeedRad_S = freeSpeedRad_S;
         m_motor = new TalonSRX(canID.id);
         switch (neutral) {
             case COAST -> m_motor.setNeutralMode(
@@ -69,29 +71,33 @@ public class TalonSRXMotor implements BareMotor {
     }
 
     @Override
+    public void setCurrent(double current) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setVelocity(double velocityRad_S, double torqueNm) {
         final double motorDutyCycle = velocityRad_S * FF_DUTY_RAD_S;
         setDutyCycle(motorDutyCycle);
     }
 
     @Override
-    public double kROhms() {
+    public double R() {
         // this is the number for a CIM; if you use this for any other motor, you should
         // adjust it.
         return 0.09;
     }
 
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         // this is the number for a CIM; if you use this for any other motor, you should
         // adjust it.
         return 0.018;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        // Adjust this for whatever is attached.
-        return 6000;
+    public double kE() {
+        return 12 / m_freeSpeedRad_S;
     }
 
     @Override

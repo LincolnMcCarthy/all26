@@ -36,6 +36,11 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     }
 
     @Override
+    public void setCurrent(double current) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setVelocity(double motorRad_S, double torqueNm) {
         velocity = motorRad_S;
         torque = torqueNm;
@@ -54,21 +59,20 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
         ffVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
     }
 
-    /** placeholder */
     @Override
-    public double kROhms() {
+    public double R() {
         return 0.1;
     }
 
-    /** placeholder */
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0.02;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return 6000;
+    public double kE() {
+        // 60 * 12 / (6000 * 2 * pi) volt-sec/rad
+        return 0.0190996;
     }
 
     @Override

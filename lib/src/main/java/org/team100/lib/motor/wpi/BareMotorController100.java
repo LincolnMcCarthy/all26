@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 
 /** Wrapoer for RoboRIO-connected PWM speed control */
 public class BareMotorController100 implements BareMotor {
+    private static final double FREE_SPEED_RPM = 6000;
     /**
      * Very much not calibrated.
      * Say 600 rad/s max so 0.0016?
@@ -42,6 +43,11 @@ public class BareMotorController100 implements BareMotor {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void setCurrent(double current) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Open-loop velocity control using velocity feedforward only.
      */
@@ -60,19 +66,19 @@ public class BareMotorController100 implements BareMotor {
 
     /** placeholder */
     @Override
-    public double kROhms() {
+    public double R() {
         return 0.1;
     }
 
     /** placeholder */
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0.02;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return 6000;
+    public double kE() {
+        return 60 * 12 / (FREE_SPEED_RPM * 2 * Math.PI);
     }
 
     public IncrementalBareEncoder encoder() {
