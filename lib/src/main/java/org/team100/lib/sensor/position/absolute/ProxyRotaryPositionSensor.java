@@ -1,6 +1,6 @@
 package org.team100.lib.sensor.position.absolute;
 
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
 import edu.wpi.first.math.MathUtil;
 
@@ -11,16 +11,16 @@ import edu.wpi.first.math.MathUtil;
  * Use it with the CombinedRotaryPositionSensor.
  */
 public class ProxyRotaryPositionSensor implements RotaryPositionSensor {
-    private final IncrementalBareEncoder m_encoder;
+    private final IncrementalEncoder m_encoder;
     private final double m_gearRatio;
 
-    public ProxyRotaryPositionSensor(IncrementalBareEncoder encoder, double gearRatio) {
+    public ProxyRotaryPositionSensor(IncrementalEncoder encoder, double gearRatio) {
         m_encoder = encoder;
         m_gearRatio = gearRatio;
     }
 
     public ProxyRotaryPositionSensor(
-            IncrementalBareEncoder encoder,
+            IncrementalEncoder encoder,
             double gearRatio,
             double initialPosition) {
         this(encoder, gearRatio);

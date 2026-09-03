@@ -11,7 +11,7 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.sensor.position.incremental.rev.CANSparkEncoder;
@@ -37,9 +37,16 @@ import com.revrobotics.spark.SparkLimitSwitch;
  * 
  * Supply current is unmeasured and unlimited.
  * 
+ * The REV closed-loop controller mechanism is used for position and velocity
+ * control. Position control uses "slot zero" and velocity control uses "slot
+ * one".
+ * 
  * WARNING! REV motors are not good for velocity-controlled flywheels, because
  * the built-in encoder is noisy. The default filters induce much too much delay
  * to be useful; turning the filters all the way down helps.
+ * 
+ * WARNING! REV voltage control and current control ALSO use closed-loop SLOT
+ * ZERO!!
  * 
  * https://www.chiefdelphi.com/t/psa-default-neo-sparkmax-velocity-readings-are-still-bad-for-flywheels/454453
  * https://www.chiefdelphi.com/t/psa-rev-spark-default-velocity-filtering-is-still-really-bad-for-flywheels/514567
@@ -49,7 +56,7 @@ import com.revrobotics.spark.SparkLimitSwitch;
  * https://www.chiefdelphi.com/t/rev-robotics-2024-2025/471083/26
  * https://www.reca.lc/flywheel
  */
-public abstract class CANSparkMotor implements BareMotor {
+public abstract class CANSparkMotor implements Motor {
     private final LoggerFactory m_log;
     private final Friction m_friction;
     private final SparkBase m_motor;
@@ -85,7 +92,8 @@ public abstract class CANSparkMotor implements BareMotor {
     private final DoubleLogger m_log_torque_FF;
     /** duty cycle */
     private final DoubleLogger m_log_output;
-    private final DoubleLogger m_log_volts;
+    private final DoubleLogger m_log_desired_voltage;
+    private final DoubleLogger m_log_desired_current;
     /** rad */
     private final DoubleLogger m_log_position;
     /** rad/s */
@@ -154,7 +162,8 @@ public abstract class CANSparkMotor implements BareMotor {
         m_log_velocity_FF = m_log.doubleLogger(Level.TRACE, "velocity feedforward (V)");
         m_log_torque_FF = m_log.doubleLogger(Level.TRACE, "torque feedforward (V)");
         m_log_output = m_log.doubleLogger(Level.DEBUG, "output [-1,1]");
-        m_log_volts = m_log.doubleLogger(Level.DEBUG, "volts (V)");
+        m_log_desired_voltage = m_log.doubleLogger(Level.DEBUG, "desired voltage (V)");
+        m_log_desired_current = m_log.doubleLogger(Level.DEBUG, "desired current (A)");
         m_log_position = m_log.doubleLogger(Level.DEBUG, "position (rad)");
         m_log_velocity = m_log.doubleLogger(Level.DEBUG, "velocity (rad_s)");
         m_log_accel = m_log.doubleLogger(Level.DEBUG, "accel (rad_s2)");
@@ -169,10 +178,22 @@ public abstract class CANSparkMotor implements BareMotor {
         m_log_output.log(() -> output);
     }
 
+    /**
+     * Warning! This is a closed-loop control that uses PID SLOT ZERO!
+     */
     @Override
     public void setVoltage(double volts) {
-        m_motor.setVoltage(volts);
-        m_log_volts.log(() -> volts);
+        m_pidController.setSetpoint(volts, ControlType.kVoltage);
+        m_log_desired_voltage.log(() -> volts);
+    }
+
+    /**
+     * Warning! This is a closed-loop control that uses PID SLOT ZERO!
+     */
+    @Override
+    public void setCurrent(double amps) {
+        m_pidController.setSetpoint(amps, ControlType.kCurrent);
+        m_log_desired_current.log(() -> amps);
     }
 
     public boolean getForwardLimitSwitch() {
@@ -185,7 +206,7 @@ public abstract class CANSparkMotor implements BareMotor {
 
     @Override
     public void setTorqueLimit(double torqueNm) {
-        int currentA = (int) (torqueNm / kTNm_amp());
+        int currentA = (int) (torqueNm / kT());
         m_configurator.overrideStatorLimit(currentA);
     }
 

@@ -1,8 +1,8 @@
 package org.team100.lib.motor;
 
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class AbstractBareMotor implements BareMotor {
+public class AbstractMotor implements Motor {
 
     @Override
     public void play(double freq) {
@@ -17,7 +17,11 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public void setVoltage(double volts) {
+    public void setVoltage(double voltage) {
+    }
+
+    @Override
+    public void setCurrent(double current) {
     }
 
     @Override
@@ -55,22 +59,22 @@ public class AbstractBareMotor implements BareMotor {
     }
 
     @Override
-    public double kROhms() {
+    public double R() {
         return 0;
     }
 
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
+    public double kE() {
         return 0;
     }
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public IncrementalEncoder encoder() {
         return null;
     }
 

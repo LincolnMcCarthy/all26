@@ -14,8 +14,8 @@ import org.team100.lib.kinematics.six_dof.SixDofFeasibility;
 import org.team100.lib.kinematics.six_dof.SixDofKinematics;
 import org.team100.lib.kinematics.six_dof.SixDofKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.StateR1;
@@ -38,12 +38,12 @@ public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> 
     final SixDofKinematics m_kinematics;
     final SixDofDynamicsNewtonEuler m_dynamics;
     final SixDofFeasibility m_feasibility;
-    private final BareMotor m_q1;
-    private final BareMotor m_q2;
-    private final BareMotor m_q3;
-    private final BareMotor m_q4;
-    private final BareMotor m_q5;
-    private final BareMotor m_q6;
+    private final Motor m_q1;
+    private final Motor m_q2;
+    private final Motor m_q3;
+    private final Motor m_q4;
+    private final Motor m_q5;
+    private final Motor m_q6;
 
     public SixDofArm(LoggerFactory parent) {
         m_log = parent.type(this);
@@ -55,12 +55,12 @@ public class SixDofArm extends SubsystemBase implements PositionSubsystemRn<N6> 
                 0.5, 1, 1, 0.5);
         m_feasibility = new SixDofFeasibility(m_kinematics);
 
-        m_q1 = new SimulatedBareMotor(m_log.name("q1"), 600);
-        m_q2 = new SimulatedBareMotor(m_log.name("q2"), 600);
-        m_q3 = new SimulatedBareMotor(m_log.name("q3"), 600);
-        m_q4 = new SimulatedBareMotor(m_log.name("q4"), 600);
-        m_q5 = new SimulatedBareMotor(m_log.name("q5"), 600);
-        m_q6 = new SimulatedBareMotor(m_log.name("q6"), 600);
+        m_q1 = new SimulatedMotor(m_log.name("q1"), 600);
+        m_q2 = new SimulatedMotor(m_log.name("q2"), 600);
+        m_q3 = new SimulatedMotor(m_log.name("q3"), 600);
+        m_q4 = new SimulatedMotor(m_log.name("q4"), 600);
+        m_q5 = new SimulatedMotor(m_log.name("q5"), 600);
+        m_q6 = new SimulatedMotor(m_log.name("q6"), 600);
     }
 
     @Override

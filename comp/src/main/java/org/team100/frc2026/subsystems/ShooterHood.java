@@ -11,11 +11,11 @@ import org.team100.lib.dynamics.r.RDynamics;
 import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.rev.NeoVortexCANSparkMotor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.profile.r1.TrapezoidProfileR1;
 import org.team100.lib.reference.r1.ProfileReferenceR1;
 import org.team100.lib.reference.r1.ReferenceR1;
@@ -55,7 +55,7 @@ public class ShooterHood extends SubsystemBase {
         TrapezoidProfileR1 profile = new TrapezoidProfileR1(8, 16, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
 
-        final BareMotor motor;
+        final Motor motor;
         switch (Identity.instance) {
             case TEST_BOARD_B0 -> {
 
@@ -69,7 +69,7 @@ public class ShooterHood extends SubsystemBase {
 
             }
             default -> {
-                motor = new SimulatedBareMotor(log, 600);
+                motor = new SimulatedMotor(log, 600);
             }
         }
 

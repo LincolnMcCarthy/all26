@@ -81,6 +81,18 @@ public class RDynamicsNewtonEuler implements RDynamics {
         Slist = List.of(S1);
     }
 
+    /**
+     * Thin rod, center of mass in the geometric center.
+     * 
+     * https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+     * 
+     * @param M mass in kg
+     * @param L length in m
+     */
+    public static RDynamicsNewtonEuler thinRod(double M, double L) {
+        return new RDynamicsNewtonEuler(M, L, L / 2, M * L * L / 12);
+    }
+
     /** Compute effort (torque) for each joint, with zero tip force. */
     @Override
     public REffort effort(

@@ -9,6 +9,8 @@ import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.controller.r1.PIDFeedback;
 import org.team100.lib.dynamics.p.PDynamics;
+import org.team100.lib.dynamics.r.Disc;
+import org.team100.lib.dynamics.r.RDynamics;
 import org.team100.lib.dynamics.r.RDynamicsAnalytic;
 import org.team100.lib.geometry.r2.StateR2;
 import org.team100.lib.geometry.r2.VelocityR2;
@@ -19,11 +21,11 @@ import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
 import org.team100.lib.mechanism.RotaryMechanism;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.ctre.KrakenX44Motor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.profile.r1.AccelLimitedVelocityProfileR1;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.profile.r1.TrapezoidProfileR1;
@@ -33,7 +35,7 @@ import org.team100.lib.reference.r1.ReferenceR1;
 import org.team100.lib.reference.r1.VelocityProfileReferenceR1;
 import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.sensor.position.absolute.sim.SimulatedRotaryPositionSensor;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 import org.team100.lib.servo.AngularPositionServo;
 import org.team100.lib.servo.LinearVelocityServo;
 import org.team100.lib.servo.OnboardAngularPositionServo;
@@ -118,11 +120,12 @@ public class Turret extends SubsystemBase {
             LoggerFactory log,
             TotalCurrentLog currentLog,
             CanId canId) {
-        RDynamicsAnalytic dyn = new RDynamicsAnalytic(0.005);
+        // TODO: the pivot inertia is definitely not a disc.
+        RDynamics dyn = new Disc(0.005);
         ProfileR1 profile = new TrapezoidProfileR1(5, 10, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         PIDFeedback feedback = new PIDFeedback(log, 5, 0, 0, false, 0.05, 0.1);
-        BareMotor motor;
+        Motor motor;
         if (RobotBase.isReal()) {
             motor = new KrakenX44Motor(
                     log, currentLog, canId,
@@ -131,9 +134,9 @@ public class Turret extends SubsystemBase {
                     new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(0));
         } else {
-            motor = new SimulatedBareMotor(log, 600);
+            motor = new SimulatedMotor(log, 600);
         }
-        IncrementalBareEncoder encoder = motor.encoder();
+        IncrementalEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(
                 log, encoder, GEAR_RATIO);
         RotaryMechanism mech = new RotaryMechanism(
@@ -152,7 +155,7 @@ public class Turret extends SubsystemBase {
         ProfileR1 profile = new TrapezoidProfileR1(5, 10, 0.05);
         ReferenceR1 ref = new ProfileReferenceR1(log, () -> profile, 0.05, 0.05);
         PIDFeedback feedback = new PIDFeedback(log, 5, 0, 0, false, 0.05, 0.1);
-        BareMotor motor;
+        Motor motor;
         if (RobotBase.isReal()) {
             motor = new KrakenX44Motor(
                     log, currentLog, canId,
@@ -161,9 +164,9 @@ public class Turret extends SubsystemBase {
                     new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(0));
         } else {
-            motor = new SimulatedBareMotor(log, 600);
+            motor = new SimulatedMotor(log, 600);
         }
-        IncrementalBareEncoder encoder = motor.encoder();
+        IncrementalEncoder encoder = motor.encoder();
         SimulatedRotaryPositionSensor sensor = new SimulatedRotaryPositionSensor(
                 log, encoder, GEAR_RATIO);
         RotaryMechanism mech = new RotaryMechanism(
@@ -182,7 +185,7 @@ public class Turret extends SubsystemBase {
         VelocityProfileR1 profile = new AccelLimitedVelocityProfileR1(10);
         VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
                 log, () -> profile, 1);
-        BareMotor motor;
+        Motor motor;
         if (RobotBase.isReal()) {
             motor = new KrakenX44Motor(
                     log, currentLog, canId,
@@ -191,9 +194,9 @@ public class Turret extends SubsystemBase {
                     new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(0));
         } else {
-            motor = new SimulatedBareMotor(log, 600);
+            motor = new SimulatedMotor(log, 600);
         }
-        IncrementalBareEncoder encoder = motor.encoder();
+        IncrementalEncoder encoder = motor.encoder();
         LinearMechanism mech = new LinearMechanism(
                 log, motor, encoder, DRUM_RATIO, DRUM_DIAMETER,
                 Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);

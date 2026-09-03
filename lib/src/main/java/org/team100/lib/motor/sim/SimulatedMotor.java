@@ -7,8 +7,8 @@ import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.LoggerFactory.StateR1Logger;
-import org.team100.lib.motor.BareMotor;
-import org.team100.lib.sensor.position.incremental.sim.SimulatedBareEncoder;
+import org.team100.lib.motor.Motor;
+import org.team100.lib.sensor.position.incremental.sim.SimulatedEncoder;
 import org.team100.lib.state.StateR1;
 import org.team100.lib.util.LowPassDerivative;
 import org.team100.lib.util.Math100;
@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj.RobotState;
  * in
  * Robot.robotPeriodic().
  */
-public class SimulatedBareMotor implements BareMotor {
+public class SimulatedMotor implements Motor {
     private static final boolean DEBUG = false;
 
     private final double m_freeSpeedRad_S;
@@ -46,7 +46,7 @@ public class SimulatedBareMotor implements BareMotor {
 
     private StateR1 m_state = new StateR1();
 
-    public SimulatedBareMotor(LoggerFactory parent, double freeSpeedRad_S) {
+    public SimulatedMotor(LoggerFactory parent, double freeSpeedRad_S) {
         m_log = parent.type(this);
         m_freeSpeedRad_S = freeSpeedRad_S;
         m_log_duty = m_log.doubleLogger(Level.DEBUG, "duty_cycle");
@@ -105,6 +105,19 @@ public class SimulatedBareMotor implements BareMotor {
         setVelocity(volts * m_freeSpeedRad_S / 12, 0);
     }
 
+    @Override
+    public void setCurrent(double current) {
+        // NOTE: this is a ridiculous hack.
+        // TODO: a better simulated current control
+        if (m_velocityInput == null) {
+            setVelocity(0.1, 0);
+        } else {
+            setVelocity(m_velocityInput + current / 100, current);
+        }
+        m_torqueInput = 0.0;
+        m_positionInput = null;
+    }
+
     /** ignores accel and torque but logs them */
     @Override
     public void setVelocity(double velocityRad_S, double torqueNm) {
@@ -132,24 +145,24 @@ public class SimulatedBareMotor implements BareMotor {
 
     /** placeholder */
     @Override
-    public double kROhms() {
+    public double R() {
         return 0.1;
     }
 
     /** placeholder */
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0.02;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return 6000;
+    public double kE() {
+        return 12 / m_freeSpeedRad_S;
     }
 
     @Override
-    public SimulatedBareEncoder encoder() {
-        return new SimulatedBareEncoder(m_log, this);
+    public SimulatedEncoder encoder() {
+        return new SimulatedEncoder(m_log, this);
     }
 
     @Override

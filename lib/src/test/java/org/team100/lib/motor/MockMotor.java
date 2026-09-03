@@ -1,9 +1,9 @@
 package org.team100.lib.motor;
 
 import org.team100.lib.config.Friction;
-import org.team100.lib.sensor.position.incremental.IncrementalBareEncoder;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
 
-public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
+public class MockMotor implements Motor, IncrementalEncoder {
     public double output = 0;
     /** rad */
     public double position = 0;
@@ -21,7 +21,7 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
     public double torqueFFVolts;
     private final Friction m_friction;
 
-    public MockBareMotor(Friction friction) {
+    public MockMotor(Friction friction) {
         m_friction = friction;
     }
 
@@ -32,6 +32,11 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
 
     @Override
     public void setVoltage(double volts) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCurrent(double current) {
         throw new UnsupportedOperationException();
     }
 
@@ -54,25 +59,24 @@ public class MockBareMotor implements BareMotor, IncrementalBareEncoder {
         ffVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
     }
 
-    /** placeholder */
     @Override
-    public double kROhms() {
+    public double R() {
         return 0.1;
     }
 
-    /** placeholder */
     @Override
-    public double kTNm_amp() {
+    public double kT() {
         return 0.02;
     }
 
     @Override
-    public double kFreeSpeedRPM() {
-        return 6000;
+    public double kE() {
+        // 60 * 12 / (6000 * 2 * pi) volt-sec/rad
+        return 0.0190996;
     }
 
     @Override
-    public IncrementalBareEncoder encoder() {
+    public IncrementalEncoder encoder() {
         return this;
     }
 

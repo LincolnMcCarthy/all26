@@ -19,12 +19,12 @@ import org.team100.lib.kinematics.rrr_se2.RRRKinematicsPoE;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.RotaryMechanism;
-import org.team100.lib.motor.BareMotor;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.ctre.Falcon500Motor;
 import org.team100.lib.motor.rev.Neo550CANSparkMotor;
-import org.team100.lib.motor.sim.SimulatedBareMotor;
+import org.team100.lib.motor.sim.SimulatedMotor;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.state.ControlR1;
 import org.team100.lib.state.ControlSE2;
@@ -83,9 +83,9 @@ public class RRRArmCouple12 extends SubsystemBase implements RRRArm {
         m_feasibility = new RRRFeasibility(m_kinematics,
                 new RRRConfig(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2),
                 new RRRConfig(Math.PI / 2, Math.PI / 2, Math.PI / 2));
-        final BareMotor m1;
-        final BareMotor m2;
-        final BareMotor m3;
+        final Motor m1;
+        final Motor m2;
+        final Motor m3;
         if (Identity.instance.equals(Identity.TEST_BOARD_B0)
                 || Identity.instance.equals(Identity.TEAM100_2018)) {
             m1 = new Falcon500Motor(
@@ -104,9 +104,9 @@ public class RRRArmCouple12 extends SubsystemBase implements RRRArm {
                     new CurrentLimit(20, 20), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1), 0, 0);
         } else {
-            m1 = new SimulatedBareMotor(q1, 600);
-            m2 = new SimulatedBareMotor(q2, 600);
-            m3 = new SimulatedBareMotor(q3, 600);
+            m1 = new SimulatedMotor(q1, 600);
+            m2 = new SimulatedMotor(q2, 600);
+            m3 = new SimulatedMotor(q3, 600);
         }
         // GEAR RATIOS
         double r1 = 7;
