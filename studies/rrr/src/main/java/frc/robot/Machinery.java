@@ -4,6 +4,7 @@ import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.subsystems.rrr.RRRArm;
+import org.team100.lib.subsystems.rrr.RRRArmCouple12;
 import org.team100.lib.subsystems.rrr.RRRVisualizer;
 
 public class Machinery {
@@ -13,7 +14,8 @@ public class Machinery {
     public Machinery() {
         LoggerFactory logger = Logging.instance().rootLogger;
         TotalCurrentLog currentLog = new TotalCurrentLog(logger);
-        m_arm = new RRRArm(logger, currentLog);
+        // m_arm = new RRRArmIndependent(logger, currentLog);
+        m_arm = new RRRArmCouple12(logger, currentLog);
         m_viz = new RRRVisualizer(m_arm);
     }
 
