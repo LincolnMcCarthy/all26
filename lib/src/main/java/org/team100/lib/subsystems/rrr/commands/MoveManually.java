@@ -34,8 +34,8 @@ public class MoveManually extends Command {
     public void execute() {
         // controller specifies velocity
         double q1dot = -15.0 * m_controller.getLeftX(); // axis 0
-        double q2dot = -5.0*m_controller.getRightX(); // axis 4
-        double q3dot = -5*m_controller.getRightY(); // axis 5
+        double q2dot = -5.0 * m_controller.getRightX(); // axis 4
+        double q3dot = -5.0 * m_controller.getRightY(); // axis 5
         RRRVelocity qdot = new RRRVelocity(q1dot, q2dot, q3dot);
         // integrate to find q
         // x = v * dt
