@@ -78,17 +78,17 @@ public class DriverXboxControl {
     }
 
     /** Axis 5 */
-    private double rightY() {
+    public double rightY() {
         return m_filterRightY.calculate(m_controller.getRightY());
     }
 
     /** Axis 4 */
-    private double rightX() {
+    public double rightX() {
         return m_filterRightX.calculate(m_controller.getRightX());
     }
 
     /** Axis 0 */
-    private double leftX() {
+    public double leftX() {
         return m_filterLeftX.calculate(m_controller.getLeftX());
     }
 
