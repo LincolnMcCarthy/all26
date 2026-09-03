@@ -63,8 +63,8 @@ public class ConstantCurrentProtocol extends Command {
     @Override
     public void end(boolean interrupted) {
         m_subsystem.off();
-        summary();
         m_summarizer.dump();
+        summary();
     }
 
     private void summary() {
