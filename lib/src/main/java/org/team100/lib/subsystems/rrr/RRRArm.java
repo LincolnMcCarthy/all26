@@ -83,21 +83,22 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         final BareMotor m_m1;
         final BareMotor m_m2;
         final BareMotor m_m3;
-        if (Identity.instance.equals(Identity.TEST_BOARD_B0)) {
+        if (Identity.instance.equals(Identity.TEST_BOARD_B0)
+                || Identity.instance.equals(Identity.TEAM100_2018)) {
             m_m1 = new Falcon500Motor(
                     q1, m_currentLog, new CanId(5),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
-                    new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
+                    new CurrentLimit(20, 20), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
             m_m2 = new Falcon500Motor(
                     q2, m_currentLog, new CanId(21),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
-                    new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
+                    new CurrentLimit(20, 20), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1));
             m_m3 = new Neo550CANSparkMotor(
                     q3, m_currentLog, new CanId(14),
                     NeutralMode100.COAST, MotorPhase.FORWARD,
-                    new CurrentLimit(15, 15), new Friction(0, 0, 0, 0),
+                    new CurrentLimit(20, 20), new Friction(0, 0, 0, 0),
                     PIDConstants.makePositionPID(1), 0, 0);
         } else {
             m_m1 = new SimulatedBareMotor(q1, 600);
@@ -106,8 +107,8 @@ public class RRRArm extends SubsystemBase implements PositionSubsystemSE2, Posit
         }
         // GEAR RATIOS
         double r1 = 7;
-        double r2 = 5;
-        double r3 = 12;
+        double r2 = -5;
+        double r3 = -12;
 
         m_q1 = new RotaryMechanism(q1, m_m1, m_m1.encoder(), 0, r1, -Math.PI / 2, Math.PI / 2);
         m_q2 = new RotaryMechanism(q2, m_m2, m_m2.encoder(), 0, r2, -Math.PI / 2, Math.PI / 2);
