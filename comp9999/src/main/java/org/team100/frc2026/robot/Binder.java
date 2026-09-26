@@ -50,12 +50,7 @@ public class Binder {
                         m_driver::velocity,
                         machinery.m_drive,
                         limiter));
-        machinery.m_intake.setDefaultCommand(
-                machinery.m_intake.stop());
-        machinery.m_intakeExtend.setDefaultCommand(
-                machinery.m_intakeExtend.goToRetractedPosition());
-        machinery.m_shooter.setDefaultCommand(
-                machinery.m_shooter.stop());
+        machinery.m_subsystem.setDefaultCommand(machinery.m_subsystem.stop().withName("stop"));
         ////////////////////////////////////////////////////
         ///
         /// DISORIENT
@@ -74,23 +69,9 @@ public class Binder {
         /// DEFENSE X POSITION
         ///
         whileTrue(m_driver::povDown, machinery.m_drive.defend());
-
-        whileTrue(m_driver::rightTrigger,
-                parallel(
-                        machinery.m_intakeExtend.goToExtendedPositionEndlessly(),
-                        sequence(
-                                waitUntil(machinery.m_intakeExtend::atGoal),
-                                parallel(
-                                        machinery.m_intake.intake(),
-                                        machinery.m_shooter.shooterFullspeed()))));
-
-        whileTrue(m_driver::x,
-                machinery.m_intake.intake());
-        whileTrue(m_driver::a,
-                machinery.m_intakeExtend.goToExtendedPositionEndlessly());
-        whileTrue(m_driver::b,
-                machinery.m_intakeExtend.goToRetractedPosition());
-        whileTrue(m_driver::y, machinery.m_shooter.testShooterFullspeed());
+        whileTrue(m_driver::leftBumper, machinery.m_subsystem.velocity(-1).withName("negative"));
+        whileTrue(m_driver::rightBumper, machinery.m_subsystem.velocity(1).withName("positive"));
+        whileTrue(m_driver::back, machinery.m_subsystem.voltage(0.5).withName("voltage"));
 
         ////////////////////////////////////////////////////
         ///
