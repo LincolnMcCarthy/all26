@@ -9,6 +9,7 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.experiments.Experiments;
 import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.hid.DriverXboxControl;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.util.Banner;
@@ -33,7 +34,7 @@ public class Robot extends TimedRobot100 {
 
     public Robot() {
         Banner.printBanner();
-        Experiments.instance.show();
+        Experiments.INSTANCE.show();
         DriverStation.silenceJoystickConnectionWarning(true);
         RobotController.setBrownoutVoltage(6.3); // RoboRIO 1.0 value
         Logging log = Logging.instance();
@@ -85,6 +86,8 @@ public class Robot extends TimedRobot100 {
         Cache.refresh();
         CommandScheduler.getInstance().run();
         m_viz.periodic();
+        // Poll for logs after all the actuation is done
+        LogPoller.log();
     }
 
     @Override

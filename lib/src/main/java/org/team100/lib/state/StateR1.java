@@ -6,7 +6,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.interpolation.Interpolatable;
 
 /**
- * One-dimensional system state, used for system modeling. The model only
+ * One-dimensional system state, used for system modeling. The state only
  * contains position and velocity, there's no measurement of acceleration.
  * 
  * The usual state-space representation would be X = (x,v) and Xdot = (v,a).
@@ -81,7 +81,7 @@ public record StateR1(double x, double v) implements Interpolatable<StateR1> {
 
     @Override
     public String toString() {
-        return String.format("StateR1(X %11.8f V %11.8f)", x, v);
+        return String.format("StateR1(X %6.3f V %6.3f)", x, v);
     }
 
     @Override

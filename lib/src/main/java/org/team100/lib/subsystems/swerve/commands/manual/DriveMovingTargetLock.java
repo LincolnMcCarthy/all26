@@ -1,7 +1,6 @@
 package org.team100.lib.subsystems.swerve.commands.manual;
 
 import java.util.Optional;
-import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 import org.team100.lib.config.DriverSkill;
@@ -12,7 +11,7 @@ import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
-import org.team100.lib.hid.Velocity;
+import org.team100.lib.hid.DriverVelocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.BooleanLogger;
@@ -44,8 +43,7 @@ public class DriveMovingTargetLock extends Command {
     /**
      * Velocity control in control units, [-1,1] on all axes.
      */
-    private final Supplier<Velocity> m_twistSupplier;
-    private final DoubleConsumer m_heedRadiusM;
+    private final Supplier<DriverVelocity> m_twistSupplier;
     private final SwerveLimiter m_limiter;
     private final CachedSolution m_solver;
     private final SwerveDriveSubsystem m_drive;
@@ -59,8 +57,7 @@ public class DriveMovingTargetLock extends Command {
             LoggerFactory parent,
             SwerveKinodynamics swerveKinodynamics,
             AzimuthController aim,
-            Supplier<Velocity> twistSupplier,
-            DoubleConsumer heedRadiusM,
+            Supplier<DriverVelocity> twistSupplier,
             SwerveLimiter limiter,
             CachedSolution solver,
             SwerveDriveSubsystem drive) {
@@ -69,7 +66,6 @@ public class DriveMovingTargetLock extends Command {
         log.doubleLogger(Level.TRACE, "max omega").log(swerveKinodynamics::getMaxAngleSpeedRad_S);
         m_swerveKinodynamics = swerveKinodynamics;
         m_twistSupplier = twistSupplier;
-        m_heedRadiusM = heedRadiusM;
         m_limiter = limiter;
         m_solver = solver;
         m_drive = drive;
@@ -80,8 +76,8 @@ public class DriveMovingTargetLock extends Command {
 
     @Override
     public void initialize() {
-        m_heedRadiusM.accept(HEED_RADIUS_M);
-        m_limiter.updateSetpoint(m_drive.getVelocity());
+        m_drive.setHeedRadiusM(HEED_RADIUS_M);
+        m_limiter.updateSetpoint(m_drive.getState().velocity());
         m_aim.reset();
     }
 
@@ -107,8 +103,6 @@ public class DriveMovingTargetLock extends Command {
     /**
      * Null to skip override.
      * 
-     * TODO: control omega noise
-     * 
      * @param omega override. avoid noise in this input.
      */
     private void actuate(Double omega) {
@@ -122,7 +116,7 @@ public class DriveMovingTargetLock extends Command {
         scaled = GeometryUtil.scale(scaled, DriverSkill.level().scale());
 
         // Apply field-relative limits.
-        if (Experiments.instance.enabled(Experiment.UseSwerveLimiter)) {
+        if (Experiments.INSTANCE.enabled(Experiment.UseSwerveLimiter)) {
             scaled = m_limiter.apply(scaled);
         }
 

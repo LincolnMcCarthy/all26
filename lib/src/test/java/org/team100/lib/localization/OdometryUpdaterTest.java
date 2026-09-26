@@ -18,6 +18,7 @@ import org.team100.lib.subsystems.swerve.module.state.SwerveModulePositions;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.VariableR1;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class OdometryUpdaterTest {
@@ -32,17 +33,28 @@ public class OdometryUpdaterTest {
     void testNewState1() {
         MockGyro gyro = new MockGyro();
         positions = SwerveModulePositions.kZero();
+        SwerveHistory history = new SwerveHistory(
+                log,
+                kinodynamics,
+                0.2,
+                Rotation2d.kZero,
+                VariableR1.fromVariance(0, 1),
+                positions,
+                Pose2d.kZero,
+                IsotropicNoiseSE2.high(),
+                0);
         OdometryUpdater ou = new OdometryUpdater(
-                log, kinodynamics, gyro, null, () -> positions, UnaryOperator.identity());
+                log, kinodynamics, gyro, history,
+                () -> positions, UnaryOperator.identity(), true);
         // previous state is at zero, but uncertain
-        StateSE2 sampleModel = new StateSE2();
+        StateSE2 sampleState = new StateSE2();
         IsotropicNoiseSE2 stateNoise = IsotropicNoiseSE2.fromStdDev(1, 1);
         SwerveModulePositions positions = SwerveModulePositions.kZero();
         Rotation2d yaw = new Rotation2d();
         // high bias sigma compared to the real value
         VariableR1 bias = VariableR1.fromStdDev(0, 0.001);
         SwerveState sample = new SwerveState(
-                sampleModel, stateNoise, positions, yaw, bias);
+                sampleState, stateNoise, positions, yaw, bias);
 
         // measurements haven't moved
         Rotation2d gyroYaw = new Rotation2d();
@@ -82,17 +94,28 @@ public class OdometryUpdaterTest {
     void testNewState2() {
         MockGyro gyro = new MockGyro();
         positions = SwerveModulePositions.kZero();
+        SwerveHistory history = new SwerveHistory(
+                log,
+                kinodynamics,
+                0.2,
+                Rotation2d.kZero,
+                VariableR1.fromVariance(0, 1),
+                positions,
+                Pose2d.kZero,
+                IsotropicNoiseSE2.high(),
+                0);
         OdometryUpdater ou = new OdometryUpdater(
-                log, kinodynamics, gyro, null, () -> positions, UnaryOperator.identity());
+                log, kinodynamics, gyro, history,
+                () -> positions, UnaryOperator.identity(), true);
 
         // previous state is at zero, pretty sure.
-        StateSE2 sampleModel = new StateSE2();
+        StateSE2 sampleState = new StateSE2();
         IsotropicNoiseSE2 stateNoise = IsotropicNoiseSE2.fromStdDev(0.01, 0.01);
         SwerveModulePositions positions = SwerveModulePositions.kZero();
         Rotation2d yaw = new Rotation2d();
         VariableR1 bias = VariableR1.fromStdDev(0, 0.001);
         SwerveState sample = new SwerveState(
-                sampleModel, stateNoise, positions, yaw, bias);
+                sampleState, stateNoise, positions, yaw, bias);
 
         // 0.1m ahead (this is max speed)
         Rotation2d gyroYaw = new Rotation2d();
@@ -119,18 +142,29 @@ public class OdometryUpdaterTest {
     void testNewStateWithBias() {
         MockGyro gyro = new MockGyro();
         positions = SwerveModulePositions.kZero();
+        SwerveHistory history = new SwerveHistory(
+                log,
+                kinodynamics,
+                0.2,
+                Rotation2d.kZero,
+                VariableR1.fromVariance(0, 1),
+                positions,
+                Pose2d.kZero,
+                IsotropicNoiseSE2.high(),
+                0);
         OdometryUpdater ou = new OdometryUpdater(
-                log, kinodynamics, gyro, null, () -> positions, UnaryOperator.identity());
+                log, kinodynamics, gyro, history,
+                () -> positions, UnaryOperator.identity(), true);
 
         // previous state is at zero, pretty sure.
-        StateSE2 sampleModel = new StateSE2();
+        StateSE2 sampleState = new StateSE2();
         IsotropicNoiseSE2 stateNoise = IsotropicNoiseSE2.fromStdDev(0.01, 0.01);
         SwerveModulePositions positions = SwerveModulePositions.kZero();
         Rotation2d yaw = new Rotation2d();
         // initial bias estimate is zero
         VariableR1 bias = VariableR1.fromStdDev(0, 0.001);
         SwerveState sample = new SwerveState(
-                sampleModel, stateNoise, positions, yaw, bias);
+                sampleState, stateNoise, positions, yaw, bias);
 
         // odometry says we're not rotating, but the gyro thinks we are.
         // this is 0.02 rad in 0.02 s so the bias is 1 rad/s
@@ -175,17 +209,28 @@ public class OdometryUpdaterTest {
     void testNewStateWithBias2() {
         MockGyro gyro = new MockGyro();
         positions = SwerveModulePositions.kZero();
+        SwerveHistory history = new SwerveHistory(
+                log,
+                kinodynamics,
+                0.2,
+                Rotation2d.kZero,
+                VariableR1.fromVariance(0, 1),
+                positions,
+                Pose2d.kZero,
+                IsotropicNoiseSE2.high(),
+                0);
         OdometryUpdater ou = new OdometryUpdater(
-                log, kinodynamics, gyro, null, () -> positions, UnaryOperator.identity());
+                log, kinodynamics, gyro, history,
+                () -> positions, UnaryOperator.identity(), true);
 
         // previous state is at zero, pretty sure.
-        StateSE2 sampleModel = new StateSE2();
+        StateSE2 sampleState = new StateSE2();
         IsotropicNoiseSE2 stateNoise = IsotropicNoiseSE2.fromStdDev(0.01, 0.01);
         SwerveModulePositions positions = SwerveModulePositions.kZero();
         Rotation2d yaw = new Rotation2d();
         VariableR1 bias = VariableR1.fromStdDev(0, 0.001);
         SwerveState sample = new SwerveState(
-                sampleModel, stateNoise, positions, yaw, bias);
+                sampleState, stateNoise, positions, yaw, bias);
 
         // much slower, so odometry is more trustworthy.
         Rotation2d gyroYaw = new Rotation2d(0.02);

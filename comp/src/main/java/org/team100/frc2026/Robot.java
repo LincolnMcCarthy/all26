@@ -1,83 +1,51 @@
 package org.team100.frc2026;
 
-import org.team100.frc2026.auton.AllAutons;
+import org.team100.frc2026.auton.Autons;
 import org.team100.frc2026.robot.Binder;
 import org.team100.frc2026.robot.Machinery;
 import org.team100.frc2026.robot.Prewarmer;
 import org.team100.lib.coherence.Cache;
 import org.team100.lib.coherence.Takt;
 import org.team100.lib.config.AnnotatedCommand;
-import org.team100.lib.config.Identity;
 import org.team100.lib.experiments.Experiment;
 import org.team100.lib.experiments.Experiments;
 import org.team100.lib.framework.TimedRobot100;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.logging.RobotLog;
 import org.team100.lib.network.Sync;
-import org.team100.lib.util.Banner;
+import org.team100.lib.util.Startup;
 import org.team100.lib.visualization.AutonVisualization;
-
-import com.revrobotics.util.StatusLogger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.WPILibVersion;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-
-import com.reduxrobotics.canand.CanandEventLoop;
 
 /**
  * This is the main robot class, which wires up events from TimedRobot100.
  */
 public class Robot extends TimedRobot100 {
-    private final Sync sync;
     private final RobotLog m_robotLog;
+    private final Sync m_sync;
     private final Machinery m_machinery;
     private final AutonVisualization m_autoViz;
-    private final AllAutons m_allAutons;
+    private final Autons m_autons;
     private final Binder m_binder;
 
     public Robot() {
-        Banner.printBanner();
-
-        CanandEventLoop.getInstance();
-
-        // We want the CommandScheduler, not LiveWindow.
-        enableLiveWindowInTest(false);
-
-        // This is for setting up LaserCAN devices.
-        // CanBridge.runTCP();
-        StatusLogger.disableAutoLogging();
-        System.out.printf("WPILib Version: %s\n", WPILibVersion.Version);
-        System.out.printf("RoboRIO serial number: %s\n", RobotController.getSerialNumber());
-        System.out.printf("Identity: %s\n", Identity.instance.name());
-        RobotController.setBrownoutVoltage(5.5);
-        DriverStation.silenceJoystickConnectionWarning(true);
-        Experiments.instance.show();
-
-        // Log what the scheduler is doing. Use "withName()".
-        SmartDashboard.putData(CommandScheduler.getInstance());
-        // Set the period to forever, to make the watchdog shut up.
-        CommandScheduler.getInstance().setPeriod(100);
-
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        sync = new Sync(inst);
-
-        m_robotLog = new RobotLog();
-
-        m_machinery = new Machinery(m_robotLog.totalCurrentLog());
-        m_binder = new Binder(m_machinery);
-
-        m_allAutons = new AllAutons(m_machinery);
-
-        LoggerFactory fieldLogger = Logging.instance().fieldLogger;
+        Startup.start();
+        Logging logging = Logging.instance();
+        LoggerFactory log = logging.rootLogger;
+        LoggerFactory fieldLogger = logging.fieldLogger;
+        m_robotLog = new RobotLog(log);
+        m_sync = new Sync(NetworkTableInstance.getDefault());
+        m_machinery = new Machinery(log, fieldLogger, m_robotLog.totalCurrentLog());
+        m_binder = new Binder(log, m_machinery);
+        m_autons = new Autons(log, m_machinery);
         m_autoViz = new AutonVisualization(fieldLogger);
-        m_allAutons.onChange(m_autoViz::show);
+        m_autons.onChange(m_autoViz::show);
         Prewarmer.init(m_machinery);
     }
 
@@ -87,16 +55,15 @@ public class Robot extends TimedRobot100 {
         // Advance the drumbeat.
         Takt.update();
         // reply to sync requests.
-        sync.run();
+        m_sync.run();
         // Take all the measurements we can, as soon and quickly as possible.
         Cache.refresh();
         // Run one iteration of the command scheduler.
         CommandScheduler.getInstance().run();
         m_machinery.periodic();
-        m_binder.periodic();
-        m_robotLog.periodic();
-        if (Experiments.instance.enabled(Experiment.FlushOften)) {
-            // StrUtil.warn("FLUSHING EVERY LOOP, DO NOT USE IN COMP");
+        // Poll for logs after all the actuation is done
+        LogPoller.log();
+        if (Experiments.INSTANCE.enabled(Experiment.FlushOften)) {
             NetworkTableInstance.getDefault().flush();
         }
     }
@@ -109,7 +76,7 @@ public class Robot extends TimedRobot100 {
     /** Forces the robot pose to the starting pose for the auton. */
     @Override
     public void autonomousInit() {
-        AnnotatedCommand ac = m_allAutons.getAnnotated();
+        AnnotatedCommand ac = m_autons.getAnnotated();
         if (ac == null)
             return;
         Pose2d start = ac.start();
@@ -138,7 +105,7 @@ public class Robot extends TimedRobot100 {
     public void close() {
         super.close();
         m_machinery.close();
-        m_allAutons.close();
+        m_autons.close();
         m_binder.close();
     }
 
@@ -149,6 +116,7 @@ public class Robot extends TimedRobot100 {
 
     @Override
     public void disabledExit() {
+        // only show the auton when disabled
         m_autoViz.clear();
     }
 
@@ -167,7 +135,8 @@ public class Robot extends TimedRobot100 {
 
     @Override
     public void disabledInit() {
-
+        // show the auton again when disabling.
+        m_autoViz.show(m_autons.getAnnotated());
     }
 
     @Override

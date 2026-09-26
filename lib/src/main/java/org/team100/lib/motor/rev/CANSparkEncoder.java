@@ -1,0 +1,59 @@
+package org.team100.lib.motor.rev;
+
+import org.team100.lib.logging.Level;
+import org.team100.lib.logging.LogPoller;
+import org.team100.lib.logging.LoggerFactory;
+import org.team100.lib.logging.LoggerFactory.DoubleLogger;
+import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
+
+/**
+ * The built-in encoder in Neo motors.
+ * 
+ * This encoder simply senses the 14 rotor magnets in 3 places, so it's 42 ticks
+ * per turn.
+ */
+public class CANSparkEncoder implements IncrementalEncoder {
+    private final CANSparkMotor m_motor;
+    private final DoubleLogger m_log_position;
+    private final DoubleLogger m_log_velocity;
+
+    public CANSparkEncoder(LoggerFactory parent, CANSparkMotor motor) {
+        LoggerFactory log = parent.type(this);
+        m_motor = motor;
+        m_log_position = log.doubleLogger(Level.TRACE, "position (rad)");
+        m_log_velocity = log.doubleLogger(Level.TRACE, "velocity (rad_s)");
+        LogPoller.register(this::log);
+    }
+
+    @Override
+    public void close() {
+        //
+    }
+
+    //////////////////////////////////
+
+    @Override
+    public double getUnwrappedPositionRad() {
+        return m_motor.m_position.getAsDouble();
+    }
+
+    @Override
+    public double getVelocityRad_S() {
+        return m_motor.m_velocity.getAsDouble();
+    }
+
+    @Override
+    public double getAccelerationRad_S2() {
+        return m_motor.m_acceleration.getAsDouble();
+    }
+
+    @Override
+    public void setUnwrappedEncoderPositionRad(double motorPositionRad) {
+        CANSparkMotor.warn(() -> m_motor.m_encoder.setPosition(motorPositionRad / (2.0 * Math.PI)));
+    }
+
+    private void log() {
+        m_log_position.log(this::getUnwrappedPositionRad);
+        m_log_velocity.log(this::getVelocityRad_S);
+    }
+}

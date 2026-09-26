@@ -16,8 +16,7 @@ public class RobotLog {
     private final DoubleLogger m_log_voltage;
     private final TotalCurrentLog m_totalCurrentLog;
 
-    public RobotLog() {
-        LoggerFactory logger = Logging.instance().rootLogger;
+    public RobotLog(LoggerFactory logger) {
         LoggerFactory robotLogger = logger.name("Robot");
         m_jvmLogger = new JvmLogger(robotLogger);
         LoggerFactory dsLog = robotLogger.name("DriverStation");
@@ -27,6 +26,7 @@ public class RobotLog {
         m_log_ds_FMSAttached = dsLog.booleanLogger(Level.TRACE, "FMSAttached");
         m_log_voltage = robotLogger.doubleLogger(Level.COMP, "voltage");
         m_totalCurrentLog = new TotalCurrentLog(Logging.instance().rootLogger);
+        LogPoller.register(this::log);
     }
 
     public TotalCurrentLog totalCurrentLog() {
@@ -34,7 +34,7 @@ public class RobotLog {
     }
 
     /** Logs robot-scope stuff, e.g. memory, voltage, current. */
-    public void periodic() {
+    private void log() {
         m_jvmLogger.logGarbageCollectors();
         m_jvmLogger.logMemoryPools();
         m_jvmLogger.logMemoryUsage();

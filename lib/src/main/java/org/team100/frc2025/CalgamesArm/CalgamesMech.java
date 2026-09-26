@@ -34,6 +34,7 @@ import org.team100.lib.logging.LoggerFactory.VelocitySE2Logger;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.mechanism.LinearMechanism;
 import org.team100.lib.mechanism.RotaryMechanism;
+import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.ctre.KrakenX60Motor;
@@ -47,8 +48,6 @@ import org.team100.lib.sensor.position.absolute.ProxyRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.RotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.sim.SimulatedRotaryPositionSensor;
 import org.team100.lib.sensor.position.absolute.wpi.AS5048RotaryPositionSensor;
-import org.team100.lib.sensor.position.incremental.IncrementalEncoder;
-import org.team100.lib.sensor.position.incremental.ctre.Talon6Encoder;
 import org.team100.lib.state.ControlSE2;
 import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.prr.SubsystemPRR;
@@ -66,6 +65,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class CalgamesMech extends SubsystemBase implements Music, PositionSubsystemSE2, SubsystemPRR {
     private static final boolean DEBUG = false;
     private boolean DISABLED = false;
+
     ////////////////////////////////////////////////////////
     ///
     /// CANONICAL CONFIGS
@@ -155,124 +155,112 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         LoggerFactory shoulderLog = parent.name("shoulder");
         LoggerFactory wristLog = parent.name("wrist");
 
-        switch (Identity.instance) {
-            case COMP_BOT -> {
+        Motor elevatorFrontMotor;
+        Motor elevatorBackMotor;
+        RotaryPositionSensor shoulderSensor;
+        Motor shoulderMotor;
+        RotaryPositionSensor wristSensor;
+        Motor wristMotor;
 
-                final double elevatorGearRatio = 2.182;
-                final double elevatorDrivePulleyDiameterM = 0.03844;
-                final double elevatorLowerLimit = 0;
-                final double elevatorUpperLimit = 2.1;
+        double elevatorGearRatio = 2.182;
+        double elevatorDrivePulleyDiameterM = 0.03844;
+        double elevatorLowerLimit = 0;
+        double elevatorUpperLimit = 2.1;
 
-                KrakenX60Motor elevatorFrontMotor = new KrakenX60Motor(
-                        elevatorfrontLog,
-                        currentLog,
-                        new CanId(11),
-                        NeutralMode100.BRAKE, MotorPhase.REVERSE,
-                        new CurrentLimit(100, 100),
-                        new Friction(0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(1));
-                IncrementalEncoder elevatorFrontEncoder = elevatorFrontMotor.encoder();
+        double shoulderGearRatio = 78;
 
-                m_elevatorFront = new LinearMechanism(
-                        elevatorfrontLog, elevatorFrontMotor, elevatorFrontEncoder,
-                        elevatorGearRatio, elevatorDrivePulleyDiameterM,
-                        elevatorLowerLimit, elevatorUpperLimit);
+        double shoulderMinRad = -2;
+        double shoulderMaxRad = 2;
 
-                KrakenX60Motor elevatorBackMotor = new KrakenX60Motor(
-                        elevatorbackLog,
-                        currentLog,
-                        new CanId(12),
-                        NeutralMode100.BRAKE, MotorPhase.FORWARD,
-                        new CurrentLimit(100, 100),
-                        new Friction(0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(1));
-                Talon6Encoder elevatorBackEncoder = elevatorBackMotor.encoder();
-                m_elevatorBack = new LinearMechanism(
-                        elevatorbackLog, elevatorBackMotor, elevatorBackEncoder,
-                        elevatorGearRatio, elevatorDrivePulleyDiameterM,
-                        elevatorLowerLimit, elevatorUpperLimit);
+        double wristGearRatio = 55.710;
+        double wristEncoderOffset = 2.06818; // 2+0.06818
+        double wristMinRad = -1.5;
+        double wristMaxRad = 2.1;
 
-                KrakenX60Motor shoulderMotor = new KrakenX60Motor(
-                        shoulderLog,
-                        currentLog,
-                        new CanId(24),
-                        NeutralMode100.BRAKE,
-                        MotorPhase.REVERSE,
-                        new CurrentLimit(100, 100),
-                        new Friction(0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(1));
-                Talon6Encoder shoulderEncoder = shoulderMotor.encoder();
-                // The shoulder has a 5048 on the intermediate shaft
-                AS5048RotaryPositionSensor shoulderSensor = new AS5048RotaryPositionSensor(
-                        shoulderLog,
-                        new RoboRioChannel(4),
-                        0.684, // <<< This is the input offset (in TURNS) to adjust when zeroing
-                        EncoderDrive.INVERSE);
-                GearedRotaryPositionSensor gearedSensor = new GearedRotaryPositionSensor(
-                        shoulderSensor,
-                        8);
+        if (Identity.instance == Identity.LAUNDRY_BOT) {
+            //
+            // ELEVATOR
+            //
+            elevatorFrontMotor = new KrakenX60Motor(
+                    elevatorfrontLog, currentLog,
+                    new CanId(11),
+                    NeutralMode100.BRAKE, MotorPhase.REVERSE,
+                    new CurrentLimit(100, 100),
+                    new Friction(0.100, 0.100, 0.005, 0.5),
+                    PIDConstants.makePositionPID(1));
+            elevatorBackMotor = new KrakenX60Motor(
+                    elevatorbackLog, currentLog,
+                    new CanId(12),
+                    NeutralMode100.BRAKE, MotorPhase.FORWARD,
+                    new CurrentLimit(100, 100),
+                    new Friction(0.100, 0.100, 0.005, 0.5),
+                    PIDConstants.makePositionPID(1));
+            //
+            // SHOULDER
+            //
+            shoulderMotor = new KrakenX60Motor(
+                    shoulderLog, currentLog,
+                    new CanId(24),
+                    NeutralMode100.BRAKE, MotorPhase.REVERSE,
+                    new CurrentLimit(100, 100),
+                    new Friction(0.100, 0.100, 0.005, 0.5),
+                    PIDConstants.makePositionPID(1));
+            // The shoulder has a 5048 on the intermediate shaft
+            AS5048RotaryPositionSensor shoulderRps = new AS5048RotaryPositionSensor(
+                    shoulderLog,
+                    new RoboRioChannel(4),
+                    0.684, // <<< This is the input offset (in TURNS) to adjust when zeroing
+                    EncoderDrive.INVERSE);
+            GearedRotaryPositionSensor gearedSensor = new GearedRotaryPositionSensor(
+                    shoulderRps, 8); // intermediate shaft ratio, not final!
+            ProxyRotaryPositionSensor shoulderProxySensor = new ProxyRotaryPositionSensor(
+                    shoulderMotor.encoder(),
+                    shoulderGearRatio);
+            shoulderSensor = new CombinedRotaryPositionSensor(
+                    shoulderLog, gearedSensor, shoulderProxySensor);
+            //
+            // WRIST
+            //
+            wristMotor = new KrakenX60Motor(
+                    wristLog, currentLog,
+                    new CanId(22),
+                    NeutralMode100.COAST, MotorPhase.FORWARD,
+                    new CurrentLimit(40, 60),
+                    new Friction(0.100, 0.100, 0.005, 0.5),
+                    PIDConstants.makePositionPID(1));
+            // the wrist has no angle sensor, so it needs to start in the "zero" position.
+            wristSensor = new ProxyRotaryPositionSensor(
+                    wristMotor.encoder(), wristGearRatio, wristEncoderOffset);
 
-                ProxyRotaryPositionSensor shoulderProxySensor = new ProxyRotaryPositionSensor(
-                        shoulderEncoder,
-                        78);
-                CombinedRotaryPositionSensor shoulderCombined = new CombinedRotaryPositionSensor(
-                        shoulderLog, gearedSensor, shoulderProxySensor);
-                m_shoulder = new RotaryMechanism(
-                        shoulderLog, shoulderMotor, shoulderCombined,
-                        78,
-                        -2,
-                        2);
-
-                KrakenX60Motor wristMotor = new KrakenX60Motor(
-                        wristLog,
-                        currentLog,
-                        new CanId(22),
-                        NeutralMode100.COAST, MotorPhase.FORWARD,
-                        new CurrentLimit(40, 60),
-                        new Friction(0.100, 0.100, 0.005, 0.5),
-                        PIDConstants.makePositionPID(1));
-                // the wrist has no angle sensor, so it needs to start in the "zero" position.
-                Talon6Encoder wristEncoder = wristMotor.encoder();
-                final double wristGearRatio = 55.710;
-                double wristEncoderOffset = 2.06818; // 2+0.06818
-                m_wrist = new RotaryMechanism(
-                        wristLog, wristMotor,
-                        wristEncoder, wristEncoderOffset, wristGearRatio,
-                        -1.5, // min
-                        2.1); // max
-            }
-            default -> {
-                SimulatedMotor elevatorMotorFront = new SimulatedMotor(
-                        elevatorfrontLog, 600);
-                IncrementalEncoder elevatorEncoderFront = elevatorMotorFront.encoder();
-                m_elevatorFront = new LinearMechanism(
-                        elevatorfrontLog, elevatorMotorFront, elevatorEncoderFront,
-                        2, 0.05, 0, 2.2);
-
-                SimulatedMotor elevatorMotorBack = new SimulatedMotor(
-                        elevatorbackLog, 600);
-                IncrementalEncoder elevatorEncoderBack = elevatorMotorBack.encoder();
-                m_elevatorBack = new LinearMechanism(
-                        elevatorbackLog, elevatorMotorBack, elevatorEncoderBack,
-                        2, 0.05, 0, 2.2);
-
-                SimulatedMotor shoulderMotor = new SimulatedMotor(
-                        shoulderLog, 600);
-                IncrementalEncoder shoulderEncoder = shoulderMotor.encoder();
-                RotaryPositionSensor shoulderSensor = new SimulatedRotaryPositionSensor(
-                        shoulderLog, shoulderEncoder, 100);
-                m_shoulder = new RotaryMechanism(
-                        shoulderLog, shoulderMotor, shoulderSensor, 100, -3, 3);
-
-                SimulatedMotor wristMotor = new SimulatedMotor(
-                        wristLog, 600);
-                IncrementalEncoder wristEncoder = wristMotor.encoder();
-                RotaryPositionSensor wristSensor = new SimulatedRotaryPositionSensor(
-                        wristLog, wristEncoder, 58);
-                m_wrist = new RotaryMechanism(
-                        wristLog, wristMotor, wristSensor, 58, -3, 3);
-            }
+        } else {
+            elevatorFrontMotor = new SimulatedMotor(elevatorfrontLog, 600);
+            elevatorBackMotor = new SimulatedMotor(elevatorbackLog, 600);
+            shoulderMotor = new SimulatedMotor(shoulderLog, 600);
+            shoulderSensor = new SimulatedRotaryPositionSensor(
+                    shoulderLog, shoulderMotor.encoder(), shoulderGearRatio);
+            wristMotor = new SimulatedMotor(wristLog, 600);
+            wristSensor = new SimulatedRotaryPositionSensor(
+                    wristLog, wristMotor.encoder(), wristGearRatio);
         }
+
+        m_elevatorFront = new LinearMechanism(
+                elevatorfrontLog, elevatorFrontMotor, elevatorFrontMotor.encoder(),
+                elevatorGearRatio, elevatorDrivePulleyDiameterM,
+                elevatorLowerLimit, elevatorUpperLimit);
+        m_elevatorBack = new LinearMechanism(
+                elevatorbackLog, elevatorBackMotor, elevatorBackMotor.encoder(),
+                elevatorGearRatio, elevatorDrivePulleyDiameterM,
+                elevatorLowerLimit, elevatorUpperLimit);
+
+        m_shoulder = new RotaryMechanism(
+                shoulderLog, shoulderMotor, shoulderSensor,
+                shoulderGearRatio, // gear ratio
+                shoulderMinRad, // min position
+                shoulderMaxRad); // max position
+        m_wrist = new RotaryMechanism(
+                wristLog, wristMotor,
+                wristSensor, wristGearRatio,
+                wristMinRad, wristMaxRad);
         m_players = List.of(m_elevatorBack, m_elevatorFront, m_shoulder, m_wrist);
     }
 
@@ -329,7 +317,7 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         ControlSE2 control = new ControlSE2(pose, v, a);
 
         PRRConfig q = getConfig();
-        PRRVelocity jv = m_kinematics.inverse(q, control.model());
+        PRRVelocity jv = m_kinematics.inverse(q, control.state());
         PRRAcceleration ja = m_kinematics.inverse(q, control);
         PRREffort jf = m_dynamics.forward(getConfig(), jv, ja);
 
@@ -357,13 +345,14 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
         // for now always use the "up" config.
         PRRConfig config = configs.get(0);
         if (DEBUG) {
-            System.out.printf("pose %s config %s\n", StrUtil.pose2Str(pose), config);
+            System.out.printf("pose %s config %s\n", StrUtil.poseStr(pose), config);
         }
-        PRRVelocity jv = m_kinematics.inverse(config, control.model());
+        PRRVelocity jv = m_kinematics.inverse(config, control.state());
         PRRAcceleration ja = m_kinematics.inverse(config, control);
         set(config, jv, ja);
     }
 
+    @Override
     public void set(PRRConfig c, PRRVelocity jv, PRRAcceleration ja) {
         PRREffort jf = m_dynamics.forward(c, jv, ja);
         set(c, jv, ja, jf);
@@ -624,14 +613,6 @@ public class CalgamesMech extends SubsystemBase implements Music, PositionSubsys
 
     public PRRKinematics getKinematics() {
         return m_kinematics;
-    }
-
-    @Override
-    public void periodic() {
-        m_shoulder.periodic();
-        m_elevatorFront.periodic();
-        m_elevatorBack.periodic();
-        m_wrist.periodic();
     }
 
     /////////////////////////////////////////////////////////////

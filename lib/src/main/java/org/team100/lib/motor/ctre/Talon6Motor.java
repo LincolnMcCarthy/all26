@@ -8,14 +8,16 @@ import org.team100.lib.coherence.Takt;
 import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
+import org.team100.lib.experiments.Experiment;
+import org.team100.lib.experiments.Experiments;
 import org.team100.lib.logging.Level;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
 import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
-import org.team100.lib.sensor.position.incremental.ctre.Talon6Encoder;
 import org.team100.lib.util.CanId;
 
 import com.ctre.phoenix6.StatusCode;
@@ -47,7 +49,7 @@ public abstract class Talon6Motor implements Motor {
     private final LoggerFactory m_log;
     private static final boolean DEBUG = false;
 
-    private final TalonFX m_motor;
+    final TalonFX m_motor;
     private final PhoenixConfigurator m_configurator;
     private final Friction m_friction;
 
@@ -56,11 +58,11 @@ public abstract class Talon6Motor implements Motor {
     // and also the supplier
 
     /** radians, latency-compensated. */
-    protected final DoubleCache m_position;
+    final DoubleCache m_position;
     /** radians per second */
-    protected final DoubleCache m_velocity;
+    final DoubleCache m_velocity;
     /** radians per second squared */
-    protected final DoubleCache m_acceleration;
+    final DoubleCache m_acceleration;
     protected final DoubleCache m_dutyCycle;
     protected final DoubleCache m_error;
     protected final DoubleCache m_supplyCurrent;
@@ -90,8 +92,8 @@ public abstract class Talon6Motor implements Motor {
     private final DoubleLogger m_log_desired_speed;
     private final DoubleLogger m_log_friction_FF;
     private final DoubleLogger m_log_velocity_FF;
-    private final DoubleLogger m_totalFeedForward;
     private final DoubleLogger m_log_torque_FF;
+    private final DoubleLogger m_totalFeedForward;
     /** rad */
     private final DoubleLogger m_log_position;
     /** rad/s */
@@ -219,6 +221,7 @@ public abstract class Talon6Motor implements Motor {
         m_log_temp = m_log.doubleLogger(Level.DEBUG, "temperature (C)");
 
         m_log.intLogger(Level.TRACE, "Device ID").log(() -> canId.id);
+        LogPoller.register(this::log);
     }
 
     /** Set duty cycle immediately. */
@@ -267,23 +270,21 @@ public abstract class Talon6Motor implements Motor {
      */
     @Override
     public void setVelocity(double motorRad_S, double torqueNm) {
-        double backEMFVolts = backEMFVoltage(motorRad_S);
-        double frictionFFVolts = m_friction.frictionFFVolts(motorRad_S);
-        double torqueFFVolts = getTorqueFFVolts(torqueNm);
-        double FFVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
+        double FFVolts = ffVolts(motorRad_S, torqueNm);
 
-        // CTRE control unit is rev/s.
-        warn(() -> m_motor.setControl(
-                m_velocityVoltage
-                        .withSlot(1)
-                        .withVelocity(motorRad_S / (2 * Math.PI))
-                        .withFeedForward(FFVolts)));
+        if (Experiments.INSTANCE.enabled(Experiment.FeedForwardOnly)) {
+            warn(() -> m_motor.setControl(
+                    m_voltageOut.withOutput(FFVolts)));
+        } else {
+            // CTRE control unit is rev/s.
+            warn(() -> m_motor.setControl(
+                    m_velocityVoltage
+                            .withSlot(1)
+                            .withVelocity(motorRad_S / (2 * Math.PI))
+                            .withFeedForward(FFVolts)));
+        }
 
         m_log_desired_speed.log(() -> motorRad_S);
-        m_log_friction_FF.log(() -> frictionFFVolts);
-        m_log_velocity_FF.log(() -> backEMFVolts);
-        m_log_torque_FF.log(() -> torqueFFVolts);
-        m_totalFeedForward.log(() -> FFVolts);
     }
 
     @Override
@@ -307,48 +308,22 @@ public abstract class Talon6Motor implements Motor {
             double motorRad,
             double motorRad_S,
             double torqueNm) {
-        double backEMFVolts = backEMFVoltage(motorRad_S);
-        double frictionFFVolts = m_friction.frictionFFVolts(motorRad_S);
-        double torqueFFVolts = getTorqueFFVolts(torqueNm);
-        double FFVolts = backEMFVolts + frictionFFVolts + torqueFFVolts;
+        double FFVolts = ffVolts(motorRad_S, torqueNm);
 
-        // CTRE control unit is rev.
-        warn(() -> m_motor.setControl(
-                m_positionVoltage
-                        .withSlot(0)
-                        .withPosition(motorRad / (2 * Math.PI))
-                        .withFeedForward(FFVolts)));
+        if (Experiments.INSTANCE.enabled(Experiment.FeedForwardOnly)) {
+            warn(() -> m_motor.setControl(
+                    m_voltageOut.withOutput(FFVolts)));
+        } else {
+            // CTRE control unit is rev.
+            warn(() -> m_motor.setControl(
+                    m_positionVoltage
+                            .withSlot(0)
+                            .withPosition(motorRad / (2 * Math.PI))
+                            .withFeedForward(FFVolts)));
+        }
 
         m_log_desired_position.log(() -> motorRad);
         m_log_desired_speed.log(() -> motorRad_S);
-        m_log_friction_FF.log(() -> frictionFFVolts);
-        m_log_velocity_FF.log(() -> backEMFVolts);
-        m_log_torque_FF.log(() -> torqueFFVolts);
-        m_totalFeedForward.log(() -> FFVolts);
-    }
-
-    /**
-     * This is the "unwrapped" position, i.e. the domain is infinite, not cyclical
-     * within +/- pi.
-     * 
-     * Latency-compensated, represents the current Takt.
-     * Updated in `Robot.robotPeriodic()`.
-     */
-    @Override
-    public double getUnwrappedPositionRad() {
-        return m_position.getAsDouble();
-    }
-
-    /** Not latency-compensated, not filtered. Updated in Robot.robotPeriodic(). */
-    @Override
-    public double getVelocityRad_S() {
-        return m_velocity.getAsDouble();
-    }
-
-    /** Not latency-compensated, not filtered. Updated in Robot.robotPeriodic(). */
-    @Override
-    public double getAccelerationRad_S2() {
-        return m_acceleration.getAsDouble();
     }
 
     @Override
@@ -372,26 +347,6 @@ public abstract class Talon6Motor implements Motor {
         m_motor.close();
     }
 
-    /**
-     * Set integrated sensor position in radians.
-     * 
-     * This is the "unwrapped" position, i.e. the domain is infinite, not cyclical
-     * within +/- pi.
-     * 
-     * Note this takes **FOREVER**, like tens of milliseconds, so you can only do it
-     * at startup.
-     */
-    @Override
-    public void setUnwrappedEncoderPositionRad(double positionRad) {
-        System.out.println("WARNING: Setting CTRE encoder position is very slow!");
-        warn(() -> m_motor.setPosition(positionRad / (2.0 * Math.PI), 1));
-    }
-
-    @Override
-    public void periodic() {
-        log();
-    }
-
     /////////////////////////////////////////////
 
     private void log() {
@@ -406,10 +361,31 @@ public abstract class Talon6Motor implements Motor {
         m_log_temp.log(m_temp);
     }
 
-    private static void warn(Supplier<StatusCode> s) {
+    public static void warn(Supplier<StatusCode> s) {
         StatusCode statusCode = s.get();
         if (statusCode.isError()) {
             System.out.println("WARNING: " + statusCode.toString());
         }
+    }
+
+    private double ffVolts(
+            double motorRad_S,
+            double torqueNm) {
+        double ff = 0;
+        double frictionFFVolts = m_friction.frictionFFVolts(motorRad_S);
+        double backEMFVolts = backEMFVoltage(motorRad_S);
+        double torqueFFVolts = getTorqueFFVolts(torqueNm);
+        if (Experiments.INSTANCE.enabled(Experiment.IncludeFrictionFeedForward))
+            ff += frictionFFVolts;
+        if (Experiments.INSTANCE.enabled(Experiment.IncludeVelocityFeedForward))
+            ff += backEMFVolts;
+        if (Experiments.INSTANCE.enabled(Experiment.IncludeTorqueFeedForward))
+            ff += torqueFFVolts;
+        double FFVolts = ff;
+        m_log_friction_FF.log(() -> frictionFFVolts);
+        m_log_velocity_FF.log(() -> backEMFVolts);
+        m_log_torque_FF.log(() -> torqueFFVolts);
+        m_totalFeedForward.log(() -> FFVolts);
+        return FFVolts;
     }
 }

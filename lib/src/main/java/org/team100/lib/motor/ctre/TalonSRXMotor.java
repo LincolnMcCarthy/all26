@@ -1,6 +1,7 @@
 package org.team100.lib.motor.ctre;
 
 import org.team100.lib.logging.Level;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.logging.TotalCurrentLog;
@@ -58,6 +59,7 @@ public class TalonSRXMotor implements Motor {
         m_log_supply = m_log.doubleLogger(Level.TRACE, "supply current (A)");
         m_log_stator = m_log.doubleLogger(Level.TRACE, "stator current (A)");
         m_log_duty = m_log.doubleLogger(Level.TRACE, "duty cycle");
+        LogPoller.register(this::log);
     }
 
     @Override
@@ -115,8 +117,7 @@ public class TalonSRXMotor implements Motor {
         // SRX doesn't support close()
     }
 
-    @Override
-    public void periodic() {
+    private void log() {
         m_log_supply.log(m_motor::getSupplyCurrent);
         m_log_stator.log(m_motor::getStatorCurrent);
         m_log_duty.log(m_motor::getMotorOutputPercent);
@@ -142,26 +143,6 @@ public class TalonSRXMotor implements Motor {
     @Override
     public void setTorqueLimit(double torqueNm) {
         throw new UnsupportedOperationException("TalonSRX limits power, not torque.");
-    }
-
-    @Override
-    public double getVelocityRad_S() {
-        throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
-    }
-
-    @Override
-    public double getAccelerationRad_S2() {
-        throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
-    }
-
-    @Override
-    public double getUnwrappedPositionRad() {
-        throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
-    }
-
-    @Override
-    public void setUnwrappedEncoderPositionRad(double positionRad) {
-        throw new UnsupportedOperationException("TalonSRX sensing is not supported.");
     }
 
     @Override

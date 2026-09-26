@@ -36,7 +36,7 @@ public record ControlR1(double x, double v, double a) implements Interpolatable<
     /**
      * Return the model corresponding to this control, i.e. without acceleration.
      */
-    public StateR1 model() {
+    public StateR1 state() {
         return new StateR1(x, v);
     }
 
@@ -71,7 +71,7 @@ public record ControlR1(double x, double v, double a) implements Interpolatable<
 
     @Override
     public String toString() {
-        return String.format("ControlR1(X %5.3f V %5.3f A %5.3f)", x, v, a);
+        return String.format("ControlR1(X %6.3f V %6.3f A %6.3f)", x, v, a);
     }
 
     @Override

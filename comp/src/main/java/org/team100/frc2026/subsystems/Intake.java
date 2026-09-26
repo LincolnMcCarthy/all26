@@ -2,7 +2,6 @@ package org.team100.frc2026.subsystems;
 
 import org.team100.frc2026.robot.CurrentLimits;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
@@ -19,10 +18,12 @@ import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.servo.OutboardLinearVelocityServo;
 import org.team100.lib.util.CanId;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
+    private static final boolean ENABLE = false;
     private static final CanId CAN_ID_1 = new CanId(20);
     private static final CanId CAN_ID_2 = new CanId(16);
     private static final double TOLERANCE_M_S = 1;
@@ -33,6 +34,7 @@ public class Intake extends SubsystemBase {
     private final OutboardLinearVelocityServo m_servo1;
     private final OutboardLinearVelocityServo m_servo2;
 
+    @SuppressWarnings("unused")
     public Intake(LoggerFactory parent, TotalCurrentLog currentLog) {
         LoggerFactory log = parent.type(this);
         LoggerFactory log1 = log.name("motor1");
@@ -47,24 +49,20 @@ public class Intake extends SubsystemBase {
                 log, () -> profile, 1);
         final Motor m1;
         final Motor m2;
-        switch (Identity.instance) {
-            case TEST_BOARD_B0, COMP_BOT -> {
-
-                // friction test 3/12/26
-                Friction friction = new Friction(0.5, 0.5, 0.0, 0.5);
-                // tuned 3/12/26
-                PIDConstants pid = PIDConstants.makeVelocityPID(0.08);
-                m1 = new KrakenX44Motor(
-                        log1, currentLog, CAN_ID_1, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.INTAKE, friction, pid);
-                m2 = new KrakenX44Motor(
-                        log2, currentLog, CAN_ID_2, NeutralMode100.COAST, MotorPhase.REVERSE,
-                        CurrentLimits.INTAKE, friction, pid);
-            }
-            default -> {
-                m1 = new SimulatedMotor(log1, 600);
-                m2 = new SimulatedMotor(log2, 600);
-            }
+        if (ENABLE && RobotBase.isReal()) {
+            // friction test 3/12/26
+            Friction friction = new Friction(0.5, 0.5, 0.0, 0.5);
+            // tuned 3/12/26
+            PIDConstants pid = PIDConstants.makeVelocityPID(0.08);
+            m1 = new KrakenX44Motor(
+                    log1, currentLog, CAN_ID_1, NeutralMode100.COAST, MotorPhase.FORWARD,
+                    CurrentLimits.INTAKE, friction, pid);
+            m2 = new KrakenX44Motor(
+                    log2, currentLog, CAN_ID_2, NeutralMode100.COAST, MotorPhase.REVERSE,
+                    CurrentLimits.INTAKE, friction, pid);
+        } else {
+            m1 = new SimulatedMotor(log1, 600);
+            m2 = new SimulatedMotor(log2, 600);
         }
         m_servo1 = OutboardLinearVelocityServo.make(
                 log1, m1, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
@@ -104,12 +102,6 @@ public class Intake extends SubsystemBase {
     public Command stopOnce() {
         return runOnce(this::stopMotor)
                 .withName("Stop Intake Once");
-    }
-
-    @Override
-    public void periodic() {
-        m_servo1.periodic();
-        m_servo2.periodic();
     }
 
     /** For testing friction only */

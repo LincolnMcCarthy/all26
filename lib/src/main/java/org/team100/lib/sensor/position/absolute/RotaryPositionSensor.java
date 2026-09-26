@@ -40,9 +40,10 @@ public interface RotaryPositionSensor {
     double getAccelerationRad_S2();
 
     /**
-     * For logging.
+     * Force the position measurement.
+     * This is used for "zeroing" or "homing".
      */
-    void periodic();
+    void setUnwrappedEncoderPositionRad(double x);
 
     /**
      * Releases the encoder resource, if necessary (e.g. HAL ports).

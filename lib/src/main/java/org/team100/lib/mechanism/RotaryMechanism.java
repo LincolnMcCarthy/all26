@@ -1,6 +1,7 @@
 package org.team100.lib.mechanism;
 
 import org.team100.lib.logging.Level;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleLogger;
 import org.team100.lib.motor.Motor;
@@ -25,6 +26,7 @@ import edu.wpi.first.math.MathUtil;
  * difference.
  */
 public class RotaryMechanism implements Player {
+    private static final boolean DEBUG = false;
     private final Motor m_motor;
     private final RotaryPositionSensor m_sensor;
     private final double m_gearRatio;
@@ -35,9 +37,6 @@ public class RotaryMechanism implements Player {
     private final DoubleLogger m_log_wrapped_position;
     private final DoubleLogger m_log_unwrapped_position;
     private final DoubleLogger m_log_desired_unwrapped_position;
-
-    /** Respects limits. */
-    private double m_unwrappedPositionWithinLimits;
 
     /**
      * The provided sensor encapsulates the motor sensor and/or the external
@@ -62,6 +61,7 @@ public class RotaryMechanism implements Player {
         m_log_wrapped_position = log.doubleLogger(Level.DEBUG, "wrapped position (rad)");
         m_log_unwrapped_position = log.doubleLogger(Level.DEBUG, "unwrapped position (rad)");
         m_log_desired_unwrapped_position = log.doubleLogger(Level.DEBUG, "desired unwrapped position (rad)");
+        LogPoller.register(this::log);
     }
 
     /** There is no absolute position sensor in this case. */
@@ -169,6 +169,8 @@ public class RotaryMechanism implements Player {
     /**
      * Apply limits and gear ratio, and set the resulting motor position.
      * 
+     * Use getUnwrappedPositionWithinLimits to see the actual desired position.
+     * 
      * This is the "unwrapped" position, i.e. the domain is infinite, not cyclical
      * within +/- pi.
      * 
@@ -183,27 +185,23 @@ public class RotaryMechanism implements Player {
             double torqueNm) {
         m_log_desired_unwrapped_position.log(() -> unwrappedPositionRad);
         if (unwrappedPositionRad < m_minPositionRad) {
-            System.out.printf("WARNING: requested position %8.3f less than min %8.3f\n",
-                    unwrappedPositionRad, m_minPositionRad);
+            if (DEBUG)
+                System.out.printf("RotaryMechanism: requested position %8.3f less than min %8.3f\n",
+                        unwrappedPositionRad, m_minPositionRad);
             m_motor.stop();
             return;
         }
         if (unwrappedPositionRad > m_maxPositionRad) {
-            System.out.printf("WARNING: requested position %8.3f more than max %8.3f\n",
-                    unwrappedPositionRad, m_maxPositionRad);
+            if (DEBUG)
+                System.out.printf("RotaryMechanism: requested position %8.3f more than max %8.3f\n",
+                        unwrappedPositionRad, m_maxPositionRad);
             m_motor.stop();
             return;
         }
-        m_unwrappedPositionWithinLimits = unwrappedPositionRad;
         m_motor.setUnwrappedPosition(
                 unwrappedPositionRad * m_gearRatio,
                 velocityRad_S * m_gearRatio,
                 torqueNm / m_gearRatio);
-    }
-
-    /** Desired position, with limits applied. */
-    public double getUnwrappedPositionWithinLimits() {
-        return m_unwrappedPositionWithinLimits;
     }
 
     public StateR1 getUnwrappedMeasurement() {
@@ -229,7 +227,7 @@ public class RotaryMechanism implements Player {
     }
 
     /**
-     * Returns the "wrapped" angular position, i.e. this dimension is cyclical, with
+     * Current measurement, "wrapped", i.e. this dimension is cyclical, with
      * values beyond +/- pi mapped back to the +/- pi interval: 2pi is mapped to 0,
      * 5pi/4 is mapped to pi/4, etc.
      * 
@@ -239,7 +237,7 @@ public class RotaryMechanism implements Player {
         return m_sensor.getWrappedPositionRad();
     }
 
-    /** Unwrapped domain is infinite. */
+    /** Current measurement. Unwrapped domain is infinite. */
     public double getUnwrappedPositionRad() {
         return m_sensor.getUnwrappedPositionRad();
     }
@@ -254,8 +252,19 @@ public class RotaryMechanism implements Player {
         return m_maxPositionRad;
     }
 
+    /**
+     * Stop the mechanism. Depending on the brake mode of the motor, this may be a
+     * "zero torque" condition, or a "braking" condition.
+     */
     public void stop() {
         m_motor.stop();
+    }
+
+    /**
+     * Force the encoder measurement.
+     */
+    public void setUnwrappedEncoderPositionRad(double x) {
+        m_sensor.setUnwrappedEncoderPositionRad(x);
     }
 
     public void close() {
@@ -263,9 +272,7 @@ public class RotaryMechanism implements Player {
         m_sensor.close();
     }
 
-    public void periodic() {
-        m_motor.periodic();
-        m_sensor.periodic();
+    private void log() {
         m_log_wrapped_position.log(this::getWrappedPositionRad);
         m_log_unwrapped_position.log(this::getUnwrappedPositionRad);
         m_log_velocity.log(this::getVelocityRad_S);

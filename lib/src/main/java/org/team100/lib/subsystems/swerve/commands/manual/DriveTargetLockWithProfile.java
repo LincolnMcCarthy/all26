@@ -12,7 +12,7 @@ import org.team100.lib.framework.TimedRobot100;
 import org.team100.lib.geometry.GeometryUtil;
 import org.team100.lib.geometry.se2.AccelerationSE2;
 import org.team100.lib.geometry.se2.VelocitySE2;
-import org.team100.lib.hid.Velocity;
+import org.team100.lib.hid.DriverVelocity;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.ControlR1Logger;
@@ -60,7 +60,7 @@ public class DriveTargetLockWithProfile extends Command {
      * Velocity control in control units, [-1,1] on all axes. This needs to be
      * mapped to a feasible velocity control as early as possible.
      */
-    private final Supplier<Velocity> m_twistSupplier;
+    private final Supplier<DriverVelocity> m_twistSupplier;
     private final DoubleConsumer m_heedRadiusM;
     private final SwerveDriveSubsystem m_drive;
     private final SwerveLimiter m_limiter;
@@ -92,7 +92,7 @@ public class DriveTargetLockWithProfile extends Command {
             SwerveKinodynamics swerveKinodynamics,
             Supplier<Translation2d> target,
             FeedbackR1 thetaController,
-            Supplier<Velocity> twistSupplier,
+            Supplier<DriverVelocity> twistSupplier,
             DoubleConsumer heedRadiusM,
             SwerveDriveSubsystem drive,
             SwerveLimiter limiter) {
@@ -121,7 +121,7 @@ public class DriveTargetLockWithProfile extends Command {
     @Override
     public void initialize() {
         m_heedRadiusM.accept(HEED_RADIUS_M);
-        m_limiter.updateSetpoint(m_drive.getVelocity());
+        m_limiter.updateSetpoint(m_drive.getState().velocity());
         StateSE2 state = m_drive.getState();
         // always use zero initial setpoint velocity to avoid "jerk" on init.
         m_thetaSetpoint = new ControlR1(state.theta().x(), 0);
@@ -130,11 +130,10 @@ public class DriveTargetLockWithProfile extends Command {
 
     @Override
     public void execute() {
-        // TODO: control noise in this input
         StateSE2 state = m_drive.getState();
 
         // Feedback based on the current state and the previous setpoint.
-        double thetaFB = m_thetaController.calculate(state.theta(), m_thetaSetpoint.model());
+        double thetaFB = m_thetaController.calculate(state.theta(), m_thetaSetpoint.state());
         m_log_thetaFB.log(() -> thetaFB);
 
         // the goal omega should match the target's apparent motion
@@ -180,7 +179,7 @@ public class DriveTargetLockWithProfile extends Command {
         scaled = GeometryUtil.scale(scaled, DriverSkill.level().scale());
 
         // Apply field-relative limits.
-        if (Experiments.instance.enabled(Experiment.UseSwerveLimiter)) {
+        if (Experiments.INSTANCE.enabled(Experiment.UseSwerveLimiter)) {
             scaled = m_limiter.apply(scaled);
         }
 

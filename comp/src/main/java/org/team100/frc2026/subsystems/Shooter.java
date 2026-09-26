@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 
 import org.team100.frc2026.robot.CurrentLimits;
 import org.team100.lib.config.Friction;
-import org.team100.lib.config.Identity;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.logging.LoggerFactory;
@@ -22,10 +21,12 @@ import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.servo.OutboardLinearVelocityServo;
 import org.team100.lib.util.CanId;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Shooter extends SubsystemBase {
+    private static final boolean ENABLE = false;
     private static final boolean DEBUG = false;
     private static final double TUNING_SETTING = 0;
     private static final double TEST_SPEED = 15;
@@ -50,6 +51,7 @@ public class Shooter extends SubsystemBase {
      * @param parent log
      * @param speed  speed (m/s) for auto mode
      */
+    @SuppressWarnings("unused")
     public Shooter(
             LoggerFactory parent,
             TotalCurrentLog currentLog,
@@ -74,36 +76,30 @@ public class Shooter extends SubsystemBase {
         final Motor m2;
         final Motor m3;
         final Motor m4;
-        switch (Identity.instance) {
-            case TEST_BOARD_B0, COMP_BOT -> {
-
-                // friction test 3/12/262
-                Friction friction = new Friction(0.3, 0.25, 0.0, 0.5);
-                // tuned 3/12/26
-                PIDConstants pid = PIDConstants.makeVelocityPID(0.075);
-
-                int averageDepth = 2;
-                int measurementPeriod = 4;
-                m1 = new NeoVortexCANSparkMotor(
-                        log1, currentLog, CAN_ID_1, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
-                m2 = new NeoVortexCANSparkMotor(
-                        log2, currentLog, CAN_ID_2, NeutralMode100.COAST, MotorPhase.REVERSE,
-                        CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
-                m3 = new NeoVortexCANSparkMotor(
-                        log3, currentLog, CAN_ID_3, NeutralMode100.COAST, MotorPhase.FORWARD,
-                        CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
-                m4 = new NeoVortexCANSparkMotor(
-                        log4, currentLog, CAN_ID_4, NeutralMode100.COAST, MotorPhase.REVERSE,
-                        CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
-
-            }
-            default -> {
-                m1 = new SimulatedMotor(log1, 600);
-                m2 = new SimulatedMotor(log2, 600);
-                m3 = new SimulatedMotor(log3, 600);
-                m4 = new SimulatedMotor(log4, 600);
-            }
+        if (ENABLE && RobotBase.isReal()) {
+            // friction test 3/12/262
+            Friction friction = new Friction(0.3, 0.25, 0.0, 0.5);
+            // tuned 3/12/26
+            PIDConstants pid = PIDConstants.makeVelocityPID(0.075);
+            int averageDepth = 2;
+            int measurementPeriod = 4;
+            m1 = new NeoVortexCANSparkMotor(
+                    log1, currentLog, CAN_ID_1, NeutralMode100.COAST, MotorPhase.FORWARD,
+                    CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
+            m2 = new NeoVortexCANSparkMotor(
+                    log2, currentLog, CAN_ID_2, NeutralMode100.COAST, MotorPhase.REVERSE,
+                    CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
+            m3 = new NeoVortexCANSparkMotor(
+                    log3, currentLog, CAN_ID_3, NeutralMode100.COAST, MotorPhase.FORWARD,
+                    CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
+            m4 = new NeoVortexCANSparkMotor(
+                    log4, currentLog, CAN_ID_4, NeutralMode100.COAST, MotorPhase.REVERSE,
+                    CurrentLimits.SHOOTER, friction, pid, averageDepth, measurementPeriod);
+        } else {
+            m1 = new SimulatedMotor(log1, 600);
+            m2 = new SimulatedMotor(log2, 600);
+            m3 = new SimulatedMotor(log3, 600);
+            m4 = new SimulatedMotor(log4, 600);
         }
         // note different gear ratio
         m_servo1 = OutboardLinearVelocityServo.make(
@@ -114,14 +110,6 @@ public class Shooter extends SubsystemBase {
                 log3, m3, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
         m_servo4 = OutboardLinearVelocityServo.make(
                 log4, m4, dynamics, ref, GEAR_RATIO, WHEEL_DIAMETER_M, TOLERANCE_M_S);
-    }
-
-    @Override
-    public void periodic() {
-        m_servo1.periodic();
-        m_servo2.periodic();
-        m_servo3.periodic();
-        m_servo4.periodic();
     }
 
     public Command tune() {
@@ -247,10 +235,10 @@ public class Shooter extends SubsystemBase {
 
     @SuppressWarnings("unused")
     private void setVelocityDirect(double setpointM_S) {
-        m_servo1.setVelocityDirect(setpointM_S, 0);
-        m_servo2.setVelocityDirect(setpointM_S, 0);
-        m_servo3.setVelocityDirect(setpointM_S, 0);
-        m_servo4.setVelocityDirect(setpointM_S, 0);
+        m_servo1.setVelocityDirect(setpointM_S);
+        m_servo2.setVelocityDirect(setpointM_S);
+        m_servo3.setVelocityDirect(setpointM_S);
+        m_servo4.setVelocityDirect(setpointM_S);
     }
 
     private void setVelocityProfiled(double goalM_S) {
