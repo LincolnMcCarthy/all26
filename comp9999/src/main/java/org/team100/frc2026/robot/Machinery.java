@@ -9,6 +9,10 @@ import org.team100.frc2026.subsystems.Intake;
 import org.team100.frc2026.subsystems.IntakeExtend;
 import org.team100.frc2026.subsystems.Shooter;
 import org.team100.frc2026.targeting.Targeter;
+import org.team100.lib.config.CurrentLimit;
+import org.team100.lib.config.Friction;
+import org.team100.lib.config.PIDConstants;
+import org.team100.lib.dynamics.p.PDynamics;
 import org.team100.lib.indicator.Beeper;
 import org.team100.lib.localization.AddOdometryNoise;
 import org.team100.lib.localization.AprilTagFieldLayoutWithCorrectOrientation;
@@ -17,8 +21,15 @@ import org.team100.lib.localization.FusedEstimator;
 import org.team100.lib.localization.GroundTruth;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.TotalCurrentLog;
+import org.team100.lib.motor.MotorPhase;
+import org.team100.lib.motor.NeutralMode100;
+import org.team100.lib.profile.r1.AccelLimitedVelocityProfileR1;
+import org.team100.lib.profile.r1.VelocityProfileR1;
+import org.team100.lib.reference.r1.VelocityProfileReferenceR1;
+import org.team100.lib.reference.r1.VelocityReferenceR1;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.sensor.gyro.GyroFactory;
+import org.team100.lib.subsystems.r1.DualRollerSubsystem;
 import org.team100.lib.subsystems.swerve.SwerveDriveSubsystem;
 import org.team100.lib.subsystems.swerve.SwerveLocal;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -29,6 +40,7 @@ import org.team100.lib.targeting.ProxySolver;
 import org.team100.lib.targeting.Targets;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.NoisyPose2d;
+import org.team100.lib.util.CanId;
 import org.team100.lib.visualization.RobotPoseVisualization;
 import org.team100.lib.visualization.TrajectoryVisualization;
 
@@ -60,9 +72,7 @@ public class Machinery {
     public final CachedSolution m_cachedSolution;
     public final Targets m_targets;
 
-    public final Shooter m_shooter;
-    public final Intake m_intake;
-    public final IntakeExtend m_intakeExtend;
+    public final DualRollerSubsystem m_subsystem;
 
     public Machinery(LoggerFactory logger, LoggerFactory fieldLogger, TotalCurrentLog currentLog) {
         LoggerFactory driveLog = logger.name("Drive");
@@ -130,9 +140,27 @@ public class Machinery {
         //
         // SUBSYSTEMS
         //
-        m_intake = new Intake(logger, currentLog);
-        m_intakeExtend = new IntakeExtend(logger, currentLog);
-        m_shooter = new Shooter(logger, currentLog, m_cachedSolution::speed);
+        CanId canId1 = new CanId(17);
+        CanId canId2 = new CanId(42);
+        NeutralMode100 neutral = NeutralMode100.COAST;
+        MotorPhase phase1 = MotorPhase.FORWARD;
+        MotorPhase phase2 = MotorPhase.REVERSE;
+        CurrentLimit limit = new CurrentLimit(30, 30);
+        double  gearRatio = 6.0;
+        double wheelDiameterM = 0.025;
+        Friction friction = new Friction(0.32, 0.32, 0.0, 0.5);
+        PIDConstants pid = PIDConstants.makeVelocityPID(0.03);
+        PDynamics dynamics = new PDynamics(1);
+        VelocityProfileR1 profile = new AccelLimitedVelocityProfileR1(10);
+        double tolerance = 0.05;
+        VelocityReferenceR1 ref = new VelocityProfileReferenceR1(
+                driveLog, () -> profile, tolerance);
+
+        // SUBSYSTEM
+
+        m_subsystem = new DualRollerSubsystem(
+                driveLog, currentLog, canId1, canId2, neutral, phase1, phase2, limit,
+                friction, pid, gearRatio, wheelDiameterM, dynamics, ref, 0.01, true);
 
         ////////////////////////////////////////////////////////////
         //
