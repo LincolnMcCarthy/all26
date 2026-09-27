@@ -32,6 +32,8 @@ import org.team100.lib.subsystems.swerve.SwerveLocal;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.subsystems.swerve.module.SwerveModuleCollection;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesComp9999;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesSim;
 import org.team100.lib.targeting.CachedSolution;
 import org.team100.lib.targeting.ProxySolver;
 import org.team100.lib.targeting.Targets;
@@ -79,11 +81,12 @@ public class Machinery {
         // DRIVETRAIN
         //
         m_swerveKinodynamics = SwerveKinodynamicsFactory.get();
-        m_modules = SwerveModuleCollection.get(
-                driveLog,
+        m_modules = RobotBase.isReal() ? new SwerveModulesComp9999(
+                driveLog.name("Swerve Modules"),
                 currentLog,
                 new CurrentLimit(90, 70),
-                new CurrentLimit(60, 30));
+                new CurrentLimit(60, 30))
+                : new SwerveModulesSim(driveLog.name("Swerve Modules"));
         Gyro gyro = GyroFactory.get(
                 driveLog,
                 m_swerveKinodynamics,
