@@ -1,6 +1,6 @@
 package org.team100.frc2026.subsystems;
 
-import org.team100.frc2026.robot.CurrentLimits;
+import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.r.RDynamics;
@@ -58,12 +58,12 @@ public class IntakeExtend extends SubsystemBase {
             motor = new KrakenX44Motor(
                     log1, currentLog, CAN_ID,
                     NeutralMode100.COAST, MotorPhase.REVERSE,
-                    CurrentLimits.INTAKE_EXTEND,
+                    new CurrentLimit(20, 40),
                     friction, pid);
             motor2 = new KrakenX44Motor(
                     log2, currentLog, CAN_ID2,
                     NeutralMode100.COAST, MotorPhase.FORWARD,
-                    CurrentLimits.INTAKE_EXTEND,
+                    new CurrentLimit(20, 40),
                     friction, pid);
         } else {
             motor = new SimulatedMotor(log1, 600);

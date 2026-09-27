@@ -3,7 +3,7 @@ package org.team100.frc2026.subsystems;
 import java.util.OptionalDouble;
 import java.util.function.Supplier;
 
-import org.team100.frc2026.robot.CurrentLimits;
+import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.r.RDynamics;
@@ -62,7 +62,7 @@ public class ShooterHood extends SubsystemBase {
             PIDConstants pid = PIDConstants.makePositionPID(1.0);
             motor = new NeoVortexCANSparkMotor(
                     log, currentLog, CAN_ID, NeutralMode100.COAST, MotorPhase.REVERSE,
-                    CurrentLimits.SHOOTER_HOOD, friction, pid, 0, 0);
+                    new CurrentLimit(1, 1), friction, pid, 0, 0);
         } else {
             motor = new SimulatedMotor(log, 600);
         }
