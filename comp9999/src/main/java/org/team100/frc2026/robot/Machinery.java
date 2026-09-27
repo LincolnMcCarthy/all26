@@ -5,9 +5,6 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.team100.frc2026.field.FieldConstants2026;
-import org.team100.frc2026.subsystems.Intake;
-import org.team100.frc2026.subsystems.IntakeExtend;
-import org.team100.frc2026.subsystems.Shooter;
 import org.team100.frc2026.targeting.Targeter;
 import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
@@ -35,6 +32,8 @@ import org.team100.lib.subsystems.swerve.SwerveLocal;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
 import org.team100.lib.subsystems.swerve.module.SwerveModuleCollection;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesComp9999;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesSim;
 import org.team100.lib.targeting.CachedSolution;
 import org.team100.lib.targeting.ProxySolver;
 import org.team100.lib.targeting.Targets;
@@ -82,11 +81,12 @@ public class Machinery {
         // DRIVETRAIN
         //
         m_swerveKinodynamics = SwerveKinodynamicsFactory.get();
-        m_modules = SwerveModuleCollection.get(
-                driveLog,
+        m_modules = RobotBase.isReal() ? new SwerveModulesComp9999(
+                driveLog.name("Swerve Modules"),
                 currentLog,
-                CurrentLimits.DRIVE,
-                CurrentLimits.STEERING);
+                new CurrentLimit(90, 70),
+                new CurrentLimit(60, 30))
+                : new SwerveModulesSim(driveLog.name("Swerve Modules"));
         Gyro gyro = GyroFactory.get(
                 driveLog,
                 m_swerveKinodynamics,
@@ -146,7 +146,7 @@ public class Machinery {
         MotorPhase phase1 = MotorPhase.FORWARD;
         MotorPhase phase2 = MotorPhase.REVERSE;
         CurrentLimit limit = new CurrentLimit(30, 30);
-        double  gearRatio = 6.0;
+        double gearRatio = 6.0;
         double wheelDiameterM = 0.025;
         Friction friction = new Friction(0.32, 0.32, 0.0, 0.5);
         PIDConstants pid = PIDConstants.makeVelocityPID(0.03);

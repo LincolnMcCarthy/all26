@@ -32,7 +32,7 @@ public class SwerveKinodynamicsFactory {
         switch (Identity.instance) {
             case LAUNDRY_BOT:
                 return new SwerveKinodynamicsComp9999();
-            case SWERVE_TWO:
+            case TEST_BOARD_3:
                 return new SwerveKinodynamicsPractice();
             case SWERVE_ONE:
                 return new SwerveKinodynamics(

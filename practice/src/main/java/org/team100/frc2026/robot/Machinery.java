@@ -5,10 +5,8 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import org.team100.frc2026.field.FieldConstants2026;
-import org.team100.frc2026.subsystems.Intake;
-import org.team100.frc2026.subsystems.IntakeExtend;
-import org.team100.frc2026.subsystems.Shooter;
 import org.team100.frc2026.targeting.Targeter;
+import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.indicator.Beeper;
 import org.team100.lib.localization.AddOdometryNoise;
 import org.team100.lib.localization.AprilTagFieldLayoutWithCorrectOrientation;
@@ -22,8 +20,10 @@ import org.team100.lib.sensor.gyro.GyroFactory;
 import org.team100.lib.subsystems.swerve.SwerveDriveSubsystem;
 import org.team100.lib.subsystems.swerve.SwerveLocal;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
-import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsFactory;
+import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamicsSwerveOne;
 import org.team100.lib.subsystems.swerve.module.SwerveModuleCollection;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesPractice;
+import org.team100.lib.subsystems.swerve.module.SwerveModulesSim;
 import org.team100.lib.targeting.CachedSolution;
 import org.team100.lib.targeting.ProxySolver;
 import org.team100.lib.targeting.Targets;
@@ -60,10 +60,6 @@ public class Machinery {
     public final CachedSolution m_cachedSolution;
     public final Targets m_targets;
 
-    public final Shooter m_shooter;
-    public final Intake m_intake;
-    public final IntakeExtend m_intakeExtend;
-
     public Machinery(LoggerFactory logger, LoggerFactory fieldLogger, TotalCurrentLog currentLog) {
         LoggerFactory driveLog = logger.name("Drive");
 
@@ -71,12 +67,13 @@ public class Machinery {
         //
         // DRIVETRAIN
         //
-        m_swerveKinodynamics = SwerveKinodynamicsFactory.get();
-        m_modules = SwerveModuleCollection.get(
-                driveLog,
+        m_swerveKinodynamics = new SwerveKinodynamicsSwerveOne();
+        m_modules = RobotBase.isReal() ? new SwerveModulesPractice(
+                driveLog.name("Swerve Modules"),
                 currentLog,
-                CurrentLimits.DRIVE,
-                CurrentLimits.STEERING);
+                new CurrentLimit(90, 70),
+                new CurrentLimit(60, 30))
+                : new SwerveModulesSim(driveLog.name("Swerve Modules"));
         Gyro gyro = GyroFactory.get(
                 driveLog,
                 m_swerveKinodynamics,
@@ -130,9 +127,6 @@ public class Machinery {
         //
         // SUBSYSTEMS
         //
-        m_intake = new Intake(logger, currentLog);
-        m_intakeExtend = new IntakeExtend(logger, currentLog);
-        m_shooter = new Shooter(logger, currentLog, m_cachedSolution::speed);
 
         ////////////////////////////////////////////////////////////
         //
