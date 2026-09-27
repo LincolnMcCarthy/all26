@@ -151,7 +151,6 @@ public class Machinery2025 {
     public void periodic() {
         m_groundTruth.periodic();
         m_leds.periodic();
-        m_robotViz.run();
         m_combinedViz.run();
         m_climberViz.run();
         m_tagViz.update();

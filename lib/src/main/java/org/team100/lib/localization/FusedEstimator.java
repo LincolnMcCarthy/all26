@@ -1,5 +1,6 @@
 package org.team100.lib.localization;
 
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import org.team100.lib.coherence.Cache;
@@ -70,6 +71,10 @@ public class FusedEstimator implements StateEstimator {
                 DriverStation::getAlliance);
         m_localizerCache = Cache.ofSideEffect(m_localizer::update);
         m_odometryCache = Cache.ofSideEffect(m_odometryUpdate::update);
+    }
+
+    public Map<Double, SwerveState> all() {
+        return m_history.exclusiveTailMap(0);
     }
 
     /**

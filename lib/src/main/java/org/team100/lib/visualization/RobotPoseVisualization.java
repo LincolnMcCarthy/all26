@@ -3,6 +3,7 @@ package org.team100.lib.visualization;
 import java.util.function.Supplier;
 
 import org.team100.lib.logging.Level;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.DoubleArrayLogger;
 
@@ -29,10 +30,11 @@ public class RobotPoseVisualization {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         m_pub_pose = inst.getStructTopic("pose", Pose2d.struct).publish();
         m_pose = pose;
+        LogPoller.register(this::log);
     }
 
     /** Show the robot pose on AdvantageScope and Field2d. */
-    public void run() {
+    private void log() {
         Pose2d pose = m_pose.get();
         double[] poseArray = VizUtil.poseToArray(pose);
         m_log_field_robot.log(() -> poseArray);
