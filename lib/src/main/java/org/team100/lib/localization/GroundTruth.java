@@ -68,7 +68,7 @@ public class GroundTruth {
 
         // Visualization of the simulated "ground truth" of the robot pose.
         new RobotPoseVisualization(
-                fieldLogger, () -> groundTruthCache.apply(Takt.get()).pose(), "ground truth");
+                fieldLogger, () -> groundTruthCache.apply(Takt.get()), "ground truth");
 
         // Simulated camera uses the ground truth because the real cameras are not aware
         // of the pose estimate.

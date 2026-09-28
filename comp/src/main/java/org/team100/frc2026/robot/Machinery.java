@@ -104,7 +104,7 @@ public class Machinery {
         m_tagViz = new AprilTagVisualizer(
                 driveLog, fieldLogger, m_drive::getState, layout, DriverStation::getAlliance);
         m_robotViz = new RobotPoseVisualization(
-                fieldLogger, () -> m_drive.getState().pose(), "robot");
+                fieldLogger, () -> m_drive.getState(), "robot");
         new SwerveHistoryVisualization(fieldLogger, estimate);
 
         ////////////////////////////////////////////////////////////
