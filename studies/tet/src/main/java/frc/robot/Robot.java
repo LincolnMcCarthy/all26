@@ -10,6 +10,7 @@ import org.team100.lib.config.CurrentLimit;
 import org.team100.lib.config.Friction;
 import org.team100.lib.config.PIDConstants;
 import org.team100.lib.dynamics.p.PDynamics;
+import org.team100.lib.logging.LogPoller;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.Logging;
 import org.team100.lib.logging.TotalCurrentLog;
@@ -18,11 +19,13 @@ import org.team100.lib.motor.Motor;
 import org.team100.lib.motor.MotorPhase;
 import org.team100.lib.motor.NeutralMode100;
 import org.team100.lib.motor.ctre.KrakenX44Motor;
+import org.team100.lib.motor.ctre.KrakenX60Motor;
 import org.team100.lib.profile.r1.ProfileR1;
 import org.team100.lib.profile.r1.TrapezoidProfileR1;
 import org.team100.lib.reference.r1.ProfileReferenceR1;
 import org.team100.lib.reference.r1.ReferenceR1;
 import org.team100.lib.servo.LinearPositionServo;
+
 import org.team100.lib.servo.OutboardLinearPositionServo;
 import org.team100.lib.state.StateR1;
 import org.team100.lib.util.CanId;
@@ -34,8 +37,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends TimedRobot {
 
-    private static final CanId LeftCan = new CanId(10);
-    private static final CanId RightCan = new CanId(9);
+    private static final CanId LeftCan = new CanId(16);
+    private static final CanId RightCan = new CanId(17);
     PDynamics dynamics = PDynamics.drum(0.001, 0.025);
     final Motor m1;
     final Motor m2;
@@ -60,11 +63,11 @@ public class Robot extends TimedRobot {
         ProfileR1 profile = new TrapezoidProfileR1(0.5, 1, 0.01);
         ref = new ProfileReferenceR1(
                 parent, () -> profile, 0.1, 10.1);
-        m1 = new KrakenX44Motor(
+        m1 = new KrakenX60Motor(
                 leftLog, currentLog, LeftCan, NeutralMode100.COAST, MotorPhase.REVERSE,
                 new CurrentLimit(40, 50),
                 friction, pid);
-        m2 = new KrakenX44Motor(
+        m2 = new KrakenX60Motor(
                 rightLog, currentLog, RightCan, NeutralMode100.COAST, MotorPhase.FORWARD,
                 new CurrentLimit(40, 50),
                 friction, pid);
@@ -86,8 +89,6 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         Takt.update();
         Cache.refresh();
-        s1.periodic();
-        s2.periodic();
         CommandScheduler.getInstance().run();
         // Poll for logs after all the actuation is done
         LogPoller.log();
@@ -105,15 +106,17 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         if (controller.getXButton()) {
-            s1.setPositionProfiled(0.1);
-            s2.setPositionProfiled(0.1);
-        } else if (controller.getYButton()) {
-            s1.setPositionProfiled(0);
-            s2.setPositionProfiled(0);
-        } else if (controller.getAButton()) {
-            l1.setZero();
-            l2.setZero();
-        } else {
+            m1.setVelocity(120,0);
+            m2.setVelocity(120,0);
+        }
+       //elseifcontroller.getYButton()) {
+        //     s1.setPositionProfiled(0);
+        //     s2.setPositionProfiled(0);
+        // } else if (controller.getAButton()) {
+        //     l1.setEncoderPositionM(0);
+        //     l2.setEncoderPositionM(0);
+        // } 
+        else {
             m1.stop();
             m2.stop();
             ref.init(new StateR1(l1.getPositionM(), 0));
