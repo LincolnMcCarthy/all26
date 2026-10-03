@@ -1,6 +1,8 @@
 package org.team100.lib.network;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 import org.team100.lib.camera.Camera;
 import org.team100.lib.logging.LoggerFactory;
@@ -21,6 +23,10 @@ import edu.wpi.first.util.struct.StructBuffer;
  */
 public abstract class CameraReader<T> {
     private static final boolean DEBUG = false;
+
+    private record Record<T>(Camera camera, T[] values) {
+    }
+
     /**
      * Five cameras, 50hz each => 250 hz of updates. Rio runs at 50 hz, so there
      * should be five messages waiting for us each cycle.
@@ -63,6 +69,8 @@ public abstract class CameraReader<T> {
             System.out.println("CameraReader update");
         }
         beginUpdate();
+        // TODO: just return this list.
+        List<Record<T>> records = new ArrayList<>();
         for (NetworkTableEvent e : m_poller.readQueue()) {
             ValueEventData valueEventData = e.valueData;
             NetworkTableValue ntValue = valueEventData.value;
@@ -77,12 +85,7 @@ public abstract class CameraReader<T> {
             }
             // key is "rootName/cameraId/valueName"
             String cameraId = fields[1];
-            if (fields[2].equals("fps"))
-                continue;
-            if (fields[2].equals("temp"))
-                continue;
             if (!fields[2].equals(m_ntValueName)) {
-                // System.out.println("WARNING: weird key: " + name);
                 continue;
             }
             if (DEBUG) {
@@ -107,7 +110,10 @@ public abstract class CameraReader<T> {
 
             Camera camera = Camera.get(cameraId);
 
-            perValue(camera, valueArray);
+            records.add(new Record<>(camera, valueArray));
+        }
+        for (Record<T> r : records) {
+            perValue(r.camera, r.values);
         }
         finishUpdate();
     }

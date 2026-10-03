@@ -14,7 +14,6 @@ import org.team100.lib.geometry.se2.VelocitySE2;
 import org.team100.lib.logging.Level;
 import org.team100.lib.logging.LoggerFactory;
 import org.team100.lib.logging.LoggerFactory.IsotropicNoiseSE2Logger;
-import org.team100.lib.logging.LoggerFactory.SwerveStateLogger;
 import org.team100.lib.sensor.gyro.Gyro;
 import org.team100.lib.state.StateSE2;
 import org.team100.lib.subsystems.swerve.kinodynamics.SwerveKinodynamics;
@@ -60,7 +59,6 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
     private final Fusor m_gyroBiasFusor;
     private final Fusor m_rotationFusor;
 
-    private final SwerveStateLogger m_logState;
     private final IsotropicNoiseSE2Logger m_log_prevNoise;
     private final IsotropicNoiseSE2Logger m_log_updateNoise;
     private final IsotropicNoiseSE2Logger m_log_newNoise;
@@ -84,7 +82,6 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
         m_alwaysUpdate = alwaysUpdate;
         m_gyroBiasFusor = new CovarianceInflation(0.02, gyro.bias_noise());
         m_rotationFusor = new CovarianceInflation(0.02, 0.003);
-        m_logState = log.swerveStateLogger(Level.TRACE, "state");
         m_log_prevNoise = log.isotropicNoiseSE2Logger(Level.TRACE, "previous noise");
         m_log_updateNoise = log.isotropicNoiseSE2Logger(Level.TRACE, "update noise");
         m_log_newNoise = log.isotropicNoiseSE2Logger(Level.TRACE, "new noise");
@@ -105,20 +102,18 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
      */
     @Override
     public void update() {
-        SwerveState newState = update(Takt.get());
-        if (newState != null)
-            m_logState.log(() -> newState);
+        update(Takt.get());
     }
 
     /** For testing. */
-    SwerveState update(double timestamp) {
+    void update(double timestamp) {
         SwerveModulePositions positions = m_positions.get();
         Rotation2d yawNWU = m_gyro.getYawNWU();
         if (DEBUG) {
             System.out.printf("OdometryUpdater.update() gyro %s positions %s\n",
                     yawNWU, positions);
         }
-        return put(timestamp, yawNWU, positions);
+        put(timestamp, yawNWU, positions);
     }
 
     ////////////////////////////////////////////////////
@@ -131,20 +126,19 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
      * @param gyroYaw      verbatim gyro measurement
      * @param positions    verbatim drive measurement
      */
-    private SwerveState put(
+    private void put(
             double currentTimeS,
             Rotation2d gyroYaw,
             SwerveModulePositions positions) {
 
         // the entry right before this one, the basis for integration.
-        Entry<Double, SwerveState> lowerEntry = m_history.lowerEntry(
-                currentTimeS);
+        Entry<Double, SwerveState> lowerEntry = m_history.lowerEntry(currentTimeS);
 
         if (lowerEntry == null) {
             // System.out.println("lower entry is null");
             // We're at the beginning. There's nothing to apply the wheel position delta to.
             // This should never happen.
-            return null;
+            return;
         }
 
         double dt = currentTimeS - lowerEntry.getKey();
@@ -153,7 +147,7 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
         if (dt < 0.0001) {
             // I'm not sure why this happens. In any case, the logic is deterministic so
             // there's no reason to repeat it.
-            return previousState;
+            return;
         }
 
         if (m_debug)
@@ -163,7 +157,6 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
         SwerveState newState = newState(previousState, dt, gyroYaw, positions);
 
         m_history.put(currentTimeS, newState);
-        return newState;
     }
 
     /**
