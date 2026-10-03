@@ -42,10 +42,10 @@ public class Robot extends TimedRobot {
     PDynamics dynamics = PDynamics.drum(0.001, 0.025);
     final Motor m1;
     final Motor m2;
-    private final LinearMechanism l1;
-    private final LinearMechanism l2;
-    private final LinearPositionServo s1;
-    private final LinearPositionServo s2;
+   // private final LinearMechanism l1;
+   // private final LinearMechanism l2;
+   // private final LinearPositionServo s1;
+   // private final LinearPositionServo s2;
     private final ReferenceR1 ref;
     private static final LoggerFactory rootLogger = Logging.instance().rootLogger;
     private static final TotalCurrentLog currentLog = new TotalCurrentLog(rootLogger);
@@ -71,17 +71,17 @@ public class Robot extends TimedRobot {
                 rightLog, currentLog, RightCan, NeutralMode100.COAST, MotorPhase.FORWARD,
                 new CurrentLimit(40, 50),
                 friction, pid);
-        l1 = new LinearMechanism(
-                leftLog, m1, m1.encoder(), 6.06,
-                0.025, 0, 0.1);
-        l2 = new LinearMechanism(
-                rightLog, m2, m2.encoder(), 6.06,
-                0.025, 0, 0.1);
-        s1 = new OutboardLinearPositionServo(
-                leftLog, l1, pd, ref, 0.01, 0.01);
-        s2 = new OutboardLinearPositionServo(
-                rightLog, l2, pd, ref, 0.01, 0.01);
-        ref.setGoal(new StateR1(l1.getPositionM(), 0));
+        // l1 = new LinearMechanism(
+        //         leftLog, m1, m1.encoder(), 6.06,
+        //         0.025, 0, 0.1);
+        // l2 = new LinearMechanism(
+        //         rightLog, m2, m2.encoder(), 6.06,
+        //         0.025, 0, 0.1);
+        // s1 = new OutboardLinearPositionServo(
+        //         leftLog, l1, pd, ref, 0.01, 0.01);
+        // s2 = new OutboardLinearPositionServo(
+        //         rightLog, l2, pd, ref, 0.01, 0.01);
+        // ref.setGoal(new StateR1(l1.getPositionM(), 0));
 
     }
 
@@ -106,8 +106,8 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         if (controller.getXButton()) {
-            m1.setVelocity(120,0);
-            m2.setVelocity(120,0);
+            m1.setVelocity(150,0);
+            m2.setVelocity(150,0);
         }
        //elseifcontroller.getYButton()) {
         //     s1.setPositionProfiled(0);
@@ -119,9 +119,9 @@ public class Robot extends TimedRobot {
         else {
             m1.stop();
             m2.stop();
-            ref.init(new StateR1(l1.getPositionM(), 0));
-            s1.reset();
-            s2.reset();
+            //ref.init(new StateR1(l1.getPositionM(), 0));
+            // s1.reset();
+            // s2.reset();
         }
     }
 
