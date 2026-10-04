@@ -17,7 +17,7 @@ class ConfigThriftyYuyv(Config):
     """
 
     def __init__(self, size: Size) -> None:
-        print("\n*** Config: ConfigThriftyYuyv")
+        print("*** Config: ConfigThriftyYuyv")
         self._size = size
 
     @override
