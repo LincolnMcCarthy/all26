@@ -31,6 +31,7 @@ import org.team100.lib.targeting.Targets;
 import org.team100.lib.uncertainty.IsotropicNoiseSE2;
 import org.team100.lib.uncertainty.NoisyPose2d;
 import org.team100.lib.visualization.RobotPoseVisualization;
+import org.team100.lib.visualization.SwerveHistoryVisualization;
 import org.team100.lib.visualization.TrajectoryVisualization;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -103,7 +104,8 @@ public class Machinery {
         m_tagViz = new AprilTagVisualizer(
                 driveLog, fieldLogger, m_drive::getState, layout, DriverStation::getAlliance);
         m_robotViz = new RobotPoseVisualization(
-                fieldLogger, () -> m_drive.getState().pose(), "robot");
+                fieldLogger, () -> m_drive.getState(), "robot");
+        new SwerveHistoryVisualization(fieldLogger, estimate);
 
         ////////////////////////////////////////////////////////////
         //
@@ -211,7 +213,6 @@ public class Machinery {
     /** Generally for simulation and visualization */
     public void periodic() {
         m_groundTruth.periodic();
-        m_robotViz.run();
         m_tagViz.update();
     }
 
