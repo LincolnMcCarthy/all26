@@ -1,5 +1,20 @@
 # Team 100 Raspberry Pi Code Walkthrough
 
+## Control flow
+
+The app flow works generally as follows, for the most common setup:
+
+* `runapp.py` loads the deployed zip file and runs main.
+* `main.py` instantiates everything and runs a `Looper` in a separate thread.
+* `CameraLoop` repeatedly grabs a frame from `Camera` and gives it to `Interpreter`.
+  * `RealCamera` captures a frame and its timestamp
+  * `DualInterpreter` decodes the frame, gives it to `MonoAnalysis` and `ColorAnalysis`, and shows the result on `Display`.
+    * `Apriltags` finds tags, annotates the image, and sends coordinates with `Network`.
+    * `Blobs` finds objects, annotates the image, and sends coordinates with `Network`.
+    * `RealNetwork` sends messages using WPI's Network Tables.
+    * `LinuxDisplay` publishes the annotated image to `localhost:1181`.
+
+
 ## New camera quick start
 
 To set up a new camera:
