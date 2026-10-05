@@ -52,7 +52,6 @@ public class FusedEstimator implements StateEstimator {
         m_swerveLocal = swerveLocal;
         m_history = new SwerveHistory(
                 driveLog,
-                swerveKinodynamics,
                 0.2,
                 gyro.getYawNWU(),
                 VariableR1.fromStdDev(0, 1),

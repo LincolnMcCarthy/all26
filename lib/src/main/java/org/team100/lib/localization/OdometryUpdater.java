@@ -122,16 +122,17 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
      * Add a SwerveState to the buffer at the specified time, based on the measured
      * yaw and positions.
      * 
-     * @param currentTimeS takt time, seconds
+     * @param currentTimeS Takt time, seconds
      * @param gyroYaw      verbatim gyro measurement
      * @param positions    verbatim drive measurement
      */
-    private void put(
+    void put(
             double currentTimeS,
             Rotation2d gyroYaw,
             SwerveModulePositions positions) {
 
-        // the entry right before this one, the basis for integration.
+        // The entry right before this one, the basis for integration.
+        // Never interpolated.
         Entry<Double, SwerveState> lowerEntry = m_history.lowerEntry(currentTimeS);
 
         if (lowerEntry == null) {
@@ -237,13 +238,14 @@ public class OdometryUpdater implements OdometryUpdaterInterface {
         m_log_newNoise.log(() -> noise);
 
         // The result is the new state, with verbatim measurements (to use next time).
-        SwerveState swerveState = new SwerveState(
+        // There is no vision measurement here, so it's null.
+        return new SwerveState(
                 newState,
                 noise,
                 positions,
                 gyroYaw,
-                newGyroBiasEstimateRad_S);
-        return swerveState;
+                newGyroBiasEstimateRad_S,
+                null);
     }
 
     /**
